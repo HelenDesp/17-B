@@ -22,6 +22,8 @@ export default function NFTViewer() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const fetchNFTs = async () => {
       if (!address) return;
       setLoading(true);
