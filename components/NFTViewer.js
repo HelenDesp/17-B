@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -35,7 +36,7 @@ export default function NFTViewer() {
           }
 
           const image = metadata.image?.startsWith("ipfs://")
-            ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+            ? metadata.image.replace("ipfs://", "https://salmon-left-clam-542.mypinata.cloud/ipfs/")
             : metadata.image;
 
           return {
