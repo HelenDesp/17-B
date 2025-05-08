@@ -89,13 +89,13 @@ export default function NFTViewer() {
 
   return (
     <>
-      <style jsx global>{\`
+      <style jsx global>{`
         @media (max-width: 500px) {
           .grid-cols-2, .sm\:grid-cols-3, .lg\:grid-cols-4 {
             grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
           }
         }
-      \`}</style>
+      `}</style>
       <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
           ReVerse Genesis NFTs
