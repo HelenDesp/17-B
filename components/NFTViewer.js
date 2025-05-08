@@ -73,11 +73,13 @@ export default function NFTViewer() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const body = `Name: ${formData.name || selectedNFT.name}
-Manifesto: ${formData.manifesto || selectedNFT.traits.manifesto}
-Friend: ${formData.friend || selectedNFT.traits.friend}
-Weapon: ${formData.weapon || selectedNFT.traits.weapon}`;
-    const mailtoLink = \`mailto:wl@reversegenesis.org?subject=Metadata Update for \${selectedNFT.name}&body=\${encodeURIComponent(body)}\`;
+    const body = [
+      `Name: ${formData.name || selectedNFT.name}`,
+      `Manifesto: ${formData.manifesto || selectedNFT.traits.manifesto}`,
+      `Friend: ${formData.friend || selectedNFT.traits.friend}`,
+      `Weapon: ${formData.weapon || selectedNFT.traits.weapon}`
+    ].join('%0A');
+    const mailtoLink = `mailto:wl@reversegenesis.org?subject=Metadata Update for ${selectedNFT.name}&body=${body}`;
     window.location.href = mailtoLink;
   };
 
