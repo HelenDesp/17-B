@@ -17,7 +17,7 @@ export default function NFTViewer() {
       setLoading(true);
       try {
         const res = await fetch(
-          `https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal&limit=20`,
+          `https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal`,
           {
             headers: {
               "X-API-Key": MORALIS_API_KEY,
@@ -27,7 +27,7 @@ export default function NFTViewer() {
         );
         const data = await res.json();
 
-        const parsed = (data.result || []).map((nft) => {
+        const parsed = (data.result || []).filter(nft => nft.token_address?.toLowerCase() === "0x28d744dab5804ef913df1bf361e06ef87ee7fa47").map((nft) => {
           let metadata = {};
           try {
             metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
