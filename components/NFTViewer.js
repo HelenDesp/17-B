@@ -27,24 +27,26 @@ export default function NFTViewer() {
         );
         const data = await res.json();
 
-        const parsed = (data.result || []).filter(nft => nft.token_address?.toLowerCase() === "0x28d744dab5804ef913df1bf361e06ef87ee7fa47").map((nft) => {
-          let metadata = {};
-          try {
-            metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
-          } catch (e) {
-            metadata = {};
-          }
+        const parsed = (data.result || [])
+          .filter(nft => nft.token_address?.toLowerCase() === "0x28d744dab5804ef913df1bf361e06ef87ee7fa47")
+          .map((nft) => {
+            let metadata = {};
+            try {
+              metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
+            } catch (e) {
+              metadata = {};
+            }
 
-          const image = metadata.image?.startsWith("ipfs://")
-            ? metadata.image.replace("ipfs://", "https://salmon-left-clam-542.mypinata.cloud/ipfs/")
-            : metadata.image;
+            const image = metadata.image?.startsWith("ipfs://")
+              ? metadata.image.replace("ipfs://", "https://salmon-left-clam-542.mypinata.cloud/ipfs/")
+              : metadata.image;
 
-          return {
-            tokenId: nft.token_id,
-            name: metadata.name || nft.name || `Token #${nft.token_id}`,
-            image,
-          };
-        });
+            return {
+              tokenId: nft.token_id,
+              name: (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^.*?—\s*/, ''),
+              image,
+            };
+          });
 
         setNfts(parsed);
       } catch (err) {
@@ -61,7 +63,7 @@ export default function NFTViewer() {
     return (
       <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
-          NFTs
+          ReVerse Genesis NFTs
         </h2>
         <p className="text-gray-500 dark:text-gray-400">
           Connect your wallet to view NFTs.
@@ -71,39 +73,48 @@ export default function NFTViewer() {
   }
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
-        NFTs
-      </h2>
-      {loading ? (
-        <p className="text-gray-500">Loading NFTs...</p>
-      ) : nfts.length === 0 ? (
-        <p className="text-gray-500">No NFTs found for this wallet.</p>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {nfts.map((nft, i) => (
-            <div
-              key={i}
-              className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow"
-            >
-              {nft.image ? (
-                <img
-                  src={nft.image}
-                  alt={nft.name}
-                  className="w-full h-40 object-cover rounded-md"
-                />
-              ) : (
-                <div className="w-full h-40 bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
-                  No Image
+    <>
+      <style jsx global>{`
+        @media (max-width: 500px) {
+          .grid-cols-2, .sm\:grid-cols-3, .lg\:grid-cols-4 {
+            grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+          }
+        }
+      `}</style>
+      <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
+          ReVerse Genesis NFTs
+        </h2>
+        {loading ? (
+          <p className="text-gray-500">Loading NFTs...</p>
+        ) : nfts.length === 0 ? (
+          <p className="text-gray-500">No NFTs found for this wallet.</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {nfts.map((nft, i) => (
+              <div
+                key={i}
+                className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow"
+              >
+                {nft.image ? (
+                  <img
+                    src={nft.image}
+                    alt={nft.name}
+                    className="w-full aspect-square object-cover rounded-md"
+                  />
+                ) : (
+                  <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+                    No Image
+                  </div>
+                )}
+                <div className="mt-2 text-sm font-medium text-gray-800 dark:text-white">
+                  #{nft.tokenId} — {nft.name}
                 </div>
-              )}
-              <div className="mt-2 text-sm font-medium text-gray-800 dark:text-white">
-                #{nft.tokenId} — {nft.name}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
