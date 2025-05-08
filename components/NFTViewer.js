@@ -1,20 +1,9 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
-import { ethers } from "ethers";
 
-const INFURA_PROJECT_ID = "84e6a231877a49598bc05167fe403466";
-const BASE_RPC = `https://base-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`;
-const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-
-// Minimal ERC-721 ABI
-const ERC721_ABI = [
-  "function balanceOf(address owner) view returns (uint256)",
-  "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
-  "function tokenURI(uint256 tokenId) view returns (string)"
-];
+const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YWU4Y2E2LWNiNWUtNDJmNi1hYjQ5LWUzZWEwZTM5NTI2MSIsIm9yZ0lkIjoiNDQ1NTcxIiwidXNlcklkIjoiNDU4NDM4IiwidHlwZUlkIjoiMDhiYmI4YTgtMzQxYy00YTJhLTk2NGUtN2FlMGZmMzI2ODUxIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDY1NDA1MzgsImV4cCI6NDkwMjMwMDUzOH0._O5uiNnyo2sXnJDbre0_9mDklKTmrj90Yn2HXJJnZRk";
 
 export default function NFTViewer() {
   const { address, isConnected } = useAccount();
@@ -22,43 +11,43 @@ export default function NFTViewer() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
     const fetchNFTs = async () => {
       if (!address) return;
       setLoading(true);
       try {
-        const provider = new ethers.providers.JsonRpcProvider(BASE_RPC);
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, ERC721_ABI, provider);
+        const res = await fetch(
+          `https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal&limit=20`,
+          {
+            headers: {
+              "X-API-Key": MORALIS_API_KEY,
+              accept: "application/json",
+            },
+          }
+        );
+        const data = await res.json();
 
-        const balance = await contract.balanceOf(address);
-        const nftPromises = [];
+        const parsed = (data.result || []).map((nft) => {
+          let metadata = {};
+          try {
+            metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
+          } catch (e) {
+            metadata = {};
+          }
 
-        for (let i = 0; i < balance.toNumber(); i++) {
-          nftPromises.push(
-            contract.tokenOfOwnerByIndex(address, i).then(async (tokenId) => {
-              const uri = await contract.tokenURI(tokenId);
-              const metadataUrl = uri.startsWith("ipfs://")
-                ? uri.replace("ipfs://", "https://ipfs.io/ipfs/")
-                : uri;
-              const meta = await fetch(metadataUrl).then((res) => res.json());
-              const image = meta.image?.startsWith("ipfs://")
-                ? meta.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-                : meta.image;
+          const image = metadata.image?.startsWith("ipfs://")
+            ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+            : metadata.image;
 
-              return {
-                tokenId: tokenId.toString(),
-                name: meta.name || `Token #${tokenId}`,
-                image,
-              };
-            })
-          );
-        }
+          return {
+            tokenId: nft.token_id,
+            name: metadata.name || nft.name || `Token #${nft.token_id}`,
+            image,
+          };
+        });
 
-        const results = await Promise.all(nftPromises);
-        setNfts(results);
+        setNfts(parsed);
       } catch (err) {
-        console.error("Failed to fetch NFTs from Infura:", err);
+        console.error("Failed to fetch NFTs from Moralis:", err);
       } finally {
         setLoading(false);
       }
