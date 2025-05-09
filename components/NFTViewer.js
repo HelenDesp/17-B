@@ -74,7 +74,7 @@ export default function NFTViewer() {
             <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Update Metadata</h3>
             <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
             <form action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK" method="POST" className="pageclip-form space-y-3">
-			  <input type="hidden" name="_subject" value={selectedNFT.name} />
+			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
               <div>
                 <label className="block text-sm text-gray-600 dark:text-gray-300 capitalize">name</label>
                 <input type="text" name="name"
