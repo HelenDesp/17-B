@@ -30,7 +30,7 @@ export default function NFTViewer() {
             const image = metadata.image?.startsWith("ipfs://")
               ? metadata.image.replace("ipfs://", "https://salmon-left-clam-542.mypinata.cloud/ipfs/")
               : metadata.image;
-            const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\d+\s*—\s*/, "");
+            const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\d+\s*[—-]\s*/, "");
             const getTrait = type => metadata.attributes?.find(attr => attr.trait_type === type)?.value || "";
             return { tokenId: nft.token_id, name, image, traits: { manifesto: getTrait("Manifesto"), friend: getTrait("Friend"), weapon: getTrait("Weapon") } };
           });
@@ -50,15 +50,6 @@ export default function NFTViewer() {
     <>
       <link rel="stylesheet" href="https://s.pageclip.co/v1/pageclip.css" media="screen" />
       <script src="https://s.pageclip.co/v1/pageclip.js" charSet="utf-8"></script>
-
-      <style jsx global>{`
-        @media (max-width: 500px) {
-          .grid-cols-2, .sm\:grid-cols-3, .lg\:grid-cols-4 {
-            grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-          }
-        }
-      `}</style>
-
       <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">ReVerse Genesis NFTs</h2>
         {loading ? <p className="text-gray-500">Loading NFTs...</p> : nfts.length === 0 ? <p className="text-gray-500">No NFTs found for this wallet.</p> : (
@@ -71,7 +62,7 @@ export default function NFTViewer() {
                   <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">No Image</div>
                 )}
                 <div className="mt-2 text-sm font-medium text-gray-800 dark:text-white">#{nft.tokenId} — {nft.name}</div>
-                <button onClick={() => { setSelectedNFT(nft); setFormData({ name: "", manifesto: "", friend: "", weapon: "" }); }} className="mt-2 text-sm text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Update metadata</button>
+                <button onClick={() => setSelectedNFT(nft)} className="mt-2 text-sm text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Update metadata</button>
               </div>
             ))}
           </div>
@@ -84,10 +75,14 @@ export default function NFTViewer() {
             <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Update Metadata</h3>
             <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
             <form action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK" method="POST" className="pageclip-form space-y-3">
-              {["name", "manifesto", "friend", "weapon"].map(field => (
+              <div>
+                <label className="block text-sm text-gray-600 dark:text-gray-300 capitalize">name</label>
+                <input type="text" name="name" value={formData.name || selectedNFT.name} onChange={e => handleChange("name", e.target.value)} placeholder={selectedNFT.name} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
+              </div>
+              {["manifesto", "friend", "weapon"].map(field => (
                 <div key={field}>
                   <label className="block text-sm text-gray-600 dark:text-gray-300 capitalize">{field}</label>
-                  <input type="text" name={field} value={formData[field]} onChange={e => handleChange(field, e.target.value)} placeholder={selectedNFT.traits?.[field] || ""} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
+                  <input type="text" name={field} value={formData[field] || selectedNFT.traits[field]} onChange={e => handleChange(field, e.target.value)} placeholder={selectedNFT.traits[field]} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                 </div>
               ))}
               <div className="flex justify-between mt-4">
