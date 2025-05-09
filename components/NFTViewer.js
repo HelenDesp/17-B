@@ -30,7 +30,7 @@ export default function NFTViewer() {
             const image = metadata.image?.startsWith("ipfs://")
               ? metadata.image.replace("ipfs://", "https://salmon-left-clam-542.mypinata.cloud/ipfs/")
               : metadata.image;
-            const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\d+\s*[—-]\s*/, "");
+            const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\d+\s*[-–—]*\s*/, "");
             const getTrait = type => metadata.attributes?.find(attr => attr.trait_type === type)?.value || "";
             return { tokenId: nft.token_id, name, image, traits: { manifesto: getTrait("Manifesto"), friend: getTrait("Friend"), weapon: getTrait("Weapon") } };
           });
