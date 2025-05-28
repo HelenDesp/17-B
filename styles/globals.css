@@ -2,9 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Body Font */
+@font-face {
+    font-family: "Cygnito Mono";
+    src: url("https://cdn.prod.website-files.com/6472a0480700b4ffad5ca638/64762b247fcc87deb90dc047_Cygnito%20Mono.woff2") format("woff2"),
+         url("https://cdn.prod.website-files.com/6472a0480700b4ffad5ca638/64762b3053cc86fc19a84358_Cygnito%20Mono.woff") format("woff"),
+         url("https://cdn.prod.website-files.com/6472a0480700b4ffad5ca638/64762b361c67d1cbe65560f3_Cygnito%20Mono.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 @layer base {
   html {
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: "Cygnito Mono", sans-serif;
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
   }
@@ -67,14 +80,17 @@
   /* Responsive typography */
   h1 {
     @apply text-xl md:text-2xl font-bold;
+	font-family: 'Press Start 2P';
   }
 
   h2 {
     @apply text-lg md:text-xl font-semibold;
+	font-family: 'Press Start 2P';
   }
 
   h3 {
     @apply text-base md:text-lg font-medium;
+	font-family: 'Press Start 2P';
   }
 }
 
