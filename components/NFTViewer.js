@@ -27,7 +27,7 @@ export default function NFTViewer() {
             let metadata = {};
             try { metadata = nft.metadata ? JSON.parse(nft.metadata) : {}; } catch { metadata = {}; }
             const image = metadata.image?.startsWith("ipfs://")
-              ? metadata.image.replace("ipfs://", "https://salmon-left-clam-542.mypinata.cloud/ipfs/")
+              ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
               : metadata.image;
             const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\d+\s*[-–—]*\s*/, "");
             const getTrait = type => metadata.attributes?.find(attr => attr.trait_type === type)?.value || "";
