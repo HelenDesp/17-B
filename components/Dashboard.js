@@ -31,7 +31,9 @@ export default function Dashboard() {
             Connect your wallet to view your assets, make transfers, and track
             your transaction history.
           </p>
-          <appkit-button />
+          <div className="text-center mt-6">
+  <appkit-button className="connect-wallet-btn" />
+</div>
         </div>
       </div>
     );
