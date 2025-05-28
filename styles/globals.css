@@ -97,6 +97,7 @@
 /* Custom styles for AppKit button */
 appkit-button::part(button) {
   @apply rounded-lg px-4 py-2 font-medium bg-primary-600 text-white transition-colors;
+  font-family: "Cygnito Mono", sans-serif !important;
 }
 
 appkit-button::part(button):hover {
