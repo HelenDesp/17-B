@@ -38,10 +38,10 @@ export default function ConnectWallet() {
         </div>
       ) : (
         <button
-          onClick={handleConnect}
+
           className="connect-wallet-btn"
         >
-          Connect Wallet
+          Not Connect Wallet
         </button>
       )}
     </div>
