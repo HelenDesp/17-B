@@ -104,6 +104,15 @@ appkit-button::part(button):hover {
   @apply bg-primary-700;
 }
 
+appkit-connect-button::part(button) {
+  @apply rounded-lg px-4 py-2 font-medium bg-primary-600 text-white transition-colors;
+  font-family: "Cygnito Mono", sans-serif !important;
+}
+
+appkit-connect-button::part(button):hover {
+  @apply bg-primary-700;
+}
+
 /* Animations */
 @keyframes float {
   0% {
