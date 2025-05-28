@@ -17,7 +17,7 @@ export default function NFTViewer() {
       if (!address) return;
       setLoading(true);
       try {
-        const res = await fetch(`https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal`, {
+        const res = await fetch(`https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal&normalizeMetadata=true`, {
           headers: { "X-API-Key": MORALIS_API_KEY, accept: "application/json" },
         });
         const data = await res.json();
