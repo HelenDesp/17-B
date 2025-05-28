@@ -38,10 +38,10 @@ export default function ConnectWallet() {
         </div>
       ) : (
         <button
-
-          className="connect-wallet-btn"
+          onClick={handleConnect}
+          className="border-4 border-black dark:border-white text-black dark:text-white bg-transparent px-8 py-2 text-sm font-normal tracking-wide uppercase font-mono rounded-none transition-all duration-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
         >
-          Not Connect Wallet
+          Connect Wallet
         </button>
       )}
     </div>

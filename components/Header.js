@@ -137,7 +137,7 @@ export default function Header({ toggleSidebar }) {
               Connect Wallet
             </button>
           )} */}
-          <appkit-button className="connect-wallet-btn" />
+          <appkit-button />
         </div>
       </div>
     </header>
