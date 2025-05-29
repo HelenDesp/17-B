@@ -140,7 +140,7 @@ export default function Header({ toggleSidebar }) {
               Connect Wallet
             </button>
           )} */}
-          {!isHomePage && <appkit-button />}
+          {(!isHomePage || isConnected) && <appkit-button />}
         </div>
       </div>
     </header>
