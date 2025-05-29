@@ -148,14 +148,18 @@ export default function Header({ toggleSidebar }) {
               Connect Wallet
             </button>
           )} */}
-		{isConnected && (
-		  <button
-			onClick={modal.open}
-			className="ml-4 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-100 text-gray-800 dark:text-gray-200 text-sm font-mono hover:bg-gray-200 dark:hover:bg-dark-200 transition-colors"
-		  >
-			{formatAddress(address)}
-		  </button>
-		)}
+{isConnected && (
+  <div className="relative inline-block">
+    <appkit-button className="opacity-0 pointer-events-none" />
+
+    <button
+      onClick={() => document.querySelector("appkit-button")?.click()}
+      className="absolute inset-0 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-100 text-gray-800 dark:text-gray-200 text-sm font-mono hover:bg-gray-200 dark:hover:bg-dark-200 transition-colors z-10"
+    >
+      {formatAddress(address)}
+    </button>
+  </div>
+)}
         </div>
       </div>
     </header>
