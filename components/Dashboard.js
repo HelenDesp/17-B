@@ -17,12 +17,6 @@ export default function Dashboard() {
     enabled: !!address,
   });
   
-const [mounted, setMounted] = useState(false);
-const { address, isConnected, chain } = useAccount();
-const { data: ethBalance } = useBalance({
-  address,
-  enabled: !!address,
-});
 
 // ✅ Add this gas price logic here
 const [gasPriceGwei, setGasPriceGwei] = useState(null);
