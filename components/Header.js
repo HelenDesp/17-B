@@ -4,6 +4,7 @@ import { useTheme } from "../context/ThemeContext";
 import { modal } from "../context";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
+import { useEnsName } from "wagmi";
 
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
@@ -11,6 +12,7 @@ export default function Header({ toggleSidebar }) {
   const { disconnect } = useDisconnect();
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
+  const { data: ensName } = useEnsName({ address });
   const handleWalletModal = () => {
   open({ view: "Account" }); // You can also use "Swap", "OnRampProviders", etc.
 };
@@ -158,7 +160,7 @@ export default function Header({ toggleSidebar }) {
     onClick={handleWalletModal}
 	className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white px-4 py-1.5 text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
   >
-    {formatAddress(address)}
+    {ensName || formatAddress(address)}
   </button>
 ) : (
   <button
