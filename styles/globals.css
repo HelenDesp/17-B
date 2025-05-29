@@ -25,6 +25,11 @@
   body {
     @apply bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white transition-colors duration-200;
   }
+  
+    appkit-button::part(balance) {
+    color: #111111;
+    font-weight: 500;
+  }
 
   /* Prevent scrolling when sidebar is open on mobile */
   @media (max-width: 767px) {
