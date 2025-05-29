@@ -21,22 +21,33 @@ useEffect(() => {
 
   const interval = setInterval(() => {
     const appkitBtn = document.querySelector('appkit-button');
+    if (!appkitBtn || !appkitBtn.shadowRoot) return;
 
-    if (appkitBtn && appkitBtn.shadowRoot) {
-      const shadow = appkitBtn.shadowRoot;
+    const shadow = appkitBtn.shadowRoot;
 
-      const balanceText = shadow.querySelector('wui-text');
-      const baseIcon = shadow.querySelector('wui-image');
+    // Try to find and hide the balance
+    const wuiTexts = shadow.querySelectorAll('wui-text');
+    wuiTexts.forEach((el) => {
+      if (el.textContent?.includes('ETH')) {
+        el.style.display = 'none';
+      }
+    });
 
-      if (balanceText) balanceText.style.display = 'none';
-      if (baseIcon) baseIcon.style.display = 'none';
+    // Try to find and hide the Base icon
+    const wuiImages = shadow.querySelectorAll('wui-image');
+    wuiImages.forEach((el) => {
+      el.style.display = 'none';
+    });
 
-      clearInterval(interval); // Stop once it's done
-    }
+    // Confirm if we succeeded (optional log)
+    console.log('[RVG] Hid balance and Base icon from appkit-button');
+
+    clearInterval(interval); // Stop after successful patch
   }, 300);
 
   return () => clearInterval(interval);
 }, []);
+
 
   const handleConnect = () => {
     modal.open();
