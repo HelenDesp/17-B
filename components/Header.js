@@ -156,7 +156,8 @@ export default function Header({ toggleSidebar }) {
 {isConnected ? (
   <button
     onClick={handleWalletModal}
-    className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-100 text-gray-800 dark:text-gray-200 text-sm font-mono hover:bg-gray-200 dark:hover:bg-dark-200 transition-colors"
+	className="px-4 py-1.5 border-2 rounded-[4px] border-gray-800 dark:border-gray-200 text-gray-800 dark:text-gray-200 text-sm uppercase tracking-wide transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-dark-200"
+	style={{ fontFamily: "'Cygnito_Mono', sans-serif" }}
   >
     {formatAddress(address)}
   </button>
