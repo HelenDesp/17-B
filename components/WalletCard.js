@@ -91,7 +91,7 @@ import React from "react";
 import { useAccount, useBalance } from "wagmi";
 
 export default function WalletCard() {
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { data: ethBalance } = useBalance({
     address,
     enabled: !!address,
