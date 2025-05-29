@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useAppKit } from "@reown/appkit/react";
+import { useEnsName } from "wagmi";
 
 export default function Sidebar() {
   const router = useRouter();
@@ -21,6 +23,13 @@ export default function Sidebar() {
     if (!addr) return "";
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
+  
+  const { open } = useAppKit();
+  const { data: ensName } = useEnsName({ address, chainId: 1 });
+
+	const handleWalletModal = () => {
+	  open({ view: "Account" });
+	};
 
   // Menu items with icons
   const menuItems = [
@@ -148,10 +157,10 @@ export default function Sidebar() {
           </div>
           <div>
             <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
-              My Wallet
+              WELCOME
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              {formatAddress(address)}
+              {ensName || formatAddress(address)}
             </div>
           </div>
         </div>
