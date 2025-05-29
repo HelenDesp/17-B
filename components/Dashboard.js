@@ -29,7 +29,7 @@ export default function Dashboard() {
             Mudelo to your Web3 Wallet
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            RConnect your wallet to view your assets, make transfers, and track
+            Connect your wallet to view your assets, make transfers, and track
             your transaction history.
           </p>
           <CustomWalletButton />

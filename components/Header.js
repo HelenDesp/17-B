@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { modal } from "../context";
-import CustomWalletButton from "./CustomWalletButton";
 
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
@@ -138,7 +137,7 @@ export default function Header({ toggleSidebar }) {
               Connect Wallet
             </button>
           )} */}
-          <CustomWalletButton />
+          <appkit-button />
         </div>
       </div>
     </header>
