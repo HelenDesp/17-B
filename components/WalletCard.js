@@ -104,6 +104,27 @@ export default function WalletCard() {
     if (!addr) return "";
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
+  
+const getExplorerUrl = (chainId) => {
+  switch (chainId) {
+    case 1:
+      return "https://etherscan.io"; // Ethereum Mainnet
+    case 8453:
+      return "https://basescan.org"; // Base
+    case 137:
+      return "https://polygonscan.com"; // Polygon
+    case 42161:
+      return "https://arbiscan.io"; // Arbitrum One
+    case 10:
+      return "https://optimistic.etherscan.io"; // Optimism
+    case 11155111:
+      return "https://sepolia.etherscan.io"; // Sepolia
+    case 56:
+      return "https://bscscan.com"; // BNB Smart Chain
+    default:
+      return "https://basescan.org"; // Fallback
+  }
+};  
 
   return (
     <div className="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl p-6 text-white relative overflow-hidden">
@@ -113,7 +134,9 @@ export default function WalletCard() {
             <h3 className="text-lg font-medium text-white/90">
               Ethereum Wallet
             </h3>
-            <p className="text-sm text-white/70">Main Account</p>
+			  <p className="text-sm text-white/70">
+				Explorer: {getExplorerUrl(chain?.id).replace("https://", "")}
+			  </p>
           </div>
           <div className="flex items-center px-2 py-1 bg-white/20 rounded-full">
             <span className="w-2 h-2 rounded-full bg-green-400 mr-1"></span>
@@ -144,10 +167,10 @@ export default function WalletCard() {
 
         <div className="mt-4">
           <div className="text-sm text-white/70">Balance</div>
-          <div className="text-2xl font-bold">
+          <div className="text-2xl font-normal">
             {ethBalance
-              ? parseFloat(ethBalance.formatted).toFixed(4)
-              : "0.0000"}{" "}
+              ? parseFloat(ethBalance.formatted).toFixed(5)
+              : "0.00000"}{" "}
             {ethBalance?.symbol || "ETH"}
           </div>
         </div>
@@ -155,9 +178,9 @@ export default function WalletCard() {
         <div className="mt-6 grid grid-cols-2 gap-2">
           <button
             className="bg-white/20 hover:bg-white/30 transition-colors py-2 px-4 rounded-lg text-sm font-medium"
-            onClick={() =>
-              window.open(`https://etherscan.io/address/${address}`, "_blank")
-            }
+			onClick={() =>
+			  window.open(`${getExplorerUrl(chain?.id)}/address/${address}`, "_blank")
+			}
           >
             View on Explorer
           </button>
