@@ -106,8 +106,7 @@ export default function Header({ toggleSidebar }) {
 		  )}
 		  {isHomePage && (
 			<span
-			  className="text-sm uppercase text-gray-700 dark:text-gray-300"
-			  style={{ fontFamily: "'Cygnito_Mono', sans-serif" }}
+			  className="text-sm uppercase text-gray-700 [font-family:'Cygnito_Mono',sans-serif] dark:text-gray-300"
 			>
 			  THEME
 			</span>
