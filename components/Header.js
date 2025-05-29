@@ -2,13 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { modal } from "../context";
-import CustomWalletButton from "./CustomWalletButton";
+import { useRouter } from "next/router";
 
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
   const { address, isConnected, chain } = useAccount();
   const { disconnect } = useDisconnect();
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
+  const isHomePage = router.pathname === "/";
   const { data: ethBalance } = useBalance({
     address,
     enabled: !!address,
@@ -138,7 +140,7 @@ export default function Header({ toggleSidebar }) {
               Connect Wallet
             </button>
           )} */}
-          <appkit-button />
+          {!isHomePage && <appkit-button />}
         </div>
       </div>
     </header>
