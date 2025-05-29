@@ -23,7 +23,6 @@
 import { useEffect, useState } from "react";
 import ContextProvider from "../context";
 import { ThemeProvider } from "../context/ThemeContext";
-import { AppKitProvider } from "@reown/appkit/react";
 import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }) {
@@ -42,11 +41,9 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <ThemeProvider>
-      <AppKitProvider>
-        <ContextProvider cookies={cookieString}>
-          <Component {...pageProps} />
-        </ContextProvider>
-      </AppKitProvider>
+      <ContextProvider cookies={cookieString}>
+        <Component {...pageProps} />
+      </ContextProvider>
     </ThemeProvider>
   );
 }
