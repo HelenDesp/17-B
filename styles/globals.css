@@ -77,9 +77,9 @@
     -moz-appearance: textfield;
   }
   
-  appkit-button {
+  appkit-button:not([data-show-wallet]) {
     display: none !important;
-  }  
+  } 
 
   /* Responsive typography */
   h1 {
