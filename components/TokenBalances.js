@@ -113,36 +113,37 @@ const [ethUsd, setEthUsd] = useState(null);
 	
 useEffect(() => {
   const fetchEthPrice = async () => {
-    if (!chain?.id) {
-      console.log("No chain ID yet");
-      return;
-    }
+    if (!chain?.id) return;
 
-    const chainMap = {
-      1: "ethereum",
-      8453: "base",
-      137: "polygon-pos",
-      42161: "arbitrum-one",
-      10: "optimistic-ethereum",
-      56: "binance-smart-chain",
-      11155111: "sepolia",
+    const nativeIdMap = {
+      1: 'ethereum',           // Ethereum Mainnet
+      8453: 'ethereum',        // Base chain (uses ETH)
+      42161: 'ethereum',       // Arbitrum
+      10: 'ethereum',          // Optimism
+      137: 'matic-network',    // Polygon = MATIC
+      56: 'binancecoin',       // BNB
+      11155111: 'ethereum',    // Sepolia (testnet)
     };
 
-    const platform = chainMap[chain.id];
-    if (!platform) {
-      console.log("Unsupported chain:", chain.id);
+    const coinId = nativeIdMap[chain.id];
+    if (!coinId) {
+      console.warn('Unsupported chain for native token price:', chain.id);
       return;
     }
 
-    const url = `https://api.coingecko.com/api/v3/simple/token_price/${platform}?contract_addresses=0x0000000000000000000000000000000000000000&vs_currencies=usd`;
-    console.log("Fetching price from:", url);
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`;
+    console.log("Fetching native token price from:", url);
 
-    const res = await fetch(url);
-    const data = await res.json();
-    console.log("CoinGecko response:", data);
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      console.log("Coingecko response:", data);
 
-    const price = Object.values(data)?.[0]?.usd;
-    setEthUsd(price);
+      const price = data[coinId]?.usd;
+      if (price) setEthUsd(price);
+    } catch (err) {
+      console.error('Error fetching price:', err);
+    }
   };
 
   fetchEthPrice();
