@@ -148,6 +148,8 @@ useEffect(() => {
           </div>
         </div>
       </div>
+	  
+	  <NFTViewer />
 
       {/* Main Content */}
       <div className="dashboard-columns">
@@ -167,7 +169,6 @@ useEffect(() => {
           <ActivityCard />
         </div>
       </div>
-      <NFTViewer />
 </div>
   );
 }
