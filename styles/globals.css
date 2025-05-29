@@ -77,6 +77,15 @@
     -moz-appearance: textfield;
   }
 
+	appkit-button::part(button) {
+	  @apply rounded-lg px-4 py-2 font-medium bg-primary-600 text-white transition-colors;
+	  font-family: "Cygnito Mono", sans-serif !important;
+	}
+
+	appkit-button::part(button):hover {
+	  @apply bg-primary-700;
+	}  
+  
   /* Responsive typography */
   h1 {
     @apply text-xl md:text-2xl font-bold;
@@ -96,13 +105,14 @@
 
 /* Custom styles for AppKit button */
 appkit-button::part(button) {
-  @apply rounded-lg px-4 py-2 font-medium bg-primary-50 text-white transition-colors;
+  @apply rounded-lg px-4 py-2 font-medium bg-primary-600 text-white transition-colors;
   font-family: "Cygnito Mono", sans-serif !important;
 }
 
 appkit-button::part(button):hover {
-  @apply bg-primary-600;
+  @apply bg-primary-700;
 }
+
 
 /* Animations */
 @keyframes float {
