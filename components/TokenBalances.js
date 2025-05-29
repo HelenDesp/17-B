@@ -113,7 +113,10 @@ const [ethUsd, setEthUsd] = useState(null);
 	
 useEffect(() => {
   const fetchEthPrice = async () => {
-    if (!chain?.id) return;
+    if (!chain?.id) {
+      console.log("No chain ID yet");
+      return;
+    }
 
     const chainMap = {
       1: "ethereum",
@@ -126,14 +129,19 @@ useEffect(() => {
     };
 
     const platform = chainMap[chain.id];
-    if (!platform) return;
+    if (!platform) {
+      console.log("Unsupported chain:", chain.id);
+      return;
+    }
 
-    const res = await fetch(
-      `https://api.coingecko.com/api/v3/simple/token_price/${platform}?contract_addresses=0x0000000000000000000000000000000000000000&vs_currencies=usd`
-    );
+    const url = `https://api.coingecko.com/api/v3/simple/token_price/${platform}?contract_addresses=0x0000000000000000000000000000000000000000&vs_currencies=usd`;
+    console.log("Fetching price from:", url);
 
+    const res = await fetch(url);
     const data = await res.json();
-    const price = data["0x0000000000000000000000000000000000000000"]?.usd;
+    console.log("CoinGecko response:", data);
+
+    const price = Object.values(data)?.[0]?.usd;
     setEthUsd(price);
   };
 
