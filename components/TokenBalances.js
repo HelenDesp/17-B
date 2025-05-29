@@ -100,14 +100,14 @@ export default function TokenBalances() {
     enabled: !!address,
   });
 
-  useEffect(() => {
-    if (chainId && popularTokens[chainId]) {
-      setTokens(popularTokens[chainId]);
-    } else {
-      // Default to Ethereum mainnet if chain is not supported
-      setTokens(popularTokens[1]);
-    }
-  }, [chainId]);
+	useEffect(() => {
+	  if (chain?.id && popularTokens[chain.id]) {
+		setTokens(popularTokens[chain.id]);
+	  } else {
+		// Default to Ethereum mainnet if chain is not supported
+		setTokens(popularTokens[1]);
+	  }
+	}, [chain]);
 
   if (!isConnected) {
     return (
