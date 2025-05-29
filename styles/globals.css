@@ -76,6 +76,10 @@
   input[type="number"] {
     -moz-appearance: textfield;
   }
+  
+  appkit-button {
+    display: none !important;
+  }  
 
   /* Responsive typography */
   h1 {
