@@ -16,9 +16,27 @@ export default function Header({ toggleSidebar }) {
     enabled: !!address,
   });
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+useEffect(() => {
+  setMounted(true);
+
+  const interval = setInterval(() => {
+    const appkitBtn = document.querySelector('appkit-button');
+
+    if (appkitBtn && appkitBtn.shadowRoot) {
+      const shadow = appkitBtn.shadowRoot;
+
+      const balanceText = shadow.querySelector('wui-text');
+      const baseIcon = shadow.querySelector('wui-image');
+
+      if (balanceText) balanceText.style.display = 'none';
+      if (baseIcon) baseIcon.style.display = 'none';
+
+      clearInterval(interval); // Stop once it's done
+    }
+  }, 300);
+
+  return () => clearInterval(interval);
+}, []);
 
   const handleConnect = () => {
     modal.open();
