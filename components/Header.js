@@ -150,11 +150,13 @@ export default function Header({ toggleSidebar }) {
           )} */}
 {isConnected && (
   <div className="relative inline-block">
-    <appkit-button className="opacity-0 pointer-events-none" />
+    {/* Hidden but functional AppKit trigger */}
+    <appkit-button className="absolute inset-0 w-full h-full opacity-0 pointer-events-none m-0 p-0" />
 
+    {/* Your custom visible address button */}
     <button
       onClick={() => document.querySelector("appkit-button")?.click()}
-      className="absolute inset-0 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-100 text-gray-800 dark:text-gray-200 text-sm font-mono hover:bg-gray-200 dark:hover:bg-dark-200 transition-colors z-10"
+      className="relative z-10 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-100 text-gray-800 dark:text-gray-200 text-sm font-mono hover:bg-gray-200 dark:hover:bg-dark-200 transition-colors"
     >
       {formatAddress(address)}
     </button>
