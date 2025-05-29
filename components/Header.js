@@ -75,7 +75,7 @@ export default function Header({ toggleSidebar }) {
 
             {isConnected && chain && (
 			<span
-			  className="ml-2 inline-flex items-center px-4 py-4 rounded-full text-base font-bold uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+			  className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-base font-bold uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
 			  style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
 			>
 			  {chain.name}
