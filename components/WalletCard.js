@@ -134,9 +134,28 @@ const getExplorerUrl = (chainId) => {
             <h3 className="text-lg font-medium text-white/90">
               Ethereum Wallet
             </h3>
-			  <p className="text-sm text-white/70">
-				Explorer: {getExplorerUrl(chain?.id).replace("https://", "")}
-			  </p>
+			<p className="text-sm text-white/70 uppercase">
+			  {(() => {
+				switch (chain?.id) {
+				  case 1:
+					return "Ethereum";
+				  case 8453:
+					return "Base";
+				  case 137:
+					return "Polygon";
+				  case 42161:
+					return "Arbitrum";
+				  case 10:
+					return "Optimism";
+				  case 11155111:
+					return "Sepolia";
+				  case 56:
+					return "BNB";
+				  default:
+					return "Base";
+				}
+			  })()}
+			</p>
           </div>
           <div className="flex items-center px-2 py-1 bg-white/20 rounded-full">
             <span className="w-2 h-2 rounded-full bg-green-400 mr-1"></span>
