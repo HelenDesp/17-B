@@ -25,13 +25,12 @@
   body {
     @apply bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white transition-colors duration-200;
   }
-  
-    appkit-button::part(balance) {
+
+    appkit-button wui-text {
     display: none !important;
   }
 
-  /* Fallback in case ::part is not exposed */
-  appkit-button [data-part="balance"] {
+  appkit-button wui-image {
     display: none !important;
   }
 
