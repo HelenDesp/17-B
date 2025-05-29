@@ -26,13 +26,9 @@
     @apply bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white transition-colors duration-200;
   }
 
-    appkit-button wui-text {
-    display: none !important;
-  }
-
-  appkit-button wui-image {
-    display: none !important;
-  }
+appkit-button wui-text[variant="paragraph-600"] {
+  display: none !important;
+}
 
   /* Prevent scrolling when sidebar is open on mobile */
   @media (max-width: 767px) {
@@ -112,14 +108,18 @@ appkit-button::part(button):hover {
   @apply bg-primary-700;
 }
 
+appkit-button wui-text[variant="paragraph-600"] {
+  display: none !important;
+}
+
 appkit-button wui-text {
   display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  font-size: 0 !important;
 }
-
-appkit-button wui-image {
-  display: none !important;
-}
-
 
 /* Animations */
 @keyframes float {
