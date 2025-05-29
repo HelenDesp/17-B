@@ -75,7 +75,7 @@ export default function Header({ toggleSidebar }) {
 
             {isConnected && chain && (
 			<span
-			  className="ml-2 inline-flex items-center px-3 py-1 rounded-none text-base font-bold uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 relative -top-[6px]"
+			  className="ml-2 inline-flex items-center px-3 py-1 rounded-none text-base font-normal uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 relative -top-[6px]"
 			  style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
 			>
 			  {chain.name}
@@ -128,7 +128,7 @@ export default function Header({ toggleSidebar }) {
           {isConnected && ethBalance && (
             <div className="hidden sm:flex items-center bg-gray-100 dark:bg-dark-100 px-3 py-1.5 rounded-lg">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {parseFloat(ethBalance.formatted).toFixed(4)}{" "}
+                {parseFloat(ethBalance.formatted).toFixed(5)}{" "}
                 {ethBalance.symbol}
               </span>
             </div>
