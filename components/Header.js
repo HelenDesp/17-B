@@ -3,12 +3,17 @@ import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { modal } from "../context";
 import { useRouter } from "next/router";
+import { useAppKit } from "@reown/appkit/react";
 
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
   const { address, isConnected, chain } = useAccount();
   const { disconnect } = useDisconnect();
   const { theme, toggleTheme } = useTheme();
+  const { open } = useAppKit();
+  const handleWalletModal = () => {
+  open({ view: "Account" }); // You can also use "Swap", "OnRampProviders", etc.
+};
   const router = useRouter();
   const isHomePage = router.pathname === "/";
   const { data: ethBalance } = useBalance({
@@ -148,19 +153,20 @@ export default function Header({ toggleSidebar }) {
               Connect Wallet
             </button>
           )} */}
-{isConnected && (
-  <div className="relative inline-block">
-    {/* Hidden but functional AppKit trigger */}
-    <appkit-button className="absolute inset-0 w-full h-full opacity-0 pointer-events-none m-0 p-0" />
-
-    {/* Your custom visible address button */}
-    <button
-      onClick={() => document.querySelector("appkit-button")?.click()}
-      className="relative z-10 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-100 text-gray-800 dark:text-gray-200 text-sm font-mono hover:bg-gray-200 dark:hover:bg-dark-200 transition-colors"
-    >
-      {formatAddress(address)}
-    </button>
-  </div>
+{isConnected ? (
+  <button
+    onClick={handleWalletModal}
+    className="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-100 text-gray-800 dark:text-gray-200 text-sm font-mono hover:bg-gray-200 dark:hover:bg-dark-200 transition-colors"
+  >
+    {formatAddress(address)}
+  </button>
+) : (
+  <button
+    onClick={() => open({ view: "Connect" })}
+    className="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-medium transition-colors"
+  >
+    Connect Wallet
+  </button>
 )}
         </div>
       </div>
