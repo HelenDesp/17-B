@@ -27,8 +27,12 @@
   }
   
     appkit-button::part(balance) {
-    color: #111111;
-    font-weight: 500;
+    display: none !important;
+  }
+
+  /* Fallback in case ::part is not exposed */
+  appkit-button [data-part="balance"] {
+    display: none !important;
   }
 
   /* Prevent scrolling when sidebar is open on mobile */
