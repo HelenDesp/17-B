@@ -7,7 +7,7 @@ import ActivityCard from "./ActivityCard";
 import NFTViewer from "./NFTViewer";
 import CustomWalletButton from "./CustomWalletButton";
 import { createPublicClient, http } from "viem";
-import { base } from "viem/chains";
+import { defineChain } from "viem";
 
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
@@ -24,12 +24,27 @@ const [gasPriceGwei, setGasPriceGwei] = useState(null);
 useEffect(() => {
   const fetchGasPrice = async () => {
     try {
+      if (!chain?.id) return;
+
       const client = createPublicClient({
-        chain: base,
+        chain: defineChain({
+          id: chain.id,
+          name: chain.name,
+          nativeCurrency: {
+            name: chain.nativeCurrency?.name || "ETH",
+            symbol: chain.nativeCurrency?.symbol || "ETH",
+            decimals: 18,
+          },
+          rpcUrls: {
+            default: {
+              http: [chain.rpcUrls?.default?.http?.[0] || ""],
+            },
+          },
+        }),
         transport: http(),
       });
 
-      const gasPrice = await client.getGasPrice(); // in wei
+      const gasPrice = await client.getGasPrice();
       const gwei = Number(gasPrice) / 1e9;
       setGasPriceGwei(gwei.toFixed(3));
     } catch (err) {
@@ -40,7 +55,7 @@ useEffect(() => {
   fetchGasPrice();
   const interval = setInterval(fetchGasPrice, 15000);
   return () => clearInterval(interval);
-}, []);  
+}, [chain]); 
 
   useEffect(() => {
     setMounted(true);
