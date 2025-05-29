@@ -75,13 +75,22 @@ export default function Dashboard() {
             </div>
           </div>
 
-			{/* Connected Wallet */}
-			<div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
-			  <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-				Connected Wallet
-			  </div>
-			  <appkit-wallet />
-			</div>
+          {/* Connected Wallet Card */}
+          {/* <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Connected Wallet
+            </div>
+            <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white flex items-center">
+              <div className="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
+              <div className="truncate max-w-[140px]">
+                {address
+                  ? `${address.substring(0, 6)}...${address.substring(
+                      address.length - 4
+                    )}`
+                  : "Not Connected"}
+              </div>
+            </div>
+          </div> */}
 
           {/* Gas Price Card */}
           <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
