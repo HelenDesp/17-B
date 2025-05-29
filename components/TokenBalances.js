@@ -91,7 +91,7 @@ const erc20Abi = [
 ];
 
 export default function TokenBalances() {
-  const { address, chainId, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const [tokens, setTokens] = useState([]);
 
   // Get ETH balance
@@ -177,8 +177,27 @@ export default function TokenBalances() {
               <div className="font-medium text-gray-900 dark:text-white">
                 Ethereum
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
-                Native Token
+              <div className="text-xs text-gray-500 dark:text-gray-400 uppercase hidden sm:block">
+			  {(() => {
+				switch (chain?.id) {
+				  case 1:
+					return "Native Token";
+				  case 8453:
+					return "Base";
+				  case 137:
+					return "Polygon";
+				  case 42161:
+					return "Arbitrum";
+				  case 10:
+					return "Optimism";
+				  case 11155111:
+					return "Sepolia";
+				  case 56:
+					return "BNB";
+				  default:
+					return "Base";
+				}
+			  })()}				
               </div>
             </div>
           </div>
