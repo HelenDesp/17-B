@@ -1,7 +1,6 @@
 import { useAccount, useDisconnect } from "wagmi";
 import { modal } from "../context";
 import { useEffect, useState } from "react";
-import CustomWalletButton from "./CustomWalletButton";
 
 export default function ConnectWallet() {
   // For hydration issues in Next.js, use client-side only rendering
@@ -35,7 +34,7 @@ export default function ConnectWallet() {
           >
             Disconnect
           </button> */}
-          <CustomWalletButton />
+          <appkit-button />
         </div>
       ) : (
         <button
