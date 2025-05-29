@@ -31,7 +31,7 @@ useEffect(() => {
 
       const gasPrice = await client.getGasPrice(); // in wei
       const gwei = Number(gasPrice) / 1e9;
-      setGasPriceGwei(gwei.toFixed(2));
+      setGasPriceGwei(gwei.toFixed(3));
     } catch (err) {
       console.error("Failed to fetch gas price:", err);
     }
@@ -83,10 +83,10 @@ useEffect(() => {
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Total Balance
             </div>
-            <div className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="mt-1 text-2xl font-normal text-gray-900 dark:text-white">
               {ethBalance
-                ? parseFloat(ethBalance.formatted).toFixed(4)
-                : "0.0000"}{" "}
+                ? parseFloat(ethBalance.formatted).toFixed(5)
+                : "0.00000"}{" "}
               {ethBalance?.symbol || "ETH"}
             </div>
           </div>
