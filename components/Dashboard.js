@@ -6,6 +6,8 @@ import WalletCard from "./WalletCard";
 import ActivityCard from "./ActivityCard";
 import NFTViewer from "./NFTViewer";
 import CustomWalletButton from "./CustomWalletButton";
+import { createPublicClient, http } from "viem";
+import { base } from "viem/chains";
 
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
@@ -14,6 +16,37 @@ export default function Dashboard() {
     address,
     enabled: !!address,
   });
+  
+const [mounted, setMounted] = useState(false);
+const { address, isConnected, chain } = useAccount();
+const { data: ethBalance } = useBalance({
+  address,
+  enabled: !!address,
+});
+
+// ✅ Add this gas price logic here
+const [gasPriceGwei, setGasPriceGwei] = useState(null);
+
+useEffect(() => {
+  const fetchGasPrice = async () => {
+    try {
+      const client = createPublicClient({
+        chain: base,
+        transport: http(),
+      });
+
+      const gasPrice = await client.getGasPrice(); // in wei
+      const gwei = Number(gasPrice) / 1e9;
+      setGasPriceGwei(gwei.toFixed(2));
+    } catch (err) {
+      console.error("Failed to fetch gas price:", err);
+    }
+  };
+
+  fetchGasPrice();
+  const interval = setInterval(fetchGasPrice, 15000);
+  return () => clearInterval(interval);
+}, []);  
 
   useEffect(() => {
     setMounted(true);
@@ -97,9 +130,9 @@ export default function Dashboard() {
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Gas Price
             </div>
-            <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white">
-              23 Gwei
-            </div>
+			<div className="mt-1 text-lg font-medium text-gray-900 dark:text-white">
+			  {gasPriceGwei ? `${gasPriceGwei} Gwei` : "Loading..."}
+			</div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
               Average
             </div>
