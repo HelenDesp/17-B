@@ -5,6 +5,7 @@ import TokenTransfer from "./TokenTransfer";
 import WalletCard from "./WalletCard";
 import ActivityCard from "./ActivityCard";
 import NFTViewer from "./NFTViewer";
+import CustomWalletButton from "./CustomWalletButton";
 
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
@@ -25,13 +26,13 @@ export default function Dashboard() {
       <div className="flex flex-col items-center justify-center py-16 px-4">
         <div className="max-w-lg text-center">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Welcome to your Web3 Wallet
+            Mudelo to your Web3 Wallet
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            Connect your wallet to view your assets, make transfers, and track
+            RConnect your wallet to view your assets, make transfers, and track
             your transaction history.
           </p>
-          <appkit-button />
+          <CustomWalletButton />
         </div>
       </div>
     );

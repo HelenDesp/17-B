@@ -1,6 +1,7 @@
 import { useAccount, useDisconnect } from "wagmi";
 import { modal } from "../context";
 import { useEffect, useState } from "react";
+import CustomWalletButton from "./CustomWalletButton";
 
 export default function ConnectWallet() {
   // For hydration issues in Next.js, use client-side only rendering
@@ -34,14 +35,14 @@ export default function ConnectWallet() {
           >
             Disconnect
           </button> */}
-          <appkit-button />
+          <CustomWalletButton />
         </div>
       ) : (
         <button
           onClick={handleConnect}
-          className="bg-black-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
         >
-          No Connect Wallet
+          Connect Wallet
         </button>
       )}
     </div>
