@@ -16,38 +16,9 @@ export default function Header({ toggleSidebar }) {
     enabled: !!address,
   });
 
-useEffect(() => {
-  setMounted(true);
-
-  const interval = setInterval(() => {
-    const appkitBtn = document.querySelector('appkit-button');
-    if (!appkitBtn || !appkitBtn.shadowRoot) return;
-
-    const shadow = appkitBtn.shadowRoot;
-
-    // Try to find and hide the balance
-    const wuiTexts = shadow.querySelectorAll('wui-text');
-    wuiTexts.forEach((el) => {
-      if (el.textContent?.includes('ETH')) {
-        el.style.display = 'none';
-      }
-    });
-
-    // Try to find and hide the Base icon
-    const wuiImages = shadow.querySelectorAll('wui-image');
-    wuiImages.forEach((el) => {
-      el.style.display = 'none';
-    });
-
-    // Confirm if we succeeded (optional log)
-    console.log('[RVG] Hid balance and Base icon from appkit-button');
-
-    clearInterval(interval); // Stop after successful patch
-  }, 300);
-
-  return () => clearInterval(interval);
-}, []);
-
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleConnect = () => {
     modal.open();
@@ -177,7 +148,14 @@ useEffect(() => {
               Connect Wallet
             </button>
           )} */}
-          {(!isHomePage || isConnected) && <appkit-button />}
+		{isConnected && (
+		  <button
+			onClick={modal.open}
+			className="ml-4 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-dark-100 text-gray-800 dark:text-gray-200 text-sm font-mono hover:bg-gray-200 dark:hover:bg-dark-200 transition-colors"
+		  >
+			{formatAddress(address)}
+		  </button>
+		)}
         </div>
       </div>
     </header>
