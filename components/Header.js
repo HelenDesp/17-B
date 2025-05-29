@@ -12,7 +12,7 @@ export default function Header({ toggleSidebar }) {
   const { disconnect } = useDisconnect();
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
-  const { data: ensName } = useEnsName({ address });
+  const { data: ensName } = useEnsName({ address, chainId: 1 });
   const handleWalletModal = () => {
   open({ view: "Account" }); // You can also use "Swap", "OnRampProviders", etc.
 };
