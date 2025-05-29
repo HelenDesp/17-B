@@ -112,6 +112,14 @@ appkit-button::part(button):hover {
   @apply bg-primary-700;
 }
 
+appkit-button wui-text {
+  display: none !important;
+}
+
+appkit-button wui-image {
+  display: none !important;
+}
+
 
 /* Animations */
 @keyframes float {
