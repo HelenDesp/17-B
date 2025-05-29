@@ -24,7 +24,6 @@ import { useEffect, useState } from "react";
 import ContextProvider from "../context";
 import { ThemeProvider } from "../context/ThemeContext";
 import "../styles/globals.css";
-import "@reown/appkit/elements";
 
 function MyApp({ Component, pageProps }) {
   const [cookieString, setCookieString] = useState(null);
