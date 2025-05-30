@@ -13,6 +13,20 @@ export default function NFTViewer() {
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   
   const [showThankYou, setShowThankYou] = useState(false);
+  const [pageclipReady, setPageclipReady] = useState(false);
+useEffect(() => {
+  if (!window.Pageclip) {
+    const script = document.createElement("script");
+    script.src = "https://s.pageclip.co/v1/pageclip.js";
+    script.async = true;
+    script.onload = () => {
+      setPageclipReady(true);
+    };
+    document.body.appendChild(script);
+  } else {
+    setPageclipReady(true);
+  }
+}, []);  
 
   useEffect(() => {
     const fetchNFTs = async () => {
@@ -91,23 +105,23 @@ export default function NFTViewer() {
 				  method="POST"
 				  className="pageclip-form space-y-3"
 onSubmit={(e) => {
-  e.preventDefault(); // prevent default form redirect
+  e.preventDefault();
   const form = e.target;
 
-  if (window.Pageclip) {
-    window.Pageclip.send(form, {
-      onResponse: () => {
-        setSelectedNFT(null);
-        setShowThankYou(true);
-      },
-      onError: (err) => {
-        console.error("Pageclip error:", err);
-        alert("Submission failed. Try again.");
-      },
-    });
-  } else {
-    alert("Pageclip not loaded.");
+  if (!pageclipReady || !window.Pageclip) {
+    alert("Pageclip not loaded yet. Please try again in a moment.");
+    return;
   }
+
+  window.Pageclip.send(form, {
+    onResponse: () => {
+      setSelectedNFT(null);
+      setShowThankYou(true);
+    },
+    onError: () => {
+      alert("There was an error submitting your data.");
+    },
+  });
 }}
 				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
