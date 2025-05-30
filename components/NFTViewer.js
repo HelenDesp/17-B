@@ -109,7 +109,6 @@ onSubmit={(e) => {
     },
   });
 }}
-				  }}
 				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
               <div>
