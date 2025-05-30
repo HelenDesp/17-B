@@ -90,12 +90,25 @@ export default function NFTViewer() {
 				  action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK"
 				  method="POST"
 				  className="pageclip-form space-y-3"
-				  onSubmit={() => {
-					setTimeout(() => {
-					  setSelectedNFT(null);
-					  setShowThankYou(true);
-					}, 300); // Allow Pageclip to process before hiding modal
-				  }}
+onSubmit={(e) => {
+  e.preventDefault(); // prevent default form redirect
+  const form = e.target;
+
+  if (window.Pageclip) {
+    window.Pageclip.send(form, {
+      onResponse: () => {
+        setSelectedNFT(null);
+        setShowThankYou(true);
+      },
+      onError: (err) => {
+        console.error("Pageclip error:", err);
+        alert("Submission failed. Try again.");
+      },
+    });
+  } else {
+    alert("Pageclip not loaded.");
+  }
+}}
 				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
               <div>
