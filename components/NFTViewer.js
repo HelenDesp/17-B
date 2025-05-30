@@ -13,17 +13,6 @@ export default function NFTViewer() {
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   
   const [showThankYou, setShowThankYou] = useState(false);
-  
-useEffect(() => {
-  if (typeof window !== "undefined" && window.location.search.includes("submitted=true")) {
-    setShowThankYou(true);
-
-    // Clean up the URL so modal doesn't reappear again on refresh
-    const url = new URL(window.location);
-    url.searchParams.delete("submitted");
-    window.history.replaceState({}, "", url);
-  }
-}, []);  
 
   useEffect(() => {
     const fetchNFTs = async () => {
@@ -109,7 +98,6 @@ useEffect(() => {
 				  }}
 				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
-			  <input type="hidden" name="_redirect" value="https://17-b.vercel.app/?submitted=true" />
               <div>
                 <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">name</label>
                 <input type="text" name="name"
