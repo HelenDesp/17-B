@@ -122,6 +122,7 @@ export default function NFTViewer() {
 				  </button>
 				</div>
             </form>
+			</div>
           </div>
         </div>
       )}
