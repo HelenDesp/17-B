@@ -90,7 +90,7 @@ export default function NFTViewer() {
 				  
 				  method="POST"
 				  className="pageclip-form space-y-3"
-				  onSubmit=onSubmit={(e) => {
+				  onSubmit={(e) => {
   e.preventDefault();
   const form = e.target;
 
