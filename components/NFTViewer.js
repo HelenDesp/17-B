@@ -11,6 +11,8 @@ export default function NFTViewer() {
   const [loading, setLoading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
+  
+  const [showThankYou, setShowThankYou] = useState(false);
 
   useEffect(() => {
     const fetchNFTs = async () => {
@@ -82,9 +84,19 @@ export default function NFTViewer() {
 	  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
 		<div className="min-h-screen flex items-center justify-center px-4 py-10">
 		  <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md max-w-md w-full">
-            <h3 className="text-xl font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
+            <h3 className="text-lg font-semibold mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
             <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
-            <form action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK" method="POST" className="pageclip-form space-y-3">
+				<form
+				  action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK"
+				  method="POST"
+				  className="pageclip-form space-y-3"
+				  onSubmit={() => {
+					setTimeout(() => {
+					  setSelectedNFT(null);
+					  setShowThankYou(true);
+					}, 300); // Allow Pageclip to process before hiding modal
+				  }}
+				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
               <div>
                 <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">name</label>
@@ -92,7 +104,7 @@ export default function NFTViewer() {
                   value={formData.name}
                   onChange={e => handleChange("name", e.target.value)}
                   placeholder={selectedNFT.name}
-                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 placeholder-gray-400 focus:placeholder-transparent text-gray-900 dark:text-white"
+                  className="w-full p-2 border border-black dark:border-white bg-gray-50 dark:bg-gray-700 placeholder-gray-400 focus:placeholder-transparent text-gray-900 dark:text-white focus:border-[2px] border-[1px] rounded-none"
                 />
               </div>
               {["manifesto", "friend", "weapon"].map(field => (
@@ -102,7 +114,7 @@ export default function NFTViewer() {
                     value={formData[field]}
                     onChange={e => handleChange(field, e.target.value)}
                     placeholder={selectedNFT.traits[field]}
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-700 placeholder-gray-400 focus:placeholder-transparent text-gray-900 dark:text-white"
+                    className="w-full p-2 border border-black dark:border-white bg-gray-50 dark:bg-gray-700 placeholder-gray-400 focus:placeholder-transparent text-gray-900 dark:text-white focus:border-[2px] border-[1px] rounded-none"
                   />
                 </div>
               ))}
@@ -126,6 +138,24 @@ export default function NFTViewer() {
           </div>
         </div>
       )}
+		{showThankYou && (
+		  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4 py-10">
+			<div className="relative bg-white dark:bg-gray-800 p-6 rounded shadow-md max-w-md w-full text-center">
+			  <button
+				className="absolute top-2 right-2 text-gray-500 hover:text-black dark:hover:text-white text-lg"
+				onClick={() => setShowThankYou(false)}
+			  >
+				&times;
+			  </button>
+			  <h4 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+				Thank you
+			  </h4>
+			  <p className="text-sm text-gray-600 dark:text-gray-300">
+				Your data was sent and will be available on-chain within 24 hours due to premoderation to avoid spam and abuse.
+			  </p>
+			</div>
+		  </div>
+		)}	  
     </>
   );
 }
