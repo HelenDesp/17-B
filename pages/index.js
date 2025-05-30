@@ -1,10 +1,17 @@
 import { useAccount } from "wagmi";
+import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import Dashboard from "../components/Dashboard";
 import Head from "next/head";
 
 export default function Home() {
   const { isConnected } = useAccount();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    // Let wagmi hydrate before rendering
+    setReady(true);
+  }, []);
 
   return (
     <>
@@ -16,11 +23,7 @@ export default function Home() {
         />
         <link rel="icon" href="/favicon.ico" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
@@ -28,7 +31,9 @@ export default function Home() {
       </Head>
 
       <Layout>
-        <Dashboard />
+        {ready && isConnected ? (
+          <Dashboard />
+        ) : null}
       </Layout>
     </>
   );
