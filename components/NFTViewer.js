@@ -57,6 +57,23 @@ useEffect(() => {
   }, [address]);
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
+  
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const form = e.target;
+
+    fetch("https://reversegenesis.org/quform/process.php", {
+      method: "POST",
+      body: new FormData(form),
+    })
+      .then(() => {
+        setSelectedNFT(null);
+        setShowThankYou(true);
+      })
+      .catch(() => {
+        alert("Error occurred");
+      });
+  };  
 
   return (
     <>
