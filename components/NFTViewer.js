@@ -13,20 +13,6 @@ export default function NFTViewer() {
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   
   const [showThankYou, setShowThankYou] = useState(false);
-  const [pageclipReady, setPageclipReady] = useState(false);
-
-  useEffect(() => {
-    if (!window.Pageclip) {
-      const script = document.createElement("script");
-      script.src = "https://s.pageclip.co/v1/pageclip.js";
-      script.async = true;
-      script.onload = () => setPageclipReady(true);
-      document.body.appendChild(script);
-    } else {
-      setPageclipReady(true);
-    }
-  }, []);
-
 
   useEffect(() => {
     const fetchNFTs = async () => {
@@ -97,32 +83,19 @@ export default function NFTViewer() {
 	{selectedNFT && (
 	  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
 		<div className="min-h-screen flex items-center justify-center px-4 py-10">
-		  <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
+		  <div className="bg-white dark:bg-gray-800 p-6 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
+            <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
             <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
 				<form
-				  
+				  action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK"
 				  method="POST"
 				  className="pageclip-form space-y-3"
-onSubmit={(e) => {
-  e.preventDefault();
-  const form = e.target;
-
-  if (!pageclipReady || !window.Pageclip) {
-    alert("Pageclip not loaded yet. Please try again in a moment.");
-    return;
-  }
-
-  window.Pageclip.send(form, {
-    onResponse: () => {
-      setSelectedNFT(null);
-      setShowThankYou(true);
-    },
-    onError: () => {
-      alert("There was an error submitting your data.");
-    },
-  });
-}}
+				  onSubmit={() => {
+					setTimeout(() => {
+					  setSelectedNFT(null);
+					  setShowThankYou(true);
+					}, 300); // Allow Pageclip to process before hiding modal
+				  }}
 				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
               <div>
@@ -131,7 +104,8 @@ onSubmit={(e) => {
                   value={formData.name}
                   onChange={e => handleChange("name", e.target.value)}
                   placeholder={selectedNFT.name}
-                  className="w-full p-2 !border !border-black dark:!border-white !bg-gray-50 dark:!bg-gray-700 !text-gray-900 dark:!text-white placeholder-gray-400 focus:placeholder-transparent focus:!border-2 !rounded-none focus:outline-none focus:ring-0"
+                  className="w-full p-2 !border !border-black dark:!border-white !bg-white dark:! bg-gray-700 !text-gray-900 dark:!text-white placeholder-gray-400 focus:placeholder-transparent focus:!border-2 !rounded-none focus:outline-none focus:ring-0"
+				  style={{ boxShadow: 'none' }}
                 />
               </div>
               {["manifesto", "friend", "weapon"].map(field => (
@@ -141,7 +115,8 @@ onSubmit={(e) => {
                     value={formData[field]}
                     onChange={e => handleChange(field, e.target.value)}
                     placeholder={selectedNFT.traits[field]}
-                    className="w-full p-2 !border !border-black dark:!border-white !bg-gray-50 dark:!bg-gray-700 !text-gray-900 dark:!text-white placeholder-gray-400 focus:placeholder-transparent focus:!border-2 !rounded-none focus:outline-none focus:ring-0"
+                    className="w-full p-2 !border !border-black dark:!border-white !bg-white dark:! bg-gray-700 !text-gray-900 dark:!text-white placeholder-gray-400 focus:placeholder-transparent focus:!border-2 !rounded-none focus:outline-none focus:ring-0"
+					style={{ boxShadow: 'none' }}
                   />
                 </div>
               ))}
