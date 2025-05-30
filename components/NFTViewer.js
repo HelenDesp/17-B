@@ -104,7 +104,7 @@ export default function NFTViewer() {
                   value={formData.name}
                   onChange={e => handleChange("name", e.target.value)}
                   placeholder={selectedNFT.name}
-                  className="w-full p-2 border border-black dark:border-white bg-gray-50 dark:bg-gray-700 placeholder-gray-400 focus:placeholder-transparent text-gray-900 dark:text-white focus:border-[2px] border-[1px] rounded-none"
+                  className="w-full p-2 border-[1px] border-black dark:border-white bg-gray-50 dark:bg-gray-700 placeholder-gray-400 focus:placeholder-transparent text-gray-900 dark:text-white focus:border-[2px] focus:outline-none rounded-none"
                 />
               </div>
               {["manifesto", "friend", "weapon"].map(field => (
@@ -114,7 +114,7 @@ export default function NFTViewer() {
                     value={formData[field]}
                     onChange={e => handleChange(field, e.target.value)}
                     placeholder={selectedNFT.traits[field]}
-                    className="w-full p-2 border border-black dark:border-white bg-gray-50 dark:bg-gray-700 placeholder-gray-400 focus:placeholder-transparent text-gray-900 dark:text-white focus:border-[2px] border-[1px] rounded-none"
+                    className="w-full p-2 border-[1px] border-black dark:border-white bg-gray-50 dark:bg-gray-700 placeholder-gray-400 focus:placeholder-transparent text-gray-900 dark:text-white focus:border-[2px] focus:outline-none rounded-none"
                   />
                 </div>
               ))}
@@ -140,19 +140,31 @@ export default function NFTViewer() {
       )}
 		{showThankYou && (
 		  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4 py-10">
-			<div className="relative bg-white dark:bg-gray-800 p-6 rounded shadow-md max-w-md w-full text-center">
+			<div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
+			  
+			  {/* Close Icon */}
 			  <button
-				className="absolute top-2 right-2 text-gray-500 hover:text-black dark:hover:text-white text-lg"
+				className="absolute top-3 right-3 text-lg text-gray-800 dark:text-white border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition"
 				onClick={() => setShowThankYou(false)}
 			  >
 				&times;
 			  </button>
-			  <h4 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-				Thank you
+
+			  {/* Message */}
+			  <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+				THANK YOU
 			  </h4>
-			  <p className="text-sm text-gray-600 dark:text-gray-300">
+			  <p className="text-base text-gray-700 dark:text-gray-300 mb-8">
 				Your data was sent and will be available on-chain within 24 hours due to premoderation to avoid spam and abuse.
 			  </p>
+
+			  {/* Close Button */}
+			  <button
+				onClick={() => setShowThankYou(false)}
+				className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+			  >
+				CLOSE
+			  </button>
 			</div>
 		  </div>
 		)}	  
