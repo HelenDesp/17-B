@@ -13,8 +13,15 @@ export default function NFTViewer() {
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   
   const [showThankYou, setShowThankYou] = useState(false);
+ 
+useEffect(() => {
+  if (typeof window !== "undefined" && window.location.search.includes("submitted=true")) {
+    setShowThankYou(true);
+  }
+}, []); 
+  
   const [pageclipReady, setPageclipReady] = useState(false);
-
+  
   useEffect(() => {
     if (!window.Pageclip) {
       const script = document.createElement("script");
@@ -104,27 +111,9 @@ export default function NFTViewer() {
   action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK"
   method="POST"
   className="pageclip-form space-y-3"
-  onSubmit={(e) => {
-    e.preventDefault();
-    const form = e.target;
-
-    if (!pageclipReady || !window.Pageclip) {
-      alert("Pageclip not loaded yet. Please try again in a moment.");
-      return;
-    }
-
-    window.Pageclip.send(form, {
-      onResponse: () => {
-        setSelectedNFT(null);
-        setShowThankYou(true);
-      },
-      onError: () => {
-        alert("There was an error submitting your data.");
-      },
-    });
-  }}
 >
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
+			  <input type="hidden" name="_redirect" value="https://17-b.vercel.app/?submitted=true" />
               <div>
                 <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">name</label>
                 <input type="text" name="name"
