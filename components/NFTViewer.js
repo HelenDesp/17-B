@@ -13,17 +13,6 @@ export default function NFTViewer() {
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   
   const [showThankYou, setShowThankYou] = useState(false);
-  
-useEffect(() => {
-  if (typeof window !== "undefined" && window.location.search.includes("submitted=true")) {
-    setShowThankYou(true);
-
-    // Clean up the URL so modal doesn't reappear again on refresh
-    const url = new URL(window.location);
-    url.searchParams.delete("submitted");
-    window.history.replaceState({}, "", url);
-  }
-}, []);  
 
   useEffect(() => {
     const fetchNFTs = async () => {
@@ -57,23 +46,6 @@ useEffect(() => {
   }, [address]);
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
-  
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const form = e.target;
-
-    fetch("https://reversegenesis.org/quform/process.php", {
-      method: "POST",
-      body: new FormData(form),
-    })
-      .then(() => {
-        setSelectedNFT(null);
-        setShowThankYou(true);
-      })
-      .catch(() => {
-        alert("Error occurred");
-      });
-  };  
 
   return (
     <>
@@ -115,27 +87,10 @@ useEffect(() => {
             <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
             <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
 				<form
-				  action="https://reversegenesis.org/quform/process.php"
+				  action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK"
 				  method="POST"
 				  className="pageclip-form space-y-3"
-				  onSubmit={(e) => {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-    fetch(form.action, {
-      method: "POST",
-      body: formData
-    })
-    .then((res) => {
-      if (res.ok) {
-        setSelectedNFT(null);
-        setShowThankYou(true);
-      } else {
-        alert("Submit failed.");
-      }
-    })
-    .catch(() => alert("Error occurred"));
-}}
+				  onSubmit={() => {
 					setTimeout(() => {
 					  setSelectedNFT(null);
 					  setShowThankYou(true);
@@ -143,7 +98,6 @@ useEffect(() => {
 				  }}
 				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
-			  <input type="hidden" name="_redirect" value="https://17-b.vercel.app/?submitted=true" />
               <div>
                 <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">name</label>
                 <input type="text" name="name"
