@@ -93,7 +93,7 @@ export default function NFTViewer() {
 				  onSubmit={() => {
 					setTimeout(() => {
 					  setSelectedNFT(null);
-					  setShowThankYou(true);
+					  /* setShowThankYou(true); */
 					}, 300); // Allow Pageclip to process before hiding modal
 				  }}
 				>
@@ -140,7 +140,8 @@ export default function NFTViewer() {
           </div>
         </div>
       )}
-		{showThankYou && (
+		/* Native AJAX version
+{false && (
 		  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4 py-10">
 			<div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
 			  
@@ -169,7 +170,7 @@ export default function NFTViewer() {
 			  </button>
 			</div>
 		  </div>
-		)}	  
+		)} */
     </>
   );
 }
