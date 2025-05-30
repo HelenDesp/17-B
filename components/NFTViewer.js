@@ -66,7 +66,7 @@ export default function NFTViewer() {
 				<div className="flex justify-center mt-3">
 				  <button
 					onClick={() => setSelectedNFT(nft)}
-					className="text-xs font-medium px-4 py-1.5 rounded-full border-2 border-gray-300 dark:border-white text-gray-800 dark:text-white bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+					className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white px-4 py-1.5 text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
 				  >
 					UPGRADE YOUR NFT
 				  </button>
@@ -80,12 +80,12 @@ export default function NFTViewer() {
       {selectedNFT && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Update Metadata</h3>
+            <h3 className="text-xl font-bold mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
             <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
             <form action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK" method="POST" className="pageclip-form space-y-3">
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
               <div>
-                <label className="block text-sm text-gray-600 dark:text-gray-300 capitalize">name</label>
+                <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">name</label>
                 <input type="text" name="name"
                   value={formData.name}
                   onChange={e => handleChange("name", e.target.value)}
@@ -95,7 +95,7 @@ export default function NFTViewer() {
               </div>
               {["manifesto", "friend", "weapon"].map(field => (
                 <div key={field}>
-                  <label className="block text-sm text-gray-600 dark:text-gray-300 capitalize">{field}</label>
+                  <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">{field}</label>
                   <input type="text" name={field}
                     value={formData[field]}
                     onChange={e => handleChange(field, e.target.value)}
@@ -104,10 +104,21 @@ export default function NFTViewer() {
                   />
                 </div>
               ))}
-              <div className="flex justify-between mt-4">
-                <button type="submit" className="pageclip-form__submit bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"><span>Send</span></button>
-                <button type="button" onClick={() => setSelectedNFT(null)} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Cancel</button>
-              </div>
+				<div className="flex justify-between mt-6 space-x-4">
+				  <button
+					type="submit"
+					className="pageclip-form__submit px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+				  >
+					<span>UPGRADE</span>
+				  </button>
+				  <button
+					type="button"
+					onClick={() => setSelectedNFT(null)}
+					className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+				  >
+					CANCEL
+				  </button>
+				</div>
             </form>
           </div>
         </div>
