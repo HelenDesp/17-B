@@ -60,11 +60,13 @@ export default function NFTViewer() {
                 ) : (
                   <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">No Image</div>
                 )}
-                <div className="mt-2 text-sm font-medium text-gray-800 dark:text-white">#{nft.tokenId} — {nft.name}</div>
+				<div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
+				  #{nft.tokenId} — {nft.name}
+				</div>
 				<div className="flex justify-center mt-3">
 				  <button
 					onClick={() => setSelectedNFT(nft)}
-					className="text-sm font-medium px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+					className="text-xs font-medium px-4 py-1.5 rounded-full border-2 border-gray-300 dark:border-white text-gray-800 dark:text-white bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 transition"
 				  >
 					UPGRADE YOUR NFT
 				  </button>
