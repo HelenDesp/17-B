@@ -4,32 +4,31 @@ import Layout from "../components/Layout";
 import Dashboard from "../components/Dashboard";
 import Head from "next/head";
 
-// Your fallback landing content
-function Landing() {
+// Optional fallback UI
+function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black text-center px-4">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-          Welcome to your Web3 Wallet
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Connect your wallet to continue.
-        </p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black text-gray-700 dark:text-white">
+      <p className="text-lg">Checking wallet...</p>
     </div>
   );
 }
 
 export default function Home() {
   const { isConnected, status } = useAccount();
-  const [hydrated, setHydrated] = useState(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Ensure this runs only on client
-    setHydrated(true);
-  }, []);
+    if (status !== "loading") {
+      // Wait a tick to let any layout shift resolve
+      const timeout = setTimeout(() => {
+        setReady(true);
+      }, 100); // slightly delay to prevent layout jump
 
-  if (!hydrated || status === "loading") return null;
+      return () => clearTimeout(timeout);
+    }
+  }, [status]);
+
+  if (!ready) return <LoadingScreen />;
 
   return (
     <>
@@ -49,7 +48,20 @@ export default function Home() {
       </Head>
 
       <Layout>
-        {isConnected ? <Dashboard /> : <Landing />}
+        {isConnected ? (
+          <Dashboard />
+        ) : (
+          <div className="min-h-screen flex items-center justify-center text-center">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                Connect Your Wallet
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                You need to connect your wallet to access the dashboard.
+              </p>
+            </div>
+          </div>
+        )}
       </Layout>
     </>
   );
