@@ -51,6 +51,7 @@ export default function NFTViewer() {
       <script src="https://s.pageclip.co/v1/pageclip.js" charSet="utf-8"></script>
       <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">ReVerse Genesis NFTs</h2>
+		<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.</p>
         {loading ? <p className="text-gray-500">Loading NFTs...</p> : nfts.length === 0 ? <p className="text-gray-500">No NFTs found for this wallet.</p> : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {nfts.map((nft, i) => (
@@ -77,10 +78,11 @@ export default function NFTViewer() {
         )}
       </div>
 
-      {selectedNFT && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
+	{selectedNFT && (
+	  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
+		<div className="min-h-screen flex items-center justify-center px-4 py-10">
+		  <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md max-w-md w-full">
+            <h3 className="text-xl font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
             <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
             <form action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK" method="POST" className="pageclip-form space-y-3">
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
