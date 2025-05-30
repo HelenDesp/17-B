@@ -100,41 +100,30 @@ export default function NFTViewer() {
 		  <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md max-w-md w-full">
             <h3 className="text-lg font-semibold mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
             <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
-				<form
-				  action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK"
-				  method="POST"
-				  className="pageclip-form space-y-3"
-onSubmit=onSubmit={(e) => {
-  e.preventDefault();
-  const form = e.target;
+<form
+  action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK"
+  method="POST"
+  className="pageclip-form space-y-3"
+  onSubmit={(e) => {
+    e.preventDefault();
+    const form = e.target;
 
-  if (!pageclipReady || !window.Pageclip) {
-    alert("Pageclip not loaded yet. Please try again in a moment.");
-    return;
-  }
+    if (!pageclipReady || !window.Pageclip) {
+      alert("Pageclip not loaded yet. Please try again in a moment.");
+      return;
+    }
 
-  window.Pageclip.send(form, {
-    onResponse: () => {
-      setSelectedNFT(null);
-      setShowThankYou(true);
-    },
-    onError: () => {
-      alert("There was an error submitting your data.");
-    },
-  });
-}}
-
-  window.Pageclip.send(form, {
-    onResponse: () => {
-      setSelectedNFT(null);
-      setShowThankYou(true);
-    },
-    onError: () => {
-      alert("There was an error submitting your data.");
-    },
-  });
-}}
-				>
+    window.Pageclip.send(form, {
+      onResponse: () => {
+        setSelectedNFT(null);
+        setShowThankYou(true);
+      },
+      onError: () => {
+        alert("There was an error submitting your data.");
+      },
+    });
+  }}
+>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
               <div>
                 <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">name</label>
