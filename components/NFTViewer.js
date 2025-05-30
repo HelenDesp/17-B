@@ -15,10 +15,16 @@ export default function NFTViewer() {
   const [showThankYou, setShowThankYou] = useState(false);
  
 useEffect(() => {
-  if (typeof window !== "undefined" && window.location.search.includes("submitted=true")) {
-    setShowThankYou(true);
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("submitted") === "true") {
+      setTimeout(() => {
+        setShowThankYou(true);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }, 300);
+    }
   }
-}, []); 
+}, []);
   
   const [pageclipReady, setPageclipReady] = useState(false);
   
