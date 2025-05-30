@@ -13,6 +13,17 @@ export default function NFTViewer() {
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   
   const [showThankYou, setShowThankYou] = useState(false);
+  
+useEffect(() => {
+  if (typeof window !== "undefined" && window.location.search.includes("submitted=true")) {
+    setShowThankYou(true);
+
+    // Clean up the URL so modal doesn't reappear again on refresh
+    const url = new URL(window.location);
+    url.searchParams.delete("submitted");
+    window.history.replaceState({}, "", url);
+  }
+}, []);  
 
   useEffect(() => {
     const fetchNFTs = async () => {
@@ -87,10 +98,27 @@ export default function NFTViewer() {
             <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
             <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
 				<form
-				  action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK"
+				  action="https://reversegenesis.org/quform/process.php"
 				  method="POST"
 				  className="pageclip-form space-y-3"
-				  onSubmit={() => {
+				  onSubmit={(e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    fetch(form.action, {
+      method: "POST",
+      body: formData
+    })
+    .then((res) => {
+      if (res.ok) {
+        setSelectedNFT(null);
+        setShowThankYou(true);
+      } else {
+        alert("Submit failed.");
+      }
+    })
+    .catch(() => alert("Error occurred"));
+}}
 					setTimeout(() => {
 					  setSelectedNFT(null);
 					  setShowThankYou(true);
@@ -98,6 +126,7 @@ export default function NFTViewer() {
 				  }}
 				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
+			  <input type="hidden" name="_redirect" value="https://17-b.vercel.app/?submitted=true" />
               <div>
                 <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">name</label>
                 <input type="text" name="name"
