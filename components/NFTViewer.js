@@ -90,11 +90,12 @@ export default function NFTViewer() {
 				  action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK"
 				  method="POST"
 				  className="pageclip-form space-y-3"
-				  onSubmit={() => {
+				  onSubmit={(e) => {
+					e.preventDefault(); // ⛔ prevent redirect
 					setTimeout(() => {
 					  setSelectedNFT(null);
 					  setShowThankYou(true);
-					}, 300); // Allow Pageclip to process before hiding modal
+					}, 200);
 				  }}
 				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
@@ -104,7 +105,7 @@ export default function NFTViewer() {
                   value={formData.name}
                   onChange={e => handleChange("name", e.target.value)}
                   placeholder={selectedNFT.name}
-                  className="w-full p-2 border-[1px] border-black dark:border-white bg-gray-50 dark:bg-gray-700 placeholder-gray-400 focus:placeholder-transparent text-gray-900 dark:text-white focus:border-[2px] focus:outline-none rounded-none"
+                  className="w-full p-2 !border !border-black dark:!border-white !bg-gray-50 dark:!bg-gray-700 !text-gray-900 dark:!text-white placeholder-gray-400 focus:placeholder-transparent focus:!border-2 !rounded-none focus:outline-none focus:ring-0"
                 />
               </div>
               {["manifesto", "friend", "weapon"].map(field => (
@@ -114,7 +115,7 @@ export default function NFTViewer() {
                     value={formData[field]}
                     onChange={e => handleChange(field, e.target.value)}
                     placeholder={selectedNFT.traits[field]}
-                    className="w-full p-2 border-[1px] border-black dark:border-white bg-gray-50 dark:bg-gray-700 placeholder-gray-400 focus:placeholder-transparent text-gray-900 dark:text-white focus:border-[2px] focus:outline-none rounded-none"
+                    className="w-full p-2 !border !border-black dark:!border-white !bg-gray-50 dark:!bg-gray-700 !text-gray-900 dark:!text-white placeholder-gray-400 focus:placeholder-transparent focus:!border-2 !rounded-none focus:outline-none focus:ring-0"
                   />
                 </div>
               ))}
