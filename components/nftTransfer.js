@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount, useWriteContract, useReadContract } from "wagmi";
 
 const helperAbi = [
   {
@@ -27,6 +27,26 @@ const erc721TransferAbi = [
     ],
     outputs: [],
   },
+  {
+    name: "setApprovalForAll",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "operator", type: "address" },
+      { name: "approved", type: "bool" }
+    ],
+    outputs: []
+  },
+  {
+    name: "isApprovedForAll",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "operator", type: "address" }
+    ],
+    outputs: [{ name: "", type: "bool" }]
+  }
 ];
 
 export default function NFTTransfer({ nfts }) {
@@ -37,7 +57,7 @@ export default function NFTTransfer({ nfts }) {
   const [status, setStatus] = useState("");
   const [txInProgress, setTxInProgress] = useState(false);
 
-  const { writeContractAsync } = useWriteContract();
+  const { writeContractAsync, readContract } = useWriteContract();
 
   const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
   const batchHelperAddress = "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29";
@@ -66,6 +86,23 @@ export default function NFTTransfer({ nfts }) {
         });
         setStatus("✅ NFT transferred successfully.");
       } else {
+        // Check approval
+        const isApproved = await readContract({
+          address: contractAddress,
+          abi: erc721TransferAbi,
+          functionName: "isApprovedForAll",
+          args: [address, batchHelperAddress]
+        });
+
+        if (!isApproved) {
+          await writeContractAsync({
+            address: contractAddress,
+            abi: erc721TransferAbi,
+            functionName: "setApprovalForAll",
+            args: [batchHelperAddress, true]
+          });
+        }
+
         const tokenIds = nfts.map(nft => BigInt(nft.tokenId));
         await writeContractAsync({
           address: batchHelperAddress,
