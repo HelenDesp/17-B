@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { useAccount } from "wagmi";
 
 const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YWU4Y2E2LWNiNWUtNDJmNi1hYjQ5LWUzZWEwZTM5NTI2MSIsIm9yZ0lkIjoiNDQ1NTcxIiwidXNlcklkIjoiNDU4NDM4IiwidHlwZUlkIjoiMDhiYmI4YTgtMzQxYy00YTJhLTk2NGUtN2FlMGZmMzI2ODUxIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDY1NDA1MzgsImV4cCI6NDkwMjMwMDUzOH0._O5uiNnyo2sXnJDbre0_9mDklKTmrj90Yn2HXJJnZRk";
@@ -47,10 +48,35 @@ export default function NFTViewer() {
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      alert("Name is required.");
+      return;
+    }
+
+    try {
+      await axios.post("https://reversegenesis.org/edata/meta.php", {
+        original: selectedNFT.name,
+        name: formData.name,
+        manifesto: formData.manifesto,
+        friend: formData.friend,
+        weapon: formData.weapon,
+      });
+
+      setSelectedNFT(null);
+      setShowThankYou(true);
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert("Failed to submit form. Please try again.");
+    }
+  };
+
   return (
     <>
-      <link rel="stylesheet" href="https://s.pageclip.co/v1/pageclip.css" media="screen" />
-      <script src="https://s.pageclip.co/v1/pageclip.js" charSet="utf-8"></script>
+      
+      
       <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">ReVerse Genesis NFTs</h2>
 		<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.</p>
@@ -87,15 +113,8 @@ export default function NFTViewer() {
             <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
             <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
 				<form
-				  action="https://send.pageclip.co/IgFbgtxm7tEQArpitPE1ovBq2C1Va3nK"
-				  method="POST"
-				  className="pageclip-form space-y-3"
-				  onSubmit={() => {
-					setTimeout(() => {
-					  setSelectedNFT(null);
-					  setShowThankYou(true);
-					}, 300); // Allow Pageclip to process before hiding modal
-				  }}
+				  onSubmit={handleSubmit}
+				  className="space-y-3"
 				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
               <div>
@@ -123,7 +142,7 @@ export default function NFTViewer() {
 				<div className="flex justify-between mt-6 space-x-4">
 				  <button
 					type="submit"
-					className="pageclip-form__submit px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+					className=" px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
 				  >
 					<span>UPGRADE</span>
 				  </button>
