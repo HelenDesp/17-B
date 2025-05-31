@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
-import { readContract } from "wagmi/actions";
+import { getPublicClient } from "wagmi/actions";
 
 const helperAbi = [
   {
@@ -59,6 +59,7 @@ export default function NFTTransfer({ nfts }) {
   const [txInProgress, setTxInProgress] = useState(false);
 
   const { writeContractAsync } = useWriteContract();
+  const publicClient = getPublicClient();
 
   const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
   const batchHelperAddress = "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29";
@@ -87,8 +88,7 @@ export default function NFTTransfer({ nfts }) {
         });
         setStatus("✅ NFT transferred successfully.");
       } else {
-        // Correct approval check using wagmi/actions
-        const isApproved = await readContract({
+        const isApproved = await publicClient.readContract({
           address: contractAddress,
           abi: erc721TransferAbi,
           functionName: "isApprovedForAll",
