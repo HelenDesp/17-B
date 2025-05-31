@@ -61,7 +61,7 @@ export default function Dashboard() {
       if (!address) return;
       try {
         const res = await fetch(
-          `https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal&normalizeMetadata=true`,
+          `https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal&normalizeMetadata=true&exclude_spam=true&media_items=false`,
           {
             headers: {
               "X-API-Key": MORALIS_API_KEY,
@@ -70,32 +70,35 @@ export default function Dashboard() {
           }
         );
         const data = await res.json();
-        const parsed = (data.result || [])
-          .filter((nft) => nft.token_address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase())
-          .map((nft) => {
-            let metadata = {};
-            try {
-              metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
-            } catch {
-              metadata = {};
-            }
-            const image = metadata.image?.startsWith("ipfs://")
-              ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-              : metadata.image;
-            const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\d+\s*[-–—]*\s*/, "");
-            const getTrait = (type) =>
-              metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
-            return {
-              tokenId: nft.token_id,
-              name,
-              image,
-              traits: {
-                manifesto: getTrait("Manifesto"),
-                friend: getTrait("Friend"),
-                weapon: getTrait("Weapon"),
-              },
-            };
-          });
+		const parsed = (data.result || [])
+		  .filter(nft =>
+			nft.token_address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase() &&
+			nft.owner_of?.toLowerCase() === address.toLowerCase()
+		  )
+		  .map(nft => {
+			let metadata = {};
+			try {
+			  metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
+			} catch {
+			  metadata = {};
+			}
+			const image = metadata.image?.startsWith("ipfs://")
+			  ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+			  : metadata.image;
+			const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\\d+\\s*[-–—]*\\s*/, "");
+			const getTrait = (type) =>
+			  metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
+			return {
+			  tokenId: nft.token_id,
+			  name,
+			  image,
+			  traits: {
+				manifesto: getTrait("Manifesto"),
+				friend: getTrait("Friend"),
+				weapon: getTrait("Weapon"),
+			  },
+			};
+		  });
         setNfts(parsed);
       } catch (err) {
         console.error("Failed to fetch NFTs from Moralis:", err);
