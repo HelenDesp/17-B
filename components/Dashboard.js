@@ -1,53 +1,68 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAccount, useBalance } from "wagmi";
+import { createPublicClient, http } from "viem";
+import { defineChain } from "viem";
+import { readContract } from "@wagmi/core";
+import NFTViewer from "./NFTViewer";
+import NFTTransfer from "./nftTransfer";
 import TokenBalances from "./TokenBalances";
 import TokenTransfer from "./TokenTransfer";
 import WalletCard from "./WalletCard";
 import ActivityCard from "./ActivityCard";
-import NFTViewer from "./NFTViewer";
-import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
-import { createPublicClient, http } from "viem";
-import { defineChain } from "viem";
 
-const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YWU4Y2E2LWNiNWUtNDJmNi1hYjQ5LWUzZWEwZTM5NTI2MSIsIm9yZ0lkIjoiNDQ1NTcxIiwidXNlcklkIjoiNDU4NDM4IiwidHlwZUlkIjoiMDhiYmI4YTgtMzQxYy00YTJhLTk2NGUtN2FlMGZmMzI2ODUxIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDY1NDA1MzgsImV4cCI6NDkwMjMwMDUzOH0._O5uiNnyo2sXnJDbre0_9mDklKTmrj90Yn2HXJJnZRk";
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
+const CONTRACT_ABI = [
+  {
+    constant: true,
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    name: "ownerOf",
+    outputs: [{ name: "owner", type: "address" }],
+    type: "function",
+    stateMutability: "view"
+  },
+  {
+    constant: true,
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    name: "tokenURI",
+    outputs: [{ name: "", type: "string" }],
+    type: "function",
+    stateMutability: "view"
+  }
+];
 
 export default function Dashboard() {
-  const [mounted, setMounted] = useState(false);
   const { address, isConnected, chain } = useAccount();
   const { data: ethBalance } = useBalance({ address, enabled: !!address });
+  const [mounted, setMounted] = useState(false);
   const [nfts, setNfts] = useState([]);
   const [gasPriceGwei, setGasPriceGwei] = useState(null);
 
   useEffect(() => {
     const fetchGasPrice = async () => {
+      if (!chain?.id) return;
+      const client = createPublicClient({
+        chain: defineChain({
+          id: chain.id,
+          name: chain.name,
+          nativeCurrency: {
+            name: chain.nativeCurrency?.name || "ETH",
+            symbol: chain.nativeCurrency?.symbol || "ETH",
+            decimals: 18,
+          },
+          rpcUrls: {
+            default: {
+              http: [chain.rpcUrls?.default?.http?.[0] || ""],
+            },
+          },
+        }),
+        transport: http(),
+      });
       try {
-        if (!chain?.id) return;
-
-        const client = createPublicClient({
-          chain: defineChain({
-            id: chain.id,
-            name: chain.name,
-            nativeCurrency: {
-              name: chain.nativeCurrency?.name || "ETH",
-              symbol: chain.nativeCurrency?.symbol || "ETH",
-              decimals: 18,
-            },
-            rpcUrls: {
-              default: {
-                http: [chain.rpcUrls?.default?.http?.[0] || ""],
-              },
-            },
-          }),
-          transport: http(),
-        });
-
         const gasPrice = await client.getGasPrice();
-        const gwei = Number(gasPrice) / 1e9;
-        setGasPriceGwei(gwei.toFixed(3));
-      } catch (err) {
-        console.error("Failed to fetch gas price:", err);
+        setGasPriceGwei((Number(gasPrice) / 1e9).toFixed(3));
+      } catch (e) {
+        console.error("Failed to fetch gas price", e);
       }
     };
 
@@ -58,54 +73,58 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchNFTs = async () => {
-      if (!address) return;
-      try {
-        const res = await fetch(
-          `https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal&normalizeMetadata=true&exclude_spam=true&media_items=false`,
-          {
-            headers: {
-              "X-API-Key": MORALIS_API_KEY,
-              accept: "application/json",
+      if (!address || !chain?.id) return;
+      const tokenIds = Array.from({ length: 100 }, (_, i) => i + 1); // sample range
+      const ownedNFTs = [];
+
+      for (const tokenId of tokenIds) {
+        try {
+          const owner = await readContract({
+            address: CONTRACT_ADDRESS,
+            abi: CONTRACT_ABI,
+            functionName: "ownerOf",
+            args: [tokenId],
+          });
+
+          if (owner.toLowerCase() !== address.toLowerCase()) continue;
+
+          const tokenURI = await readContract({
+            address: CONTRACT_ADDRESS,
+            abi: CONTRACT_ABI,
+            functionName: "tokenURI",
+            args: [tokenId],
+          });
+
+          const uri = tokenURI.replace("ipfs://", "https://ipfs.io/ipfs/");
+          const metadata = await fetch(uri).then((res) => res.json());
+
+          const image = metadata.image?.startsWith("ipfs://")
+            ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+            : metadata.image;
+
+          const getTrait = (type) =>
+            metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
+
+          ownedNFTs.push({
+            tokenId: tokenId.toString(),
+            name: metadata.name || `Token #${tokenId}`,
+            image,
+            traits: {
+              manifesto: getTrait("Manifesto"),
+              friend: getTrait("Friend"),
+              weapon: getTrait("Weapon"),
             },
-          }
-        );
-        const data = await res.json();
-		const parsed = (data.result || [])
-		  .filter(nft =>
-			nft.token_address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase() &&
-			nft.owner_of?.toLowerCase() === address.toLowerCase()
-		  )
-		  .map(nft => {
-			let metadata = {};
-			try {
-			  metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
-			} catch {
-			  metadata = {};
-			}
-			const image = metadata.image?.startsWith("ipfs://")
-			  ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-			  : metadata.image;
-			const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\\d+\\s*[-–—]*\\s*/, "");
-			const getTrait = (type) =>
-			  metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
-			return {
-			  tokenId: nft.token_id,
-			  name,
-			  image,
-			  traits: {
-				manifesto: getTrait("Manifesto"),
-				friend: getTrait("Friend"),
-				weapon: getTrait("Weapon"),
-			  },
-			};
-		  });
-        setNfts(parsed);
-      } catch (err) {
-        console.error("Failed to fetch NFTs from Moralis:", err);
+          });
+        } catch {
+          continue;
+        }
       }
+
+      setNfts(ownedNFTs);
     };
+
     fetchNFTs();
-  }, [address]);
+  }, [address, chain]);
 
   useEffect(() => {
     setMounted(true);
