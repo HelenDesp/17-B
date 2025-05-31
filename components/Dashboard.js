@@ -9,7 +9,7 @@ import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
 import { createPublicClient, http } from "viem";
 import { readContract } from 'viem/actions';
-import { abi as erc721Abi } from './abi/erc721'; // ensure ABI is in this path
+import { abi as erc721Abi } from './erc721'; 
 import { defineChain } from "viem";
 
 const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YWU4Y2E2LWNiNWUtNDJmNi1hYjQ5LWUzZWEwZTM5NTI2MSIsIm9yZ0lkIjoiNDQ1NTcxIiwidXNlcklkIjoiNDU4NDM4IiwidHlwZUlkIjoiMDhiYmI4YTgtMzQxYy00YTJhLTk2NGUtN2FlMGZmMzI2ODUxIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDY1NDA1MzgsImV4cCI6NDkwMjMwMDUzOH0._O5uiNnyo2sXnJDbre0_9mDklKTmrj90Yn2HXJJnZRk";
