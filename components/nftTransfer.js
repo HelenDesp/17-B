@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
-import { readContract } from "wagmi/actions";
+import { createPublicClient, http } from "viem";
+import { base } from "viem/chains";
 
 const helperAbi = [
   {
@@ -63,6 +64,11 @@ export default function NFTTransfer({ nfts }) {
   const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
   const batchHelperAddress = "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29";
 
+  const client = createPublicClient({
+    chain: base,
+    transport: http()
+  });
+
   const handleTransfer = async () => {
     if (!recipient || !recipient.startsWith("0x") || recipient.length !== 42) {
       setStatus("❌ Invalid recipient address.");
@@ -87,11 +93,11 @@ export default function NFTTransfer({ nfts }) {
         });
         setStatus("✅ NFT transferred successfully.");
       } else {
-        const isApproved = await readContract({
+        const isApproved = await client.readContract({
           address: contractAddress,
           abi: erc721TransferAbi,
           functionName: "isApprovedForAll",
-          args: [address, batchHelperAddress],
+          args: [address, batchHelperAddress]
         });
 
         if (!isApproved) {
@@ -99,7 +105,7 @@ export default function NFTTransfer({ nfts }) {
             address: contractAddress,
             abi: erc721TransferAbi,
             functionName: "setApprovalForAll",
-            args: [batchHelperAddress, true],
+            args: [batchHelperAddress, true]
           });
         }
 
