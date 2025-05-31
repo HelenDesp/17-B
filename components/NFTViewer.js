@@ -49,16 +49,20 @@ export default function NFTViewer() {
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
   
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.name.trim()) {
-      alert("Name is required.");
-      return;
-    }
+	const handleSubmit = async (e) => {
+	  e.preventDefault();
+
+	  if (!formData.name.trim()) {
+		setNameError("Name is required.");
+		return;
+	  } else {
+		setNameError(""); 
+	  }
 
     try {
       await axios.post("https://reversegenesis.org/edata/meta.php", {
         original: selectedNFT.name,
+		owner: address,
         name: formData.name,
         manifesto: formData.manifesto,
         friend: formData.friend,
@@ -67,11 +71,15 @@ export default function NFTViewer() {
 
       setSelectedNFT(null);
       setShowThankYou(true);
-    } catch (error) {
+  } catch (error) {
+    if (error.response?.status === 400 && error.response.data?.error === "Name is required.") {
+      setNameError("Name is required.");
+    } else {
       console.error("Submission error:", error);
       alert("Failed to submit form. Please try again.");
     }
-  };
+  }
+};
 
   return (
     <>
@@ -126,6 +134,14 @@ export default function NFTViewer() {
                   className="w-full p-2 !border !border-black dark:!border-white !bg-white dark:! bg-gray-700 !text-gray-900 dark:!text-white placeholder-gray-400 focus:placeholder-transparent focus:!border-2 !rounded-none focus:outline-none focus:ring-0"
 				  style={{ boxShadow: 'none' }}
                 />
+			  {nameError && (
+				<p className="text-sm text-red-600 mt-1 flex items-center">
+				  <svg className="w-4 h-4 mr-1 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+					<path fillRule="evenodd" d="M18 10A8 8 0 11 2 10a8 8 0 0116 0zm-7-4a1 1 0 10-2 0v4a1 1 0 002 0V6zm-1 8a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z" clipRule="evenodd" />
+				  </svg>
+				  {nameError}
+				</p>
+			  )}				
               </div>
               {["manifesto", "friend", "weapon"].map(field => (
                 <div key={field}>
