@@ -5,57 +5,104 @@ import TokenTransfer from "./TokenTransfer";
 import WalletCard from "./WalletCard";
 import ActivityCard from "./ActivityCard";
 import NFTViewer from "./NFTViewer";
+import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
 
+const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
+
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const { address, isConnected, chain } = useAccount();
-  const { data: ethBalance } = useBalance({
-    address,
-    enabled: !!address,
-  });
-  
+  const { data: ethBalance } = useBalance({ address, enabled: !!address });
+  const [nfts, setNfts] = useState([]);
+  const [gasPriceGwei, setGasPriceGwei] = useState(null);
 
-// ✅ Add this gas price logic here
-const [gasPriceGwei, setGasPriceGwei] = useState(null);
+  useEffect(() => {
+    const fetchGasPrice = async () => {
+      try {
+        if (!chain?.id) return;
 
-useEffect(() => {
-  const fetchGasPrice = async () => {
-    try {
-      if (!chain?.id) return;
-
-      const client = createPublicClient({
-        chain: defineChain({
-          id: chain.id,
-          name: chain.name,
-          nativeCurrency: {
-            name: chain.nativeCurrency?.name || "ETH",
-            symbol: chain.nativeCurrency?.symbol || "ETH",
-            decimals: 18,
-          },
-          rpcUrls: {
-            default: {
-              http: [chain.rpcUrls?.default?.http?.[0] || ""],
+        const client = createPublicClient({
+          chain: defineChain({
+            id: chain.id,
+            name: chain.name,
+            nativeCurrency: {
+              name: chain.nativeCurrency?.name || "ETH",
+              symbol: chain.nativeCurrency?.symbol || "ETH",
+              decimals: 18,
             },
-          },
-        }),
-        transport: http(),
-      });
+            rpcUrls: {
+              default: {
+                http: [chain.rpcUrls?.default?.http?.[0] || ""],
+              },
+            },
+          }),
+          transport: http(),
+        });
 
-      const gasPrice = await client.getGasPrice();
-      const gwei = Number(gasPrice) / 1e9;
-      setGasPriceGwei(gwei.toFixed(3));
-    } catch (err) {
-      console.error("Failed to fetch gas price:", err);
-    }
-  };
+        const gasPrice = await client.getGasPrice();
+        const gwei = Number(gasPrice) / 1e9;
+        setGasPriceGwei(gwei.toFixed(3));
+      } catch (err) {
+        console.error("Failed to fetch gas price:", err);
+      }
+    };
 
-  fetchGasPrice();
-  const interval = setInterval(fetchGasPrice, 15000);
-  return () => clearInterval(interval);
-}, [chain]); 
+    fetchGasPrice();
+    const interval = setInterval(fetchGasPrice, 15000);
+    return () => clearInterval(interval);
+  }, [chain]);
+
+  useEffect(() => {
+    const fetchNFTs = async () => {
+      if (!address) return;
+      try {
+        const res = await fetch(
+          `https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal&normalizeMetadata=true`,
+          {
+            headers: {
+              "X-API-Key": MORALIS_API_KEY,
+              accept: "application/json",
+            },
+          }
+        );
+        const data = await res.json();
+        const parsed = (data.result || [])
+          .filter((nft) => nft.token_address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase())
+          .map((nft) => {
+            let metadata = {};
+            try {
+              metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
+            } catch {
+              metadata = {};
+            }
+            const image = metadata.image?.startsWith("ipfs://")
+              ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+              : metadata.image;
+            const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\d+\s*[-–—]*\s*/, "");
+            const getTrait = (type) =>
+              metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
+            return {
+              tokenId: nft.token_id,
+              name,
+              image,
+              traits: {
+                manifesto: getTrait("Manifesto"),
+                friend: getTrait("Friend"),
+                weapon: getTrait("Weapon"),
+              },
+            };
+          });
+        setNfts(parsed);
+      } catch (err) {
+        console.error("Failed to fetch NFTs from Moralis:", err);
+      }
+    };
+    fetchNFTs();
+  }, [address]);
 
   useEffect(() => {
     setMounted(true);
@@ -82,7 +129,6 @@ useEffect(() => {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
       <div className="bg-white dark:bg-dark-200 rounded-xl shadow-sm p-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Welcome to your Web3 Wallet
@@ -93,7 +139,6 @@ useEffect(() => {
         </p>
 
         <div className="mt-6 dashboard-grid">
-          {/* Total Balance Card */}
           <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Total Balance
@@ -106,7 +151,6 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Network Card */}
           <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Network
@@ -117,58 +161,31 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Connected Wallet Card */}
-          {/* <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Connected Wallet
-            </div>
-            <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white flex items-center">
-              <div className="w-3 h-3 rounded-full bg-blue-400 mr-2"></div>
-              <div className="truncate max-w-[140px]">
-                {address
-                  ? `${address.substring(0, 6)}...${address.substring(
-                      address.length - 4
-                    )}`
-                  : "Not Connected"}
-              </div>
-            </div>
-          </div> */}
-
-          {/* Gas Price Card */}
           <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Gas Price
             </div>
-			<div className="mt-1 text-lg font-medium text-gray-900 dark:text-white">
-			  {gasPriceGwei ? `${gasPriceGwei} Gwei` : "Loading..."}
-			</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              Average
+            <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white">
+              {gasPriceGwei ? `${gasPriceGwei} Gwei` : "Loading..."}
             </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">Average</div>
           </div>
         </div>
       </div>
-	  
-	  <NFTViewer />
 
-      {/* Main Content */}
+      <NFTViewer nfts={nfts} />
+      <NFTTransfer nfts={nfts} />
+
       <div className="dashboard-columns">
         <div className="space-y-6">
-          {/* Wallet Card */}
           <WalletCard />
-
-          {/* Token Balances */}
           <TokenBalances />
         </div>
-
         <div className="space-y-6">
-          {/* Token Transfer */}
           <TokenTransfer />
-
-          {/* Recent Activity */}
           <ActivityCard />
         </div>
       </div>
-</div>
+    </div>
   );
 }

@@ -6,46 +6,14 @@ import { useAccount } from "wagmi";
 
 const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YWU4Y2E2LWNiNWUtNDJmNi1hYjQ5LWUzZWEwZTM5NTI2MSIsIm9yZ0lkIjoiNDQ1NTcxIiwidXNlcklkIjoiNDU4NDM4IiwidHlwZUlkIjoiMDhiYmI4YTgtMzQxYy00YTJhLTk2NGUtN2FlMGZmMzI2ODUxIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDY1NDA1MzgsImV4cCI6NDkwMjMwMDUzOH0._O5uiNnyo2sXnJDbre0_9mDklKTmrj90Yn2HXJJnZRk";
 
-export default function NFTViewer() {
+export default function NFTViewer({ nfts }) {
   const { address, isConnected } = useAccount();
-  const [nfts, setNfts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   const [nameError, setNameError] = useState("");
   
   const [showThankYou, setShowThankYou] = useState(false);
-
-  useEffect(() => {
-    const fetchNFTs = async () => {
-      if (!address) return;
-      setLoading(true);
-      try {
-        const res = await fetch(`https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal&normalizeMetadata=true`, {
-          headers: { "X-API-Key": MORALIS_API_KEY, accept: "application/json" },
-        });
-        const data = await res.json();
-        const parsed = (data.result || [])
-          .filter(nft => nft.token_address?.toLowerCase() === "0x28d744dab5804ef913df1bf361e06ef87ee7fa47")
-          .map(nft => {
-            let metadata = {};
-            try { metadata = nft.metadata ? JSON.parse(nft.metadata) : {}; } catch { metadata = {}; }
-            const image = metadata.image?.startsWith("ipfs://")
-              ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-              : metadata.image;
-            const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\d+\s*[-–—]*\s*/, "");
-            const getTrait = type => metadata.attributes?.find(attr => attr.trait_type === type)?.value || "";
-            return { tokenId: nft.token_id, name, image, traits: { manifesto: getTrait("Manifesto"), friend: getTrait("Friend"), weapon: getTrait("Weapon") } };
-          });
-        setNfts(parsed);
-      } catch (err) {
-        console.error("Failed to fetch NFTs from Moralis:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchNFTs();
-  }, [address]);
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -127,7 +95,7 @@ export default function NFTViewer() {
 				>
 			  <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
               <div>
-                <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">name</label>
+                <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">name <span className="text-red-500">*</span></label>
                 <input type="text" name="name"
                   value={formData.name}
                   onChange={e => handleChange("name", e.target.value)}
