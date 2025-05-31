@@ -12,6 +12,7 @@ export default function NFTViewer() {
   const [loading, setLoading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
+  const [nameError, setNameError] = useState("");
   
   const [showThankYou, setShowThankYou] = useState(false);
 
