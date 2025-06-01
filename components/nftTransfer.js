@@ -1,73 +1,22 @@
 import { useState } from "react";
-import { useAccount, useWriteContract } from "wagmi";
-import { createPublicClient, http } from "viem";
-import { base } from "viem/chains";
+import { useAddress, useContract, useNFTs, ThirdwebProvider, useSigner, useSwitchChain, ConnectWallet } from "@thirdweb-dev/react";
+import { SmartWallet, ThirdwebSDK } from "@thirdweb-dev/sdk";
+import { base } from "@thirdweb-dev/chains";
+import { ethers } from "ethers";
 
-const helperAbi = [
-  {
-    name: "batchTransfer",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "nftContract", type: "address" },
-      { name: "to", type: "address" },
-      { name: "tokenIds", type: "uint256[]" }
-    ],
-    outputs: []
-  }
-];
-
-const erc721TransferAbi = [
-  {
-    name: "safeTransferFrom",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "from", type: "address" },
-      { name: "to", type: "address" },
-      { name: "tokenId", type: "uint256" },
-    ],
-    outputs: [],
-  },
-  {
-    name: "setApprovalForAll",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "operator", type: "address" },
-      { name: "approved", type: "bool" }
-    ],
-    outputs: []
-  },
-  {
-    name: "isApprovedForAll",
-    type: "function",
-    stateMutability: "view",
-    inputs: [
-      { name: "owner", type: "address" },
-      { name: "operator", type: "address" }
-    ],
-    outputs: [{ name: "", type: "bool" }]
-  }
-];
+const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
+const factoryAddress = "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2";
+const clientId = "40cb8b1796ed4c206ecd1445911c5ab8";
 
 export default function NFTTransfer({ nfts }) {
-  const { address } = useAccount();
+  const address = useAddress();
+  const signer = useSigner();
+  const switchChain = useSwitchChain();
   const [recipient, setRecipient] = useState("");
   const [mode, setMode] = useState("single");
   const [selectedTokenId, setSelectedTokenId] = useState(null);
   const [status, setStatus] = useState("");
   const [txInProgress, setTxInProgress] = useState(false);
-
-  const { writeContractAsync } = useWriteContract();
-
-  const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const batchHelperAddress = "0xca006CDA54644010aa869Ced9DDaAe85b54937Ba";
-
-  const client = createPublicClient({
-    chain: base,
-    transport: http()
-  });
 
   const handleTransfer = async () => {
     if (!recipient || !recipient.startsWith("0x") || recipient.length !== 42) {
@@ -80,44 +29,48 @@ export default function NFTTransfer({ nfts }) {
       return;
     }
 
+    if (!signer || !address) {
+      setStatus("❌ Wallet not connected.");
+      return;
+    }
+
     setTxInProgress(true);
     setStatus("⏳ Sending transaction...");
 
     try {
-      if (mode === "single") {
-        await writeContractAsync({
-          address: contractAddress,
-          abi: erc721TransferAbi,
-          functionName: "safeTransferFrom",
-          args: [address, recipient, selectedTokenId],
-        });
-        setStatus("✅ NFT transferred successfully.");
-      } else {
-        const isApproved = await client.readContract({
-          address: contractAddress,
-          abi: erc721TransferAbi,
-          functionName: "isApprovedForAll",
-          args: [address, batchHelperAddress]
-        });
+      const sdk = new ThirdwebSDK(signer, {
+        clientId,
+        chain: base,
+      });
 
-        if (!isApproved) {
-          await writeContractAsync({
-            address: contractAddress,
-            abi: erc721TransferAbi,
-            functionName: "setApprovalForAll",
-            args: [batchHelperAddress, true]
-          });
-        }
+      const smartWallet = await SmartWallet.connect({
+        signer,
+        chain: base,
+        factoryAddress,
+        clientId,
+      });
 
-        const tokenIds = nfts.map(nft => BigInt(nft.tokenId));
-        await writeContractAsync({
-          address: batchHelperAddress,
-          abi: helperAbi,
-          functionName: "batchTransfer",
-          args: [contractAddress, recipient, tokenIds],
-        });
-        setStatus("✅ All NFTs transferred in one transaction.");
+      const nftContract = await sdk.getContract(contractAddress, "nft-collection");
+
+      // Ensure approval
+      const isApproved = await nftContract.erc721.isApproved(
+        address,
+        smartWallet.getAddress()
+      );
+      if (!isApproved) {
+        await nftContract.erc721.setApprovalForAll(smartWallet.getAddress(), true);
       }
+
+      const tokensToTransfer = mode === "single"
+        ? [selectedTokenId]
+        : nfts.map(n => n.tokenId);
+
+      const txs = tokensToTransfer.map((tokenId) =>
+        nftContract.erc721.transfer.prepare(smartWallet.getAddress(), recipient, tokenId)
+      );
+
+      await smartWallet.sendBatchTransaction(txs);
+      setStatus("✅ NFT(s) transferred successfully.");
     } catch (error) {
       console.error(error);
       setStatus("❌ Transaction failed.");
@@ -128,6 +81,7 @@ export default function NFTTransfer({ nfts }) {
 
   return (
     <div className="bg-white dark:bg-dark-200 rounded-xl shadow-card dark:shadow-card-dark p-6 mt-6">
+      <ConnectWallet />
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
         Transfer Your NFT(s)
       </h2>
