@@ -1,22 +1,32 @@
 import { useState } from "react";
-import { useAddress, useContract, useNFTs, ThirdwebProvider, useSigner, useSwitchChain, ConnectWallet } from "@thirdweb-dev/react";
-import { SmartWallet, ThirdwebSDK } from "@thirdweb-dev/sdk";
-import { base } from "@thirdweb-dev/chains";
-import { ethers } from "ethers";
+import { useContract, useAddress, useSigner } from "@thirdweb-dev/react";
+import { useAccount, useWriteContract } from "wagmi";
 
-const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-const factoryAddress = "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2";
-const clientId = "40cb8b1796ed4c206ecd1445911c5ab8";
+const erc721TransferAbi = [
+  {
+    name: "safeTransferFrom",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "from", type: "address" },
+      { name: "to", type: "address" },
+      { name: "tokenId", type: "uint256" },
+    ],
+    outputs: [],
+  },
+];
 
 export default function NFTTransfer({ nfts }) {
-  const address = useAddress();
-  const signer = useSigner();
-  const switchChain = useSwitchChain();
+  const { address } = useAccount();
   const [recipient, setRecipient] = useState("");
   const [mode, setMode] = useState("single");
   const [selectedTokenId, setSelectedTokenId] = useState(null);
   const [status, setStatus] = useState("");
   const [txInProgress, setTxInProgress] = useState(false);
+
+  const { writeContractAsync } = useWriteContract();
+
+  const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
   const handleTransfer = async () => {
     if (!recipient || !recipient.startsWith("0x") || recipient.length !== 42) {
@@ -29,48 +39,29 @@ export default function NFTTransfer({ nfts }) {
       return;
     }
 
-    if (!signer || !address) {
-      setStatus("❌ Wallet not connected.");
-      return;
-    }
-
     setTxInProgress(true);
     setStatus("⏳ Sending transaction...");
 
     try {
-      const sdk = new ThirdwebSDK(signer, {
-        clientId,
-        chain: base,
-      });
-
-      const smartWallet = await SmartWallet.connect({
-        signer,
-        chain: base,
-        factoryAddress,
-        clientId,
-      });
-
-      const nftContract = await sdk.getContract(contractAddress, "nft-collection");
-
-      // Ensure approval
-      const isApproved = await nftContract.erc721.isApproved(
-        address,
-        smartWallet.getAddress()
-      );
-      if (!isApproved) {
-        await nftContract.erc721.setApprovalForAll(smartWallet.getAddress(), true);
+      if (mode === "single") {
+        await writeContractAsync({
+          address: contractAddress,
+          abi: erc721TransferAbi,
+          functionName: "safeTransferFrom",
+          args: [address, recipient, selectedTokenId],
+        });
+        setStatus("✅ NFT transferred successfully.");
+      } else {
+        for (const nft of nfts) {
+          await writeContractAsync({
+            address: contractAddress,
+            abi: erc721TransferAbi,
+            functionName: "safeTransferFrom",
+            args: [address, recipient, nft.tokenId],
+          });
+        }
+        setStatus("✅ All NFTs transferred successfully.");
       }
-
-      const tokensToTransfer = mode === "single"
-        ? [selectedTokenId]
-        : nfts.map(n => n.tokenId);
-
-      const txs = tokensToTransfer.map((tokenId) =>
-        nftContract.erc721.transfer.prepare(smartWallet.getAddress(), recipient, tokenId)
-      );
-
-      await smartWallet.sendBatchTransaction(txs);
-      setStatus("✅ NFT(s) transferred successfully.");
     } catch (error) {
       console.error(error);
       setStatus("❌ Transaction failed.");
@@ -81,7 +72,6 @@ export default function NFTTransfer({ nfts }) {
 
   return (
     <div className="bg-white dark:bg-dark-200 rounded-xl shadow-card dark:shadow-card-dark p-6 mt-6">
-      <ConnectWallet />
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
         Transfer Your NFT(s)
       </h2>
@@ -145,7 +135,7 @@ export default function NFTTransfer({ nfts }) {
         disabled={txInProgress}
         className="w-full py-2 px-4 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50"
       >
-        {txInProgress ? "Transferring..." : mode === "single" ? "Transfer NFT" : "Transfer Selected NFTs"}
+        {txInProgress ? "Transferring..." : mode === "single" ? "Transfer NFT" : "Transfer All NFTs"}
       </button>
 
       {status && (
