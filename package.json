@@ -23,8 +23,7 @@
     "wagmi": "^2.14.15",
 	"axios": "^1.9.0",
   "@thirdweb-dev/react": "^4.9.4",
-  "@thirdweb-dev/chains": "^0.1.4",
-"@thirdweb-dev/sdk": "3.14.12"
+  "@thirdweb-dev/chains": "^0.1.4"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.9",
