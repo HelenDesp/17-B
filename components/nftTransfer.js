@@ -12,7 +12,6 @@ import {
   ThirdwebProvider,
   ConnectButton,
   useActiveAccount,
-  useConnect,
 } from "thirdweb/react";
 import {
   smartWallet,
@@ -32,13 +31,13 @@ const smartWalletConfig = smartWallet({
   personalWallets: [embeddedWallet()]
 });
 
-export default function NFTTransferConnector({ nfts }) {
+export default function NFTTransferCleaned({ nfts }) {
   const account = useActiveAccount();
-  const { connect, isConnecting } = useConnect();
   const [contract, setContract] = useState(null);
   const [recipient, setRecipient] = useState("");
   const [selectedBatchIds, setSelectedBatchIds] = useState([]);
   const [status, setStatus] = useState("");
+  const [txInProgress, setTxInProgress] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -58,17 +57,6 @@ export default function NFTTransferConnector({ nfts }) {
         ? prev.filter((id) => id !== tokenId)
         : [...prev, tokenId]
     );
-  };
-
-  const handleSmartWalletConnect = async () => {
-    try {
-      setStatus("⏳ Connecting Smart Wallet...");
-      await connect(smartWalletConfig);
-      setStatus("✅ Smart Wallet connected.");
-    } catch (err) {
-      console.error("❌ Smart Wallet connection failed:", err);
-      setStatus("❌ Smart Wallet connection failed.");
-    }
   };
 
   const handleTransfer = async () => {
@@ -94,7 +82,9 @@ export default function NFTTransferConnector({ nfts }) {
     }
 
     try {
+      setTxInProgress(true);
       setStatus("⏳ Sending batch transaction via Smart Wallet...");
+
       const batchCalls = selectedBatchIds.map((tokenId) =>
         prepareContractCall({
           contract,
@@ -102,11 +92,15 @@ export default function NFTTransferConnector({ nfts }) {
           params: [account.address, recipient, tokenId]
         })
       );
+
       await account.execute(batchCalls);
+
       setStatus("✅ NFTs transferred in one smart wallet transaction.");
     } catch (err) {
       console.error("🚨 Error during batch transfer:", err);
       setStatus("❌ Batch transaction failed.");
+    } finally {
+      setTxInProgress(false);
     }
   };
 
@@ -114,17 +108,10 @@ export default function NFTTransferConnector({ nfts }) {
     <ThirdwebProvider client={client} activeChain={base} wallets={[smartWalletConfig]}>
       <div className="p-6 rounded-xl shadow-md bg-white dark:bg-dark-200 mt-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          NFT Transfer via Smart Wallet
+          NFT Transfer (Smart Wallet Cleaned)
         </h2>
 
         <ConnectButton client={client} />
-        <button
-          onClick={handleSmartWalletConnect}
-          disabled={isConnecting}
-          className="mt-4 w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          {isConnecting ? "Connecting..." : "Connect Smart Wallet"}
-        </button>
 
         <div className="mt-4">
           <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
@@ -160,9 +147,10 @@ export default function NFTTransferConnector({ nfts }) {
 
         <button
           onClick={handleTransfer}
-          className="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700"
+          disabled={txInProgress}
+          className="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
         >
-          Batch Transfer via Smart Wallet
+          {txInProgress ? "Transferring..." : "Batch Transfer via Smart Wallet"}
         </button>
 
         {status && (
