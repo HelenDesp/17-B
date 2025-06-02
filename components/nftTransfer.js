@@ -30,7 +30,7 @@ const nftContractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
 const smartWalletConfig = smartWallet({
   factoryAddress: "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2",
-  gasless: true,
+  gasless: false,
   client,
   personalWallets: [embeddedWallet()],
 });
