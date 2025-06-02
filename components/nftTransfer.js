@@ -120,13 +120,6 @@ export default function NFTSmartWalletTransfer({ nfts }) {
 
       <ConnectButton client={client} />
 
-      <button
-        onClick={handleConnectSmartWallet}
-        className="mt-4 w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
-      >
-        Connect Smart Wallet
-      </button>
-
       <div className="mb-4 mt-4">
         <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
           Select NFTs:
