@@ -25,6 +25,14 @@ import ContextProvider from "../context";
 import { ThemeProvider } from "../context/ThemeContext";
 import "../styles/globals.css";
 
+import { ThirdwebProvider } from "thirdweb/react";
+import { createThirdwebClient } from "thirdweb";
+import { base } from "thirdweb/chains";
+
+const client = createThirdwebClient({
+  clientId: "40cb8b1796ed4c206ecd1445911c5ab8",
+});
+
 function MyApp({ Component, pageProps }) {
   const [cookieString, setCookieString] = useState(null);
   const [mounted, setMounted] = useState(false);
@@ -34,17 +42,18 @@ function MyApp({ Component, pageProps }) {
     setMounted(true);
   }, []);
 
-  // Prevent flash of unstyled content
   if (!mounted) {
     return null;
   }
 
   return (
-    <ThemeProvider>
-      <ContextProvider cookies={cookieString}>
-        <Component {...pageProps} />
-      </ContextProvider>
-    </ThemeProvider>
+    <ThirdwebProvider client={client} activeChain={base}>
+      <ThemeProvider>
+        <ContextProvider cookies={cookieString}>
+          <Component {...pageProps} />
+        </ContextProvider>
+      </ThemeProvider>
+    </ThirdwebProvider>
   );
 }
 
