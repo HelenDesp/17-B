@@ -17,13 +17,13 @@ import {
 import { smartWallet, embeddedWallet } from "thirdweb/wallets";
 
 const client = createThirdwebClient({
-  clientId: "YOUR_THIRDWEB_CLIENT_ID", // Replace with your client ID
+  clientId: "40cb8b1796ed4c206ecd1445911c5ab8", // Replace with your client ID
 });
 
-const contractAddress = "YOUR_NFT_CONTRACT_ADDRESS"; // Replace with your ERC721 contract address
+const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47"; // Replace with your ERC721 contract address
 
 const smartWalletConfig = smartWallet({
-  factoryAddress: "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29", // Verify for Base
+  factoryAddress: "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2", // Verify for Base
   gasless: false, // Set to true only if relayer is configured
   client,
   personalWallets: [embeddedWallet()],
