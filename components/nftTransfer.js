@@ -19,11 +19,28 @@ import {
   embeddedWallet
 } from "thirdweb/wallets";
 
+import { useAccount, useWriteContract } from "wagmi";
+
+const wagmiAbi = [
+  {
+    name: "safeTransferFrom",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "from", type: "address" },
+      { name: "to", type: "address" },
+      { name: "tokenId", type: "uint256" },
+    ],
+    outputs: [],
+  },
+];
+
 const client = createThirdwebClient({
   clientId: "40cb8b1796ed4c206ecd1445911c5ab8",
 });
 
 const nftContractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
+
 const smartWalletConfig = smartWallet({
   factoryAddress: "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29",
   gasless: true,
@@ -31,16 +48,20 @@ const smartWalletConfig = smartWallet({
   personalWallets: [embeddedWallet()],
 });
 
-export default function NFTSmartWalletTransfer({ nfts }) {
-  const account = useActiveAccount();
+export default function NFTTransferCombined({ nfts }) {
+  const { address: wagmiAddress } = useAccount(); // EOA for single transfers
+  const { writeContractAsync } = useWriteContract();
+
+  const thirdwebAccount = useActiveAccount(); // Smart Wallet for batch
+  const { mutate: sendTransaction } = useSendTransaction();
+
+  const [contract, setContract] = useState(null);
   const [recipient, setRecipient] = useState("");
-  const [selectedTokenIds, setSelectedTokenIds] = useState([]);
-  const [selectedSingleId, setSelectedSingleId] = useState("");
   const [mode, setMode] = useState("single");
+  const [selectedSingleId, setSelectedSingleId] = useState("");
+  const [selectedBatchIds, setSelectedBatchIds] = useState([]);
   const [status, setStatus] = useState("");
   const [txInProgress, setTxInProgress] = useState(false);
-  const { mutate: sendTransaction } = useSendTransaction();
-  const [contract, setContract] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -55,7 +76,7 @@ export default function NFTSmartWalletTransfer({ nfts }) {
   }, []);
 
   const handleCheckboxChange = (tokenId) => {
-    setSelectedTokenIds((prev) =>
+    setSelectedBatchIds((prev) =>
       prev.includes(tokenId)
         ? prev.filter((id) => id !== tokenId)
         : [...prev, tokenId]
@@ -68,11 +89,6 @@ export default function NFTSmartWalletTransfer({ nfts }) {
       return;
     }
 
-    if (!account || !contract) {
-      setStatus("❌ Wallet not connected.");
-      return;
-    }
-
     if (mode === "single") {
       if (!selectedSingleId) {
         setStatus("❌ Please select an NFT.");
@@ -81,15 +97,15 @@ export default function NFTSmartWalletTransfer({ nfts }) {
 
       try {
         setTxInProgress(true);
-        setStatus("⏳ Sending single transfer...");
+        setStatus("⏳ Sending single transaction...");
 
-        const tx = prepareContractCall({
-          contract,
-          method: "safeTransferFrom",
-          params: [account.address, recipient, selectedSingleId],
+        await writeContractAsync({
+          address: nftContractAddress,
+          abi: wagmiAbi,
+          functionName: "safeTransferFrom",
+          args: [wagmiAddress, recipient, selectedSingleId],
         });
 
-        await sendTransaction(tx);
         setStatus("✅ NFT transferred successfully.");
       } catch (err) {
         console.error(err);
@@ -97,21 +113,27 @@ export default function NFTSmartWalletTransfer({ nfts }) {
       } finally {
         setTxInProgress(false);
       }
+
     } else {
-      if (selectedTokenIds.length === 0) {
+      if (!thirdwebAccount || !contract) {
+        setStatus("❌ Smart Wallet not connected.");
+        return;
+      }
+
+      if (selectedBatchIds.length === 0) {
         setStatus("❌ Please select at least one NFT.");
         return;
       }
 
       try {
         setTxInProgress(true);
-        setStatus("⏳ Sending batch transaction...");
+        setStatus("⏳ Sending batch transaction via Smart Wallet...");
 
-        const batchCalls = selectedTokenIds.map((tokenId) =>
+        const batchCalls = selectedBatchIds.map((tokenId) =>
           prepareContractCall({
             contract,
             method: "safeTransferFrom",
-            params: [account.personalWallet?.address, recipient, tokenId],
+            params: [thirdwebAccount.personalWallet?.address, recipient, tokenId],
           })
         );
 
@@ -119,7 +141,7 @@ export default function NFTSmartWalletTransfer({ nfts }) {
         setStatus("✅ NFTs transferred in one smart wallet transaction.");
       } catch (err) {
         console.error(err);
-        setStatus("❌ Transaction failed.");
+        setStatus("❌ Batch transaction failed.");
       } finally {
         setTxInProgress(false);
       }
@@ -158,7 +180,7 @@ export default function NFTSmartWalletTransfer({ nfts }) {
           </label>
         </div>
 
-        {mode === "single" ? (
+        {mode === "single" && (
           <div className="mb-4">
             <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
               Select NFT:
@@ -176,7 +198,9 @@ export default function NFTSmartWalletTransfer({ nfts }) {
               ))}
             </select>
           </div>
-        ) : (
+        )}
+
+        {mode === "batch" && (
           <div className="mb-4">
             <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
               Select NFTs:
@@ -186,7 +210,7 @@ export default function NFTSmartWalletTransfer({ nfts }) {
                 <label key={nft.tokenId} className="text-sm text-gray-700 dark:text-white">
                   <input
                     type="checkbox"
-                    checked={selectedTokenIds.includes(nft.tokenId)}
+                    checked={selectedBatchIds.includes(nft.tokenId)}
                     onChange={() => handleCheckboxChange(nft.tokenId)}
                     className="mr-1"
                   />
