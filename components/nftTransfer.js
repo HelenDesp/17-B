@@ -52,6 +52,19 @@ export default function NFTSmartWalletTransfer({ nfts }) {
     load();
   }, []);
 
+  useEffect(() => {
+    console.log("Active account:", account);
+  }, [account]);
+
+  if (!account) {
+    return (
+      <div className="p-6 rounded-xl shadow-md bg-white dark:bg-dark-200 mt-6">
+        <ConnectButton client={client} />
+        <p className="mt-4 text-sm text-red-600">❌ Wallet not connected.</p>
+      </div>
+    );
+  }
+
   const handleCheckboxChange = (tokenId) => {
     setSelectedTokenIds((prev) =>
       prev.includes(tokenId)
@@ -66,8 +79,8 @@ export default function NFTSmartWalletTransfer({ nfts }) {
       return;
     }
 
-    if (!account || !contract) {
-      setStatus("❌ Wallet not connected.");
+    if (!contract) {
+      setStatus("❌ Contract not initialized.");
       return;
     }
 
@@ -80,9 +93,6 @@ export default function NFTSmartWalletTransfer({ nfts }) {
     setStatus("⏳ Sending batch transaction via Smart Wallet...");
 
     try {
-      console.log("Smart Wallet:", account.address);
-      console.log("NFT Holder:", account.personalWallet?.address);
-
       const batchCalls = selectedTokenIds.map((tokenId) =>
         prepareContractCall({
           contract,
