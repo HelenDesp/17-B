@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -27,7 +26,7 @@ const client = createThirdwebClient({
 const nftContractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
 const smartWalletConfig = smartWallet({
-  factoryAddress: "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2",
+  factoryAddress: "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2", // smart wallet factory
   gasless: true,
   client,
   personalWallets: [embeddedWallet()],
@@ -41,7 +40,6 @@ export default function NFTSmartWalletTransfer({ nfts }) {
   const [txInProgress, setTxInProgress] = useState(false);
   const { mutate: sendTransaction } = useSendTransaction();
   const { connect } = useConnect();
-
   const [contract, setContract] = useState(null);
 
   useEffect(() => {
@@ -102,7 +100,9 @@ export default function NFTSmartWalletTransfer({ nfts }) {
         })
       );
 
+      // ⚠️ This is the line that causes false positive success
       await sendTransaction(batchCalls);
+
       setStatus("✅ NFTs transferred in one smart wallet transaction.");
     } catch (err) {
       console.error(err);
