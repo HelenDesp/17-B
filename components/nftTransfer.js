@@ -18,7 +18,9 @@ import {
   smartWallet,
   embeddedWallet,
 } from "thirdweb/wallets";
-import { safeTransferFrom } from "thirdweb/extensions/erc721";
+
+
+import { prepareContractCall } from "thirdweb";
 
 const client = createThirdwebClient({
   clientId: "40cb8b1796ed4c206ecd1445911c5ab8",
@@ -93,14 +95,13 @@ export default function NFTSmartWalletTransfer({ nfts }) {
     setStatus("⏳ Sending batch transaction via Smart Wallet...");
 
     try {
-      const batchCalls = selectedTokenIds.map((tokenId) =>
-        safeTransferFrom({
-          contract,
-          from: account.address,
-          to: recipient,
-          tokenId,
-        })
-      );
+const batchCalls = selectedTokenIds.map((tokenId) =>
+  prepareContractCall({
+    contract,
+    method: "safeTransferFrom",
+    params: [account.address, recipient, tokenId],
+  })
+);
 
       await sendTransaction(batchCalls);
       setStatus("✅ NFTs transferred in one smart wallet transaction.");
