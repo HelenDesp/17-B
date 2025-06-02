@@ -13,7 +13,7 @@ import {
   useActiveAccount,
   useSendTransaction,
   useOwnedNFTs,
-} from "thirdweb/react";
+} from "@thirdweb-dev/react";
 import { smartWallet, embeddedWallet } from "thirdweb/wallets";
 
 const client = createThirdwebClient({
@@ -38,11 +38,6 @@ export default function NFTSmartWalletTransfer() {
   const [txInProgress, setTxInProgress] = useState(false);
   const [contract, setContract] = useState(null);
 
-  const { data: nfts, isLoading: nftsLoading, error: nftsError } = useOwnedNFTs({
-    contract: contract,
-    address: account?.address,
-  });
-
   useEffect(() => {
     const load = async () => {
       const c = getContract({
@@ -55,11 +50,20 @@ export default function NFTSmartWalletTransfer() {
     load();
   }, []);
 
+  const { data: nfts, isLoading: nftsLoading, error: nftsError } = useOwnedNFTs({
+    contract: contract || undefined,
+    address: account?.address,
+    queryParams: { count: 100 },
+  });
+
   useEffect(() => {
     if (nfts) {
       console.log("Owned NFTs:", nfts);
     }
-  }, [nfts]);
+    if (nftsError) {
+      console.error("NFT fetch error:", nftsError);
+    }
+  }, [nfts, nftsError]);
 
   const handleCheckboxChange = (tokenId) => {
     setSelectedTokenIds((prev) =>
@@ -82,8 +86,11 @@ export default function NFTSmartWalletTransfer() {
         method: "setApprovalForAll",
         params: [account.address, true],
       });
-      await sendTransaction([transaction]);
-      setStatus("✅ Smart Wallet approved for transfers.");
+      const txResult = await sendTransaction([transaction]);
+      console.log("Approval tx hash:", txResult.transactionHash);
+      setStatus(
+        `✅ Smart Wallet approved for transfers. <a href="https://basescan.org/tx/${txResult.transactionHash}" target="_blank" rel="noopener noreferrer">View on Basescan</a>`
+      );
     } catch (err) {
       console.error("Approval error:", err);
       setStatus(`❌ Approval failed: ${err.message}`);
@@ -125,7 +132,7 @@ export default function NFTSmartWalletTransfer() {
       } else {
         txResult = await sendTransaction(batchCalls);
       }
-      console.log("Transaction hash:", txResult.transactionHash);
+      console.log("Transfer tx hash:", txResult.transactionHash);
       setStatus(
         `✅ NFTs transferred in one smart wallet transaction. <a href="https://basescan.org/tx/${txResult.transactionHash}" target="_blank" rel="noopener noreferrer">View on Basescan</a>`
       );
@@ -136,6 +143,10 @@ export default function NFTSmartWalletTransfer() {
       setTxInProgress(false);
     }
   };
+
+  if (!contract) {
+    return <div>Loading contract...</div>;
+  }
 
   return (
     <ThirdwebProvider client={client} activeChain={base} wallets={[smartWalletConfig]}>
@@ -188,7 +199,7 @@ export default function NFTSmartWalletTransfer() {
                     onChange={() => handleCheckboxChange(nft.tokenId)}
                     className="mr-1"
                   />
-                  #{nft.tokenId} — {nft.name || "Unnamed"}
+                  #{nft.tokenId} — {nft.metadata?.name || "Unnamed"}
                 </label>
               ))}
             </div>
@@ -208,14 +219,14 @@ export default function NFTSmartWalletTransfer() {
         </div>
         <button
           onClick={handleApproveAll}
-          disabled={txInProgress || !account}
+          disabled={txInProgress || !account || !contract}
           className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 mb-4"
         >
           {txInProgress ? "Approving..." : "Approve Smart Wallet for Transfers"}
         </button>
         <button
           onClick={handleBatchTransfer}
-          disabled={txInProgress || !account || selectedTokenIds.length === 0}
+          disabled={txInProgress || !account || !contract || selectedTokenIds.length === 0}
           className="w-full py-2 px-4 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50"
         >
           {txInProgress ? "Transferring..." : "Batch Transfer via Smart Wallet"}
