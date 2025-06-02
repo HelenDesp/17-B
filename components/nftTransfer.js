@@ -18,7 +18,7 @@ import {
 import {
   smartWallet,
   embeddedWallet,
-  injectedWallet
+  walletConnect
 } from "thirdweb/wallets";
 
 const client = createThirdwebClient({
@@ -31,7 +31,7 @@ const smartWalletConfig = smartWallet({
   factoryAddress: "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29",
   gasless: true,
   client,
-  personalWallets: [injectedWallet()]
+  personalWallets: [walletConnect()]
 });
 
 export default function NFTTransferCombinedFixed({ nfts }) {
