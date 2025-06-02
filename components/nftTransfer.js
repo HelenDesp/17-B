@@ -43,7 +43,7 @@ const contractAddress =
 
 const smartWalletConfig = smartWallet({
   factoryAddress:
-    "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29",
+    "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2",
   gasless: true, // fallback to user-paying if no relayer/billing
   client,
   personalWallets: [embeddedWallet()],
