@@ -1,78 +1,101 @@
-import { useState } from "react";
-import { useAddress, useContract, useNFTs, ThirdwebProvider, useSigner, useSwitchChain, ConnectWallet } from "@thirdweb-dev/react";
-import { SmartWallet, ThirdwebSDK } from "@thirdweb-dev/sdk";
-import { base } from "@thirdweb-dev/chains";
-import { ethers } from "ethers";
 
-const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-const factoryAddress = "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2";
-const clientId = "40cb8b1796ed4c206ecd1445911c5ab8";
+"use client";
 
-export default function NFTTransfer({ nfts }) {
-  const address = useAddress();
-  const signer = useSigner();
-  const switchChain = useSwitchChain();
+import { useEffect, useState } from "react";
+import {
+  createThirdwebClient,
+  getContract,
+  toWei
+} from "thirdweb";
+import { base } from "thirdweb/chains";
+import {
+  ThirdwebProvider,
+  ConnectButton,
+  useActiveAccount,
+  useSendTransaction,
+} from "thirdweb/react";
+import {
+  smartWallet,
+  embeddedWallet
+} from "thirdweb/wallets";
+import { safeTransferFrom } from "thirdweb/extensions/erc721";
+
+const client = createThirdwebClient({
+  clientId: "40cb8b1796ed4c206ecd1445911c5ab8",
+});
+
+const nftContractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
+const smartWalletConfig = smartWallet({
+  factoryAddress: "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2",
+  gasless: true,
+  client,
+  personalWallets: [embeddedWallet()],
+});
+
+export default function NFTSmartWalletTransfer({ nfts }) {
+  const account = useActiveAccount();
   const [recipient, setRecipient] = useState("");
-  const [mode, setMode] = useState("single");
-  const [selectedTokenId, setSelectedTokenId] = useState(null);
+  const [selectedTokenIds, setSelectedTokenIds] = useState([]);
   const [status, setStatus] = useState("");
   const [txInProgress, setTxInProgress] = useState(false);
+  const { mutate: sendTransaction } = useSendTransaction();
 
-  const handleTransfer = async () => {
+  const [contract, setContract] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      const c = getContract({
+        client,
+        chain: base,
+        address: nftContractAddress,
+      });
+      setContract(c);
+    };
+    load();
+  }, []);
+
+  const handleCheckboxChange = (tokenId) => {
+    setSelectedTokenIds((prev) =>
+      prev.includes(tokenId)
+        ? prev.filter((id) => id !== tokenId)
+        : [...prev, tokenId]
+    );
+  };
+
+  const handleBatchTransfer = async () => {
     if (!recipient || !recipient.startsWith("0x") || recipient.length !== 42) {
       setStatus("❌ Invalid recipient address.");
       return;
     }
 
-    if (mode === "single" && !selectedTokenId) {
-      setStatus("❌ Please select an NFT to transfer.");
-      return;
-    }
-
-    if (!signer || !address) {
+    if (!account || !contract) {
       setStatus("❌ Wallet not connected.");
       return;
     }
 
+    if (selectedTokenIds.length === 0) {
+      setStatus("❌ Please select at least one NFT.");
+      return;
+    }
+
     setTxInProgress(true);
-    setStatus("⏳ Sending transaction...");
+    setStatus("⏳ Sending batch transaction via Smart Wallet...");
 
     try {
-      const sdk = new ThirdwebSDK(signer, {
-        clientId,
-        chain: base,
-      });
-
-      const smartWallet = await SmartWallet.connect({
-        signer,
-        chain: base,
-        factoryAddress,
-        clientId,
-      });
-
-      const nftContract = await sdk.getContract(contractAddress, "nft-collection");
-
-      // Ensure approval
-      const isApproved = await nftContract.erc721.isApproved(
-        address,
-        smartWallet.getAddress()
-      );
-      if (!isApproved) {
-        await nftContract.erc721.setApprovalForAll(smartWallet.getAddress(), true);
-      }
-
-      const tokensToTransfer = mode === "single"
-        ? [selectedTokenId]
-        : nfts.map(n => n.tokenId);
-
-      const txs = tokensToTransfer.map((tokenId) =>
-        nftContract.erc721.transfer.prepare(smartWallet.getAddress(), recipient, tokenId)
+      const batchCalls = selectedTokenIds.map((tokenId) =>
+        safeTransferFrom({
+          contract,
+          from: account.address,
+          to: recipient,
+          tokenId,
+        })
       );
 
-      await smartWallet.sendBatchTransaction(txs);
-      setStatus("✅ NFT(s) transferred successfully.");
-    } catch (error) {
-      console.error(error);
+      await sendTransaction(batchCalls); // executes all in a single tx
+
+      setStatus("✅ NFTs transferred in one smart wallet transaction.");
+    } catch (err) {
+      console.error(err);
       setStatus("❌ Transaction failed.");
     } finally {
       setTxInProgress(false);
@@ -80,79 +103,58 @@ export default function NFTTransfer({ nfts }) {
   };
 
   return (
-    <div className="bg-white dark:bg-dark-200 rounded-xl shadow-card dark:shadow-card-dark p-6 mt-6">
-      <ConnectWallet />
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-        Transfer Your NFT(s)
-      </h2>
+    <ThirdwebProvider client={client} activeChain={base} wallets={[smartWalletConfig]}>
+      <div className="p-6 rounded-xl shadow-md bg-white dark:bg-dark-200 mt-6">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          Smart Wallet NFT Batch Transfer
+        </h2>
 
-      <div className="mb-4">
-        <label className="mr-4 font-medium text-gray-700 dark:text-gray-200">
-          <input
-            type="radio"
-            checked={mode === "single"}
-            onChange={() => setMode("single")}
-            className="mr-1"
-          />
-          Single
-        </label>
-        <label className="font-medium text-gray-700 dark:text-gray-200">
-          <input
-            type="radio"
-            checked={mode === "batch"}
-            onChange={() => setMode("batch")}
-            className="mr-1"
-          />
-          Batch
-        </label>
-      </div>
+        <ConnectButton client={client} />
 
-      {mode === "single" && (
+        <div className="mb-4 mt-4">
+          <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
+            Select NFTs:
+          </label>
+          <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+            {nfts.map((nft) => (
+              <label key={nft.tokenId} className="text-sm text-gray-700 dark:text-white">
+                <input
+                  type="checkbox"
+                  checked={selectedTokenIds.includes(nft.tokenId)}
+                  onChange={() => handleCheckboxChange(nft.tokenId)}
+                  className="mr-1"
+                />
+                #{nft.tokenId} — {nft.name}
+              </label>
+            ))}
+          </div>
+        </div>
+
         <div className="mb-4">
           <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
-            Select NFT:
+            Recipient Wallet Address:
           </label>
-          <select
-            value={selectedTokenId || ""}
-            onChange={(e) => setSelectedTokenId(e.target.value)}
+          <input
+            type="text"
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            placeholder="0x..."
             className="w-full p-2 border rounded dark:bg-dark-300 dark:text-white"
-          >
-            <option value="">-- Select NFT --</option>
-            {nfts.map((nft) => (
-              <option key={nft.tokenId} value={nft.tokenId}>
-                #{nft.tokenId} — {nft.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
-      )}
 
-      <div className="mb-4">
-        <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
-          Recipient Wallet Address:
-        </label>
-        <input
-          type="text"
-          value={recipient}
-          onChange={(e) => setRecipient(e.target.value)}
-          placeholder="0x..."
-          className="w-full p-2 border rounded dark:bg-dark-300 dark:text-white"
-        />
+        <button
+          onClick={handleBatchTransfer}
+          disabled={txInProgress}
+          className="w-full py-2 px-4 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50"
+        >
+          {txInProgress ? "Transferring..." : "Batch Transfer via Smart Wallet"}
+        </button>
+
+        {status && (
+          <p className="mt-4 text-sm text-gray-700 dark:text-gray-200">{status}</p>
+        )}
       </div>
-
-      <button
-        onClick={handleTransfer}
-        disabled={txInProgress}
-        className="w-full py-2 px-4 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50"
-      >
-        {txInProgress ? "Transferring..." : mode === "single" ? "Transfer NFT" : "Transfer Selected NFTs"}
-      </button>
-
-      {status && (
-        <p className="mt-4 text-sm text-gray-700 dark:text-gray-200">
-          {status}
-        </p>
-      )}
-    </div>
+    </ThirdwebProvider>
   );
 }
