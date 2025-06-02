@@ -12,13 +12,11 @@ import {
   ThirdwebProvider,
   ConnectButton,
   useActiveAccount,
-  useSendTransaction,
 } from "thirdweb/react";
 import {
   smartWallet,
   embeddedWallet
 } from "thirdweb/wallets";
-
 import { useAccount, useWriteContract } from "wagmi";
 
 const wagmiAbi = [
@@ -29,32 +27,29 @@ const wagmiAbi = [
     inputs: [
       { name: "from", type: "address" },
       { name: "to", type: "address" },
-      { name: "tokenId", type: "uint256" },
+      { name: "tokenId", type: "uint256" }
     ],
-    outputs: [],
-  },
+    outputs: []
+  }
 ];
 
 const client = createThirdwebClient({
-  clientId: "40cb8b1796ed4c206ecd1445911c5ab8",
+  clientId: "40cb8b1796ed4c206ecd1445911c5ab8"
 });
 
 const nftContractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
 const smartWalletConfig = smartWallet({
-  factoryAddress: "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2",
+  factoryAddress: "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29",
   gasless: true,
   client,
-  personalWallets: [embeddedWallet()],
+  personalWallets: [embeddedWallet()]
 });
 
-export default function NFTTransferCombined({ nfts }) {
-  const { address: wagmiAddress } = useAccount(); // EOA for single transfers
+export default function NFTTransferPatched({ nfts }) {
+  const { address: wagmiAddress } = useAccount();
   const { writeContractAsync } = useWriteContract();
-
-  const thirdwebAccount = useActiveAccount(); // Smart Wallet for batch
-  const { mutate: sendTransaction } = useSendTransaction();
-
+  const account = useActiveAccount(); // Smart Wallet
   const [contract, setContract] = useState(null);
   const [recipient, setRecipient] = useState("");
   const [mode, setMode] = useState("single");
@@ -68,7 +63,7 @@ export default function NFTTransferCombined({ nfts }) {
       const c = getContract({
         client,
         chain: base,
-        address: nftContractAddress,
+        address: nftContractAddress
       });
       setContract(c);
     };
@@ -103,7 +98,7 @@ export default function NFTTransferCombined({ nfts }) {
           address: nftContractAddress,
           abi: wagmiAbi,
           functionName: "safeTransferFrom",
-          args: [wagmiAddress, recipient, selectedSingleId],
+          args: [wagmiAddress, recipient, selectedSingleId]
         });
 
         setStatus("✅ NFT transferred successfully.");
@@ -113,10 +108,9 @@ export default function NFTTransferCombined({ nfts }) {
       } finally {
         setTxInProgress(false);
       }
-
     } else {
-      if (!thirdwebAccount || !contract) {
-        setStatus("❌ Smart Wallet not connected.");
+      if (!account?.address || !contract) {
+        setStatus("❌ Smart Wallet not ready.");
         return;
       }
 
@@ -129,15 +123,18 @@ export default function NFTTransferCombined({ nfts }) {
         setTxInProgress(true);
         setStatus("⏳ Sending batch transaction via Smart Wallet...");
 
+        const fromAddress = account.address;
+
         const batchCalls = selectedBatchIds.map((tokenId) =>
           prepareContractCall({
             contract,
             method: "safeTransferFrom",
-            params: [thirdwebAccount.personalWallet?.address, recipient, tokenId],
+            params: [fromAddress, recipient, tokenId]
           })
         );
 
-        await sendTransaction(batchCalls);
+        await account.execute(batchCalls);
+
         setStatus("✅ NFTs transferred in one smart wallet transaction.");
       } catch (err) {
         console.error(err);
