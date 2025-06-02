@@ -46,10 +46,10 @@ const smartWalletConfig = smartWallet({
   personalWallets: [embeddedWallet()]
 });
 
-export default function NFTTransferPatched({ nfts }) {
+export default function NFTTransferFinalSmartBatch({ nfts }) {
   const { address: wagmiAddress } = useAccount();
   const { writeContractAsync } = useWriteContract();
-  const account = useActiveAccount(); // Smart Wallet
+  const account = useActiveAccount(); // Thirdweb Smart Wallet
   const [contract, setContract] = useState(null);
   const [recipient, setRecipient] = useState("");
   const [mode, setMode] = useState("single");
@@ -109,8 +109,8 @@ export default function NFTTransferPatched({ nfts }) {
         setTxInProgress(false);
       }
     } else {
-      if (!account?.address || !contract) {
-        setStatus("❌ Smart Wallet not ready.");
+      if (!account || !account.address || !contract) {
+        setStatus("❌ Smart Wallet not connected.");
         return;
       }
 
