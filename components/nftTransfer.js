@@ -12,6 +12,7 @@ import {
   ThirdwebProvider,
   ConnectButton,
   useActiveAccount,
+  useConnect,
 } from "thirdweb/react";
 import {
   smartWallet,
@@ -31,13 +32,13 @@ const smartWalletConfig = smartWallet({
   personalWallets: [embeddedWallet()]
 });
 
-export default function NFTTransferDebug({ nfts }) {
+export default function NFTTransferConnector({ nfts }) {
   const account = useActiveAccount();
+  const { connect, isConnecting } = useConnect();
   const [contract, setContract] = useState(null);
   const [recipient, setRecipient] = useState("");
   const [selectedBatchIds, setSelectedBatchIds] = useState([]);
   const [status, setStatus] = useState("");
-  const [txInProgress, setTxInProgress] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -59,12 +60,19 @@ export default function NFTTransferDebug({ nfts }) {
     );
   };
 
+  const handleSmartWalletConnect = async () => {
+    try {
+      setStatus("⏳ Connecting Smart Wallet...");
+      await connect(smartWalletConfig);
+      setStatus("✅ Smart Wallet connected.");
+    } catch (err) {
+      console.error("❌ Smart Wallet connection failed:", err);
+      setStatus("❌ Smart Wallet connection failed.");
+    }
+  };
+
   const handleTransfer = async () => {
     console.log("🧠 account:", account);
-    console.log("✅ account.address:", account?.address);
-    console.log("📦 selectedBatchIds:", selectedBatchIds);
-    console.log("🎯 recipient:", recipient);
-
     if (!account?.address || !contract) {
       setStatus("❌ Smart Wallet not ready.");
       return;
@@ -75,15 +83,18 @@ export default function NFTTransferDebug({ nfts }) {
       return;
     }
 
+    if (!recipient.startsWith("0x") || recipient.length !== 42) {
+      setStatus("❌ Invalid recipient address.");
+      return;
+    }
+
     if (selectedBatchIds.length === 0) {
       setStatus("❌ Please select at least one NFT.");
       return;
     }
 
     try {
-      setTxInProgress(true);
       setStatus("⏳ Sending batch transaction via Smart Wallet...");
-
       const batchCalls = selectedBatchIds.map((tokenId) =>
         prepareContractCall({
           contract,
@@ -91,17 +102,11 @@ export default function NFTTransferDebug({ nfts }) {
           params: [account.address, recipient, tokenId]
         })
       );
-
-      console.log("🧾 batchCalls", batchCalls);
-
       await account.execute(batchCalls);
-
       setStatus("✅ NFTs transferred in one smart wallet transaction.");
     } catch (err) {
       console.error("🚨 Error during batch transfer:", err);
       setStatus("❌ Batch transaction failed.");
-    } finally {
-      setTxInProgress(false);
     }
   };
 
@@ -109,12 +114,19 @@ export default function NFTTransferDebug({ nfts }) {
     <ThirdwebProvider client={client} activeChain={base} wallets={[smartWalletConfig]}>
       <div className="p-6 rounded-xl shadow-md bg-white dark:bg-dark-200 mt-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          NFT Transfer DEBUG
+          NFT Transfer via Smart Wallet
         </h2>
 
         <ConnectButton client={client} />
+        <button
+          onClick={handleSmartWalletConnect}
+          disabled={isConnecting}
+          className="mt-4 w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          {isConnecting ? "Connecting..." : "Connect Smart Wallet"}
+        </button>
 
-        <div className="mb-4">
+        <div className="mt-4">
           <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
             Select NFTs:
           </label>
@@ -133,7 +145,7 @@ export default function NFTTransferDebug({ nfts }) {
           </div>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 mt-4">
           <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
             Recipient Wallet Address:
           </label>
@@ -148,10 +160,9 @@ export default function NFTTransferDebug({ nfts }) {
 
         <button
           onClick={handleTransfer}
-          disabled={txInProgress}
-          className="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+          className="w-full py-2 px-4 bg-green-600 text-white rounded hover:bg-green-700"
         >
-          {txInProgress ? "Transferring..." : "DEBUG Batch Transfer"}
+          Batch Transfer via Smart Wallet
         </button>
 
         {status && (
