@@ -36,7 +36,7 @@ const client = createThirdwebClient({
 
 const smartWalletConfig = smartWallet({
   factoryAddress: "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2", // ✅ Your Smart Wallet factory
-  gasless: true,
+  gasless: false,
   client,
   personalWallets: [embeddedWallet()],
 });
