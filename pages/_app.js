@@ -28,9 +28,17 @@ import "../styles/globals.css";
 import { ThirdwebProvider } from "thirdweb/react";
 import { createThirdwebClient } from "thirdweb";
 import { base } from "thirdweb/chains";
+import { smartWallet, embeddedWallet } from "thirdweb/wallets";
 
 const client = createThirdwebClient({
   clientId: "40cb8b1796ed4c206ecd1445911c5ab8",
+});
+
+const smartWalletConfig = smartWallet({
+  factoryAddress: "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29", // ✅ Your Smart Wallet factory
+  gasless: true,
+  client,
+  personalWallets: [embeddedWallet()],
 });
 
 function MyApp({ Component, pageProps }) {
@@ -42,12 +50,10 @@ function MyApp({ Component, pageProps }) {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
   return (
-    <ThirdwebProvider client={client} activeChain={base}>
+    <ThirdwebProvider client={client} activeChain={base} wallets={[smartWalletConfig]}>
       <ThemeProvider>
         <ContextProvider cookies={cookieString}>
           <Component {...pageProps} />
