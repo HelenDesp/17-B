@@ -12,14 +12,13 @@ import {
   ThirdwebProvider,
   ConnectButton,
   useActiveAccount,
+  useActiveWallet,
   useConnect,
-  useAccount,
-  useSigner
 } from "thirdweb/react";
 import {
   smartWallet,
   embeddedWallet,
-  metamaskWallet
+  injectedWallet
 } from "thirdweb/wallets";
 
 const client = createThirdwebClient({
@@ -32,13 +31,12 @@ const smartWalletConfig = smartWallet({
   factoryAddress: "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29",
   gasless: true,
   client,
-  personalWallets: [metamaskWallet()]
+  personalWallets: [injectedWallet()]
 });
 
-export default function NFTTransferCombined({ nfts }) {
-  const account = useActiveAccount(); // Smart wallet
-  const { address: eoaAddress } = useAccount(); // MetaMask EOA
-  const signer = useSigner(); // MetaMask signer
+export default function NFTTransferCombinedFixed({ nfts }) {
+  const account = useActiveAccount(); // Smart Wallet (after hydration)
+  const wallet = useActiveWallet();   // EOA Wallet
   const { connect } = useConnect();
 
   const [contract, setContract] = useState(null);
@@ -59,11 +57,10 @@ export default function NFTTransferCombined({ nfts }) {
     load();
   }, []);
 
-  // Auto-connect smart wallet after MetaMask login
   useEffect(() => {
     const hydrateSmartWallet = async () => {
       try {
-        if (eoaAddress && !account) {
+        if (wallet && !account) {
           await connect(smartWalletConfig);
         }
       } catch (err) {
@@ -71,7 +68,7 @@ export default function NFTTransferCombined({ nfts }) {
       }
     };
     hydrateSmartWallet();
-  }, [eoaAddress]);
+  }, [wallet]);
 
   const handleBatchTransfer = async () => {
     if (!account?.address || !contract || !account?.isSmartAccount) {
@@ -106,7 +103,7 @@ export default function NFTTransferCombined({ nfts }) {
   };
 
   const handleSingleTransfer = async () => {
-    if (!signer || !contract || !selectedSingleId || !recipient) {
+    if (!wallet || !contract || !selectedSingleId || !recipient) {
       setStatus("❌ Please complete all fields.");
       return;
     }
@@ -114,7 +111,7 @@ export default function NFTTransferCombined({ nfts }) {
     try {
       const tx = await contract.write({
         method: "safeTransferFrom",
-        params: [eoaAddress, recipient, selectedSingleId]
+        params: [wallet.address, recipient, selectedSingleId]
       });
       await tx.wait();
       setStatus("✅ Single NFT transferred.");
@@ -128,7 +125,7 @@ export default function NFTTransferCombined({ nfts }) {
     <ThirdwebProvider client={client} activeChain={base} wallets={[smartWalletConfig]}>
       <div className="p-6 rounded-xl shadow-md bg-white dark:bg-dark-200 mt-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-          NFT Transfer (Combined)
+          NFT Transfer (Combined Fixed)
         </h2>
 
         <ConnectButton client={client} />
