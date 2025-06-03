@@ -100,6 +100,7 @@ export default function NFTTransfer({ nfts }) {
     try {
       if (mode === "single") {
         /* =============== 1️⃣  Direct EOA → safeTransferFrom */
+		chainId: base.id,
         await writeContractAsync({
           address: NFT_ADDRESS,
           abi: erc721Abi,
@@ -119,6 +120,7 @@ export default function NFTTransfer({ nfts }) {
         });
         if (!approved) {
           await writeContractAsync({
+			chainId: base.id,  
             address: NFT_ADDRESS,
             abi: erc721Abi,
             functionName: "setApprovalForAll",
@@ -139,6 +141,7 @@ export default function NFTTransfer({ nfts }) {
         );
 
         await writeContractAsync({
+		  chainId: base.id,	
           address: SMART_WALLET_ADDRESS,
           abi: smartWalletAbi,
           functionName: "executeBatch",
