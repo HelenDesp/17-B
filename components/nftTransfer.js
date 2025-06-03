@@ -16,35 +16,33 @@ import {
 } from "thirdweb/react";
 import { smartWallet, embeddedWallet } from "thirdweb/wallets";
 
-/* ————————————————————————————————— CONFIG ————————————————————————————————— */
+/* ————————————————— CONFIG ————————————————— */
 const client = createThirdwebClient({
   clientId: "40cb8b1796ed4c206ecd1445911c5ab8",
 });
-
 const nftContractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-
 const smartWalletConfig = smartWallet({
   factoryAddress: "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2",
-  gasless: false,                   // set to true once everything works
+  gasless: false,
   client,
   personalWallets: [embeddedWallet()],
 });
 
-/* ——————————————————————————— COMPONENT ——————————————————————————— */
+/* ————————————————— COMPONENT ————————————————— */
 export default function NFTSmartWalletTransfer({ nfts }) {
-  /* wallet hooks */
-  const eoaWallet      = useActiveWallet();   // MetaMask / WalletConnect
-  const smartAccount   = useActiveAccount();  // could be EOA or Smart
+  /* Wallet hooks */
+  const eoaWallet      = useActiveWallet();   // injected EOA (MetaMask, etc.)
+  const smartAccount   = useActiveAccount();  // could be EOA or AA
   const { connect }    = useConnect();
 
-  /* local state */
-  const [contract, setContract] = useState(null);
-  const [recipient, setRecipient] = useState("");
-  const [selectedIds, setSelected] = useState([]);
-  const [status, setStatus] = useState("");
-  const [busy, setBusy] = useState(false);
+  /* State */
+  const [contract, setContract]     = useState(null);
+  const [recipient, setRecipient]   = useState("");
+  const [selectedIds, setSelected]  = useState([]);
+  const [status, setStatus]         = useState("");
+  const [busy,   setBusy]           = useState(false);
 
-  /* load ERC-721 contract once */
+  /* Load ERC-721 contract */
   useEffect(() => {
     (async () => {
       setContract(
@@ -60,18 +58,20 @@ export default function NFTSmartWalletTransfer({ nfts }) {
 
   /* ——————————— batch transfer ——————————— */
   const handleBatch = async () => {
-    /* guards */
     if (!recipient.match(/^0x[a-fA-F0-9]{40}$/))
       return setStatus("❌ Invalid recipient address.");
     if (!contract)        return setStatus("❌ Contract not ready.");
-    if (selectedIds.length === 0)
+    if (!selectedIds.length)
       return setStatus("❌ Please select at least one NFT.");
 
-    /* must have connected MetaMask already */
-    if (!eoaWallet)
-      return setStatus("❌ Connect MetaMask first using the top button.");
+    /* ensure an EOA session (MetaMask or WalletConnect) */
+    const eoaConnected =
+      Boolean(eoaWallet) ||
+      (smartAccount && !smartAccount.isSmartAccount); // WC-EOA case
+    if (!eoaConnected)
+      return setStatus("❌ Connect wallet first (top button).");
 
-    /* ensure a Smart-Wallet hydrated */
+    /* ensure smart wallet */
     let smart = smartAccount;
     if (!smart || !smart.isSmartAccount) {
       try {
@@ -82,10 +82,9 @@ export default function NFTSmartWalletTransfer({ nfts }) {
       }
     }
 
-    /* build & send multicall */
+    /* build & execute multicall */
     setBusy(true);
     setStatus("⏳ Sending batch transaction …");
-
     try {
       const calls = selectedIds.map((id) =>
         prepareContractCall({
@@ -94,8 +93,7 @@ export default function NFTSmartWalletTransfer({ nfts }) {
           params: [smart.address, recipient, id],
         })
       );
-
-      await smart.execute(calls);              // single on-chain tx
+      await smart.execute(calls);       // one on-chain tx
       setStatus("✅ NFTs transferred in one smart-wallet tx.");
     } catch (err) {
       console.error(err);
@@ -105,8 +103,10 @@ export default function NFTSmartWalletTransfer({ nfts }) {
     }
   };
 
-  /* ——————————— UI ——————————— */
-  const isEOAConnected = Boolean(eoaWallet);
+  /* Render only when an EOA session exists */
+  const isEOAConnected =
+    Boolean(eoaWallet) ||
+    (smartAccount && !smartAccount.isSmartAccount); // WC-EOA fallback
 
   return (
     <ThirdwebProvider client={client} activeChain={base} wallets={[smartWalletConfig]}>
@@ -115,19 +115,18 @@ export default function NFTSmartWalletTransfer({ nfts }) {
           Smart-Wallet NFT Batch Transfer
         </h2>
 
-        {/* global wallet connect */}
+        {/* Global connect */}
         <ConnectButton client={client} />
 
-        {/* prompt until MetaMask connected */}
+        {/* Prompt until wallet connected */}
         {!isEOAConnected && (
           <div className="mt-6 p-4 border rounded text-center">
-            <p className="text-sm mb-1">
-              Connect MetaMask (or another injected wallet) above to enable batch transfer.
+            <p className="text-sm">
+              Connect MetaMask / Trust Wallet first to enable batch transfer.
             </p>
           </div>
         )}
 
-        {/* full transfer form shows only when EOA is present */}
         {isEOAConnected && (
           <>
             {/* NFT picker */}
@@ -148,7 +147,7 @@ export default function NFTSmartWalletTransfer({ nfts }) {
               </div>
             </div>
 
-            {/* recipient */}
+            {/* Recipient */}
             <input
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
