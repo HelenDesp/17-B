@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount, useNetwork, useWriteContract } from "wagmi";
 import {
   createPublicClient,
   http,
@@ -57,6 +57,7 @@ const smartWalletAbi = [
 
 export default function NFTTransfer({ nfts }) {
   const { address: eoa } = useAccount();
+  const { chain } = useNetwork();
   const { writeContractAsync } = useWriteContract();
 
   const [recipient, setRecipient] = useState("");
@@ -66,10 +67,15 @@ export default function NFTTransfer({ nfts }) {
   const [txInProgress, setTxInProgress] = useState(false);
 
   const NFT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const SMART_WALLET_ADDRESS = "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29";
+  const SMART_WALLET_ADDRESS = "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2";
   const client = createPublicClient({ chain: base, transport: http() });
 
   const handleTransfer = async () => {
+    if (chain?.id !== base.id) {
+      setStatus("❌ Please switch to Base network in MetaMask.");
+      return;
+    }
+
     if (!recipient.match(/^0x[a-fA-F0-9]{40}$/)) {
       setStatus("❌ Invalid recipient address.");
       return;
