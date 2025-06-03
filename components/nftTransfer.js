@@ -6,6 +6,7 @@ import {
   encodeFunctionData,
 } from "viem";
 import { base } from "viem/chains";
+import { useActiveAccount } from "@thirdweb-dev/react";
 
 const erc721Abi = [
   {
@@ -41,23 +42,10 @@ const erc721Abi = [
   },
 ];
 
-const smartWalletAbi = [
-  {
-    name: "executeBatch",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "targets", type: "address[]" },
-      { name: "values", type: "uint256[]" },
-      { name: "data", type: "bytes[]" },
-    ],
-    outputs: [],
-  },
-];
-
 export default function NFTTransfer({ nfts }) {
   const { address: eoa, chainId } = useAccount();
   const { writeContractAsync } = useWriteContract();
+  const account = useActiveAccount();
 
   const [recipient, setRecipient] = useState("");
   const [mode, setMode] = useState("single");
@@ -126,12 +114,17 @@ export default function NFTTransfer({ nfts }) {
           })
         );
 
-        await writeContractAsync({
-          address: SMART_WALLET_ADDRESS,
-          abi: smartWalletAbi,
-          functionName: "executeBatch",
-          args: [targets, values, data],
-          chainId: base.id,
+        if (!account) {
+          setStatus("❌ Smart Wallet not connected.");
+          return;
+        }
+
+        await account.executeBatch({
+          transactions: targets.map((target, i) => ({
+            to: target,
+            value: values[i],
+            data: data[i],
+          })),
         });
 
         setStatus("✅ All selected NFTs transferred in one tx.");
