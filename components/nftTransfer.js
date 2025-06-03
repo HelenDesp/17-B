@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { base } from "viem/chains";
 
-const slashAbi = [
+const handlerAbi = [
   {
     name: "drop721",
     type: "function",
@@ -27,8 +27,8 @@ export default function NFTTransfer({ nfts }) {
 
   const { writeContractAsync } = useWriteContract();
 
-  const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const slashTokenAddress = "0xa7b5B27eb5A29AFdfe0AEC8675eBe47Ba1dbD090";
+  const nftContract = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47"; // ReVerse Genesis
+  const handlerContract = "0xca006CDA54644010aa869Ced9DDaAe85b54937Ba";
 
   const handleTransfer = async () => {
     if (!recipient || !recipient.startsWith("0x") || recipient.length !== 42) {
@@ -45,18 +45,21 @@ export default function NFTTransfer({ nfts }) {
     setStatus("⏳ Sending transaction...");
 
     try {
-      const tokenIds = mode === "single" ? [BigInt(selectedTokenId)] : nfts.map(nft => BigInt(nft.tokenId));
+      const tokenIds = mode === "single"
+        ? [BigInt(selectedTokenId)]
+        : nfts.map(nft => BigInt(nft.tokenId));
+
       const recipients = Array(tokenIds.length).fill(recipient);
 
       await writeContractAsync({
-        address: slashTokenAddress,
-        abi: slashAbi,
+        address: handlerContract,
+        abi: handlerAbi,
         functionName: "drop721",
-        args: [contractAddress, recipients, tokenIds],
-        chain: base, // ✅ Proper viem-style chain override
+        args: [nftContract, recipients, tokenIds],
+        chain: base
       });
 
-      setStatus("✅ NFT(s) transferred using SlashToken.");
+      setStatus("✅ NFT(s) transferred in batch.");
     } catch (error) {
       console.error(error);
       setStatus("❌ Transaction failed.");
