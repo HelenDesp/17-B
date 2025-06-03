@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAccount, useNetwork, useWriteContract } from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
 import {
   createPublicClient,
   http,
@@ -56,8 +56,7 @@ const smartWalletAbi = [
 ];
 
 export default function NFTTransfer({ nfts }) {
-  const { address: eoa } = useAccount();
-  const { chain } = useNetwork();
+  const { address: eoa, chainId } = useAccount();
   const { writeContractAsync } = useWriteContract();
 
   const [recipient, setRecipient] = useState("");
@@ -71,7 +70,7 @@ export default function NFTTransfer({ nfts }) {
   const client = createPublicClient({ chain: base, transport: http() });
 
   const handleTransfer = async () => {
-    if (chain?.id !== base.id) {
+    if (chainId !== base.id) {
       setStatus("❌ Please switch to Base network in MetaMask.");
       return;
     }
