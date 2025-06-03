@@ -59,6 +59,7 @@ export default function NFTTransfer({ nfts }) {
         abi: slashAbi,
         functionName: "drop721",
         args: [contractAddress, recipients, tokenIds],
+		chainId: 8453, // ✅ Force BASE chain here!
       });
 
       setStatus("✅ NFT(s) transferred using SlashToken.");
