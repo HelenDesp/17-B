@@ -1,4 +1,4 @@
-// nftTransfer.js  –  Wagmi single-send  +  smart-wallet batch-send (Base chain)
+// nftTransfer.js — ReVerse Genesis single + batch transfer (wagmi + viem)
 
 import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
@@ -8,9 +8,10 @@ import {
   encodeFunctionData,
 } from "viem";
 import { base } from "viem/chains";
-import { useActiveAccount } from "thirdweb/react";   // ✅ thirdweb hook
+import { useActiveAccount } from "thirdweb/react";    // ✅ Thirdweb AA hook
 
-/* ─────────────── ABIs ──────────────── */
+/* ──────────────── ABIs ──────────────── */
+// Minimal ERC-721
 const erc721Abi = [
   {
     name: "safeTransferFrom",
@@ -41,11 +42,11 @@ const erc721Abi = [
       { name: "owner", type: "address" },
       { name: "operator", type: "address" },
     ],
-    outputs: [{ name: "", type: "bool" }],
+    outputs: [{ type: "bool" }],
   },
 ];
 
-// every Thirdweb smart wallet exposes this signature
+// Every Thirdweb smart wallet exposes executeBatch
 const smartWalletAbi = [
   {
     name: "executeBatch",
@@ -60,29 +61,24 @@ const smartWalletAbi = [
   },
 ];
 
-/* ─────────────── Component ──────────────── */
+/* ───────────── Component ───────────── */
 export default function NFTTransfer({ nfts = [] }) {
-  const { address: eoa } = useAccount();                // owner EOA for single send
+  const { address: eoa } = useAccount();               // owner EOA (single mode)
   const { writeContractAsync } = useWriteContract();
-  const { account } = useActiveAccount();               // hydrated AA wallet
-  const smartWalletAddress = account?.address;
+  const activeAccount = useActiveAccount();            // hydrated AA wallet clone
+  const smartWalletAddress = activeAccount?.address;   // may be undefined initially
 
-  /* UI state */
   const [recipient, setRecipient]   = useState("");
-  const [mode, setMode]             = useState("single"); // "single" | "batch"
+  const [mode, setMode]             = useState("single");   // "single" | "batch"
   const [selectedId, setSelectedId] = useState(null);
   const [status, setStatus]         = useState("");
   const [busy, setBusy]             = useState(false);
 
-  /* constants */
   const NFT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-
-  /* read-only client for on-chain checks */
   const client = createPublicClient({ chain: base, transport: http() });
 
-  /* ─────────────── handler ──────────────── */
+  /* ───────────── Handler ───────────── */
   const handleTransfer = async () => {
-    // rudimentary form validation
     if (!recipient.match(/^0x[a-fA-F0-9]{40}$/)) {
       setStatus("❌ Invalid recipient address");
       return;
@@ -92,7 +88,7 @@ export default function NFTTransfer({ nfts = [] }) {
       return;
     }
     if (mode === "batch" && !smartWalletAddress) {
-      setStatus("❌ Connect / hydrate your smart wallet first");
+      setStatus("⏳ Smart wallet still deploying… please wait");
       return;
     }
 
@@ -100,10 +96,10 @@ export default function NFTTransfer({ nfts = [] }) {
       setBusy(true);
       setStatus("⏳ Sending…");
 
-      /* ───────────── single-NFT (EOA) ───────────── */
+      /* ───── Single NFT (EOA) ───── */
       if (mode === "single") {
         await writeContractAsync({
-          chainId: base.id,                         // ✅ force Base
+          chainId: base.id,                       // 🔹 force Base
           address: NFT_ADDRESS,
           abi: erc721Abi,
           functionName: "safeTransferFrom",
@@ -113,8 +109,8 @@ export default function NFTTransfer({ nfts = [] }) {
         return;
       }
 
-      /* ───────────── batch (smart wallet) ───────────── */
-      // 1. approve once if needed
+      /* ───── Batch (smart wallet) ───── */
+      // 1. Approve wallet once, if not already
       const approved = await client.readContract({
         address: NFT_ADDRESS,
         abi: erc721Abi,
@@ -132,7 +128,7 @@ export default function NFTTransfer({ nfts = [] }) {
         });
       }
 
-      // 2. build calldata arrays
+      // 2. Build calldata for each NFT
       const tokenIds = nfts.map((n) => BigInt(n.tokenId));
       const targets = tokenIds.map(() => NFT_ADDRESS);
       const values  = tokenIds.map(() => 0n);
@@ -144,7 +140,7 @@ export default function NFTTransfer({ nfts = [] }) {
         }),
       );
 
-      // 3. call executeBatch on the AA wallet
+      // 3. Execute batch on wallet clone
       await writeContractAsync({
         chainId: base.id,
         address: smartWalletAddress,
@@ -164,7 +160,7 @@ export default function NFTTransfer({ nfts = [] }) {
 
   /* ───────────── UI ───────────── */
   return (
-    <div className="bg-white dark:bg-dark-200 rounded-xl p-6 mt-6 shadow">
+    <div className="rounded-xl p-6 bg-white dark:bg-dark-200 shadow mt-6">
       <h2 className="text-xl font-semibold mb-4">Transfer Your NFT(s)</h2>
 
       {/* mode toggle */}
@@ -189,7 +185,7 @@ export default function NFTTransfer({ nfts = [] }) {
         </label>
       </div>
 
-      {/* NFT selector (single mode) */}
+      {/* NFT selector for single mode */}
       {mode === "single" && (
         <div className="mb-4">
           <label className="block mb-1 text-sm">Select NFT:</label>
