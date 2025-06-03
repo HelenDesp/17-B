@@ -1,5 +1,4 @@
-// nftTransfer.js – EOA single‑send  +  Thirdweb Smart‑Wallet batch‑send (dynamic address)
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import {
   createPublicClient,
@@ -7,9 +6,7 @@ import {
   encodeFunctionData,
 } from "viem";
 import { base } from "viem/chains";
-import { createWallet, smartWallet } from "@thirdweb-dev/wallets";
 
-// ABIs
 const erc721Abi = [
   {
     name: "safeTransferFrom",
@@ -67,31 +64,10 @@ export default function NFTTransfer({ nfts }) {
   const [selectedTokenId, setSelectedTokenId] = useState(null);
   const [status, setStatus] = useState("");
   const [txInProgress, setTxInProgress] = useState(false);
-  const [smartWalletAddress, setSmartWalletAddress] = useState("");
 
   const NFT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
+  const SMART_WALLET_ADDRESS = "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29";
   const client = createPublicClient({ chain: base, transport: http() });
-
-  useEffect(() => {
-    const setupSmartWallet = async () => {
-      if (!eoa) return;
-      const personalWallet = createWallet("local");
-      await personalWallet.connect();
-
-      const smartWalletInstance = smartWallet({
-        factoryAddress: "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2",
-        chain: base,
-        clientId: "40cb8b1796ed4c206ecd1445911c5ab8",
-        gasless: false,
-      });
-
-      await smartWalletInstance.connect({ personalWallet });
-      const swAddress = await smartWalletInstance.getAddress();
-      setSmartWalletAddress(swAddress);
-    };
-
-    setupSmartWallet();
-  }, [eoa]);
 
   const handleTransfer = async () => {
     if (!recipient.match(/^0x[a-fA-F0-9]{40}$/)) {
@@ -113,6 +89,7 @@ export default function NFTTransfer({ nfts }) {
           abi: erc721Abi,
           functionName: "safeTransferFrom",
           args: [eoa, recipient, BigInt(selectedTokenId)],
+          chainId: base.id,
         });
         setStatus("✅ NFT transferred successfully.");
       } else {
@@ -120,7 +97,7 @@ export default function NFTTransfer({ nfts }) {
           address: NFT_ADDRESS,
           abi: erc721Abi,
           functionName: "isApprovedForAll",
-          args: [eoa, smartWalletAddress],
+          args: [eoa, SMART_WALLET_ADDRESS],
         });
 
         if (!approved) {
@@ -128,7 +105,8 @@ export default function NFTTransfer({ nfts }) {
             address: NFT_ADDRESS,
             abi: erc721Abi,
             functionName: "setApprovalForAll",
-            args: [smartWalletAddress, true],
+            args: [SMART_WALLET_ADDRESS, true],
+            chainId: base.id,
           });
         }
 
@@ -139,15 +117,16 @@ export default function NFTTransfer({ nfts }) {
           encodeFunctionData({
             abi: erc721Abi,
             functionName: "safeTransferFrom",
-            args: [smartWalletAddress, recipient, id],
+            args: [SMART_WALLET_ADDRESS, recipient, id],
           })
         );
 
         await writeContractAsync({
-          address: smartWalletAddress,
+          address: SMART_WALLET_ADDRESS,
           abi: smartWalletAbi,
           functionName: "executeBatch",
           args: [targets, values, data],
+          chainId: base.id,
         });
 
         setStatus("✅ All selected NFTs transferred in one tx.");
@@ -219,5 +198,3 @@ export default function NFTTransfer({ nfts }) {
     </div>
   );
 }
-
-export const publicClient = createPublicClient({ chain: base, transport: http() });
