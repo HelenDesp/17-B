@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+// nftTransfer.js – EOA single‑send  +  Thirdweb Smart‑Wallet batch‑send (dynamic address)
+import { useState, useEffect } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import {
   createPublicClient,
@@ -6,10 +7,9 @@ import {
   encodeFunctionData,
 } from "viem";
 import { base } from "viem/chains";
-
 import { createWallet, smartWallet } from "@thirdweb-dev/wallets";
 
-/* ──────────────────────────────────────────────── ABIs */
+// ABIs
 const erc721Abi = [
   {
     name: "safeTransferFrom",
@@ -58,7 +58,6 @@ const smartWalletAbi = [
   },
 ];
 
-/* ──────────────────────────────────────────────── Component */
 export default function NFTTransfer({ nfts }) {
   const { address: eoa } = useAccount();
   const { writeContractAsync } = useWriteContract();
@@ -76,7 +75,6 @@ export default function NFTTransfer({ nfts }) {
   useEffect(() => {
     const setupSmartWallet = async () => {
       if (!eoa) return;
-
       const personalWallet = createWallet("local");
       await personalWallet.connect();
 
@@ -100,7 +98,6 @@ export default function NFTTransfer({ nfts }) {
       setStatus("❌ Invalid recipient address.");
       return;
     }
-
     if (mode === "single" && !selectedTokenId) {
       setStatus("❌ Please select an NFT to transfer.");
       return;
@@ -166,24 +163,13 @@ export default function NFTTransfer({ nfts }) {
   return (
     <div className="bg-white dark:bg-dark-200 rounded-xl shadow-card dark:shadow-card-dark p-6 mt-6">
       <h2 className="text-xl font-semibold mb-4">Transfer Your NFT(s)</h2>
-
       <div className="mb-4 space-x-6">
         <label>
-          <input
-            type="radio"
-            checked={mode === "single"}
-            onChange={() => setMode("single")}
-            className="mr-1"
-          />
+          <input type="radio" checked={mode === "single"} onChange={() => setMode("single")} className="mr-1" />
           Single
         </label>
         <label>
-          <input
-            type="radio"
-            checked={mode === "batch"}
-            onChange={() => setMode("batch")}
-            className="mr-1"
-          />
+          <input type="radio" checked={mode === "batch"} onChange={() => setMode("batch")} className="mr-1" />
           Batch (Smart Wallet)
         </label>
       </div>
@@ -233,3 +219,5 @@ export default function NFTTransfer({ nfts }) {
     </div>
   );
 }
+
+export const publicClient = createPublicClient({ chain: base, transport: http() });
