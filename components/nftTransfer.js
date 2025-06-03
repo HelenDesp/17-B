@@ -82,7 +82,7 @@ export default function NFTSmartWalletTransfer({ nfts }) {
       );
 
       /* 🔑 this actually submits the multicall */
-      await account.execute(batchCalls);
+      await account.sendBatchTransaction({ transactions: batchCalls });
 
       setStatus("✅ NFTs transferred in one smart-wallet tx.");
     } catch (err) {
