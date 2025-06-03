@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
-import { createPublicClient, http } from "viem";
 import { base } from "viem/chains";
 
 const slashAbi = [
@@ -31,11 +30,6 @@ export default function NFTTransfer({ nfts }) {
   const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
   const slashTokenAddress = "0xa7b5B27eb5A29AFdfe0AEC8675eBe47Ba1dbD090";
 
-  const client = createPublicClient({
-    chain: base,
-    transport: http()
-  });
-
   const handleTransfer = async () => {
     if (!recipient || !recipient.startsWith("0x") || recipient.length !== 42) {
       setStatus("❌ Invalid recipient address.");
@@ -59,7 +53,7 @@ export default function NFTTransfer({ nfts }) {
         abi: slashAbi,
         functionName: "drop721",
         args: [contractAddress, recipients, tokenIds],
-		chainId: 8453, // ✅ Force BASE chain here!
+        chain: base, // ✅ Proper viem-style chain override
       });
 
       setStatus("✅ NFT(s) transferred using SlashToken.");
