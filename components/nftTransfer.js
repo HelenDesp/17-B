@@ -127,7 +127,7 @@ export default function NFTTransfer({ nfts }) {
         await writeContractAsync({
           address: batchHelperAddress,
           abi: helperAbi,
-          functionName: "batchTransfer",
+          functionName: "transferBatch",
           args: [contractAddress, recipient, tokenIds],
           ...gas
         });
