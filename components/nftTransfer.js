@@ -1,5 +1,21 @@
 import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
+import { createPublicClient, http } from "viem";
+import { base } from "viem/chains";
+
+const helperAbi = [
+  {
+    name: "batchTransfer",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "nftContract", type: "address" },
+      { name: "to", type: "address" },
+      { name: "tokenIds", type: "uint256[]" }
+    ],
+    outputs: []
+  }
+];
 
 const erc721TransferAbi = [
   {
@@ -13,6 +29,26 @@ const erc721TransferAbi = [
     ],
     outputs: [],
   },
+  {
+    name: "setApprovalForAll",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "operator", type: "address" },
+      { name: "approved", type: "bool" }
+    ],
+    outputs: []
+  },
+  {
+    name: "isApprovedForAll",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "operator", type: "address" }
+    ],
+    outputs: [{ name: "", type: "bool" }]
+  }
 ];
 
 export default function NFTTransfer({ nfts }) {
@@ -26,6 +62,12 @@ export default function NFTTransfer({ nfts }) {
   const { writeContractAsync } = useWriteContract();
 
   const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
+  const batchHelperAddress = "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29";
+
+  const client = createPublicClient({
+    chain: base,
+    transport: http()
+  });
 
   const handleTransfer = async () => {
     if (!recipient || !recipient.startsWith("0x") || recipient.length !== 42) {
@@ -51,15 +93,30 @@ export default function NFTTransfer({ nfts }) {
         });
         setStatus("✅ NFT transferred successfully.");
       } else {
-        for (const nft of nfts) {
+        const isApproved = await client.readContract({
+          address: contractAddress,
+          abi: erc721TransferAbi,
+          functionName: "isApprovedForAll",
+          args: [address, batchHelperAddress]
+        });
+
+        if (!isApproved) {
           await writeContractAsync({
             address: contractAddress,
             abi: erc721TransferAbi,
-            functionName: "safeTransferFrom",
-            args: [address, recipient, nft.tokenId],
+            functionName: "setApprovalForAll",
+            args: [batchHelperAddress, true]
           });
         }
-        setStatus("✅ All NFTs transferred successfully.");
+
+        const tokenIds = nfts.map(nft => BigInt(nft.tokenId));
+        await writeContractAsync({
+          address: batchHelperAddress,
+          abi: helperAbi,
+          functionName: "batchTransfer",
+          args: [contractAddress, recipient, tokenIds],
+        });
+        setStatus("✅ All NFTs transferred in one transaction.");
       }
     } catch (error) {
       console.error(error);
@@ -134,7 +191,7 @@ export default function NFTTransfer({ nfts }) {
         disabled={txInProgress}
         className="w-full py-2 px-4 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50"
       >
-        {txInProgress ? "Transferring..." : mode === "single" ? "Transfer NFT" : "Transfer All NFTs"}
+        {txInProgress ? "Transferring..." : mode === "single" ? "Transfer NFT" : "Transfer Selected NFTs"}
       </button>
 
       {status && (
