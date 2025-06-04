@@ -6,22 +6,22 @@ import { base } from "viem/chains";
 
 const erc721Abi = [
   {
-    name: "safeTransferFrom",
+    name: "transferFrom",
     type: "function",
     stateMutability: "nonpayable",
     inputs: [
       { name: "from", type: "address" },
       { name: "to", type: "address" },
-      { name: "tokenId", type: "uint256" },
+      { name: "tokenId", type: "uint256" }
     ],
-    outputs: [],
+    outputs: []
   },
   {
     name: "ownerOf",
     type: "function",
     stateMutability: "view",
     inputs: [{ name: "tokenId", type: "uint256" }],
-    outputs: [{ name: "owner", type: "address" }],
+    outputs: [{ name: "owner", type: "address" }]
   },
   {
     name: "setApprovalForAll",
@@ -29,10 +29,10 @@ const erc721Abi = [
     stateMutability: "nonpayable",
     inputs: [
       { name: "operator", type: "address" },
-      { name: "approved", type: "bool" },
+      { name: "approved", type: "bool" }
     ],
-    outputs: [],
-  },
+    outputs: []
+  }
 ];
 
 const isApprovedForAllAbi = [
@@ -45,7 +45,7 @@ const isApprovedForAllAbi = [
       { name: "operator", type: "address" }
     ],
     outputs: [{ name: "", type: "bool" }]
-  },
+  }
 ];
 
 const executorAbi = [
@@ -55,10 +55,10 @@ const executorAbi = [
     stateMutability: "nonpayable",
     inputs: [
       { name: "calls", type: "bytes[]" },
-      { name: "targets", type: "address[]" },
+      { name: "targets", type: "address[]" }
     ],
-    outputs: [],
-  },
+    outputs: []
+  }
 ];
 
 export default function BatchTransfer({ nfts }) {
@@ -94,12 +94,12 @@ export default function BatchTransfer({ nfts }) {
         await writeContractAsync({
           address: nftContract,
           abi: erc721Abi,
-          functionName: "safeTransferFrom",
+          functionName: "transferFrom",
           args: [sender, recipient, BigInt(selectedTokenId)],
           chain: base,
           gas: 120000n,
           maxFeePerGas: 8n * 10n ** 6n,
-          maxPriorityFeePerGas: 1n * 10n ** 6n,
+          maxPriorityFeePerGas: 1n * 10n ** 6n
         });
         setStatus("✅ Single transfer successful.");
       } else {
@@ -111,7 +111,7 @@ export default function BatchTransfer({ nfts }) {
             address: nftContract,
             abi: erc721Abi,
             functionName: "ownerOf",
-            args: [BigInt(nft.tokenId)],
+            args: [BigInt(nft.tokenId)]
           });
 
           if (owner.toLowerCase() !== sender.toLowerCase()) {
@@ -122,8 +122,8 @@ export default function BatchTransfer({ nfts }) {
           calls.push(
             encodeFunctionData({
               abi: erc721Abi,
-              functionName: "safeTransferFrom",
-              args: [sender, recipient, BigInt(nft.tokenId)],
+              functionName: "transferFrom",
+              args: [sender, recipient, BigInt(nft.tokenId)]
             })
           );
           targets.push(nftContract);
@@ -138,7 +138,7 @@ export default function BatchTransfer({ nfts }) {
           address: nftContract,
           abi: isApprovedForAllAbi,
           functionName: "isApprovedForAll",
-          args: [sender, executorAddress],
+          args: [sender, executorAddress]
         });
 
         if (!approved) {
@@ -148,7 +148,7 @@ export default function BatchTransfer({ nfts }) {
             abi: erc721Abi,
             functionName: "setApprovalForAll",
             args: [executorAddress, true],
-            chain: base,
+            chain: base
           });
           setStatus("✅ Executor approved.");
         }
@@ -161,7 +161,7 @@ export default function BatchTransfer({ nfts }) {
           chain: base,
           gas: 500000n,
           maxFeePerGas: 8n * 10n ** 6n,
-          maxPriorityFeePerGas: 1n * 10n ** 6n,
+          maxPriorityFeePerGas: 1n * 10n ** 6n
         });
 
         setStatus("✅ Batch transfer successful.");
