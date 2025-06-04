@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useAccount, useWriteContract } from "wagmi";
+import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { encodeFunctionData } from "viem";
 import { base } from "viem/chains";
 
@@ -15,6 +15,13 @@ const erc721Abi = [
       { name: "tokenId", type: "uint256" },
     ],
     outputs: [],
+  },
+  {
+    name: "ownerOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "owner", type: "address" }],
   },
 ];
 
@@ -34,6 +41,7 @@ const executorAbi = [
 export default function BatchTransfer({ nfts }) {
   const { address: sender } = useAccount();
   const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
 
   const [recipient, setRecipient] = useState("");
   const [status, setStatus] = useState("");
@@ -56,11 +64,10 @@ export default function BatchTransfer({ nfts }) {
     }
 
     setTxInProgress(true);
-    setStatus("⏳ Preparing transfer...");
+    setStatus("⏳ Validating ownership...");
 
     try {
       if (mode === "single") {
-        // Single NFT transfer
         await writeContractAsync({
           address: nftContract,
           abi: erc721Abi,
@@ -73,11 +80,22 @@ export default function BatchTransfer({ nfts }) {
         });
         setStatus("✅ Single transfer successful.");
       } else {
-        // Batch transfer
         const calls = [];
         const targets = [];
 
         for (let nft of nfts) {
+          const owner = await publicClient.readContract({
+            address: nftContract,
+            abi: erc721Abi,
+            functionName: "ownerOf",
+            args: [BigInt(nft.tokenId)],
+          });
+
+          if (owner.toLowerCase() !== sender.toLowerCase()) {
+            console.warn(`Skipping token ${nft.tokenId} not owned by sender`);
+            continue;
+          }
+
           calls.push(
             encodeFunctionData({
               abi: erc721Abi,
@@ -86,6 +104,11 @@ export default function BatchTransfer({ nfts }) {
             })
           );
           targets.push(nftContract);
+        }
+
+        if (calls.length === 0) {
+          setStatus("❌ No valid NFTs to transfer");
+          return;
         }
 
         await writeContractAsync({
