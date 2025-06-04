@@ -69,6 +69,15 @@ export default function NFTTransfer({ nfts }) {
     transport: http()
   });
 
+  // Get lowest reasonable gas settings dynamically
+  const getLowGasFee = async () => {
+    const block = await client.getBlock();
+    const baseFeePerGas = block.baseFeePerGas ?? 0n;
+    const maxPriorityFeePerGas = 1_000_000n; // 0.000001 gwei
+    const maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas;
+    return { maxPriorityFeePerGas, maxFeePerGas };
+  };
+
   const handleTransfer = async () => {
     if (!recipient || !recipient.startsWith("0x") || recipient.length !== 42) {
       setStatus("❌ Invalid recipient address.");
@@ -84,12 +93,16 @@ export default function NFTTransfer({ nfts }) {
     setStatus("⏳ Sending transaction...");
 
     try {
+      // Get gas fee params dynamically (for both single and batch)
+      const gas = await getLowGasFee();
+
       if (mode === "single") {
         await writeContractAsync({
           address: contractAddress,
           abi: erc721TransferAbi,
           functionName: "safeTransferFrom",
           args: [address, recipient, selectedTokenId],
+          ...gas
         });
         setStatus("✅ NFT transferred successfully.");
       } else {
@@ -105,7 +118,8 @@ export default function NFTTransfer({ nfts }) {
             address: contractAddress,
             abi: erc721TransferAbi,
             functionName: "setApprovalForAll",
-            args: [batchHelperAddress, true]
+            args: [batchHelperAddress, true],
+            ...gas
           });
         }
 
@@ -115,6 +129,7 @@ export default function NFTTransfer({ nfts }) {
           abi: helperAbi,
           functionName: "batchTransfer",
           args: [contractAddress, recipient, tokenIds],
+          ...gas
         });
         setStatus("✅ All NFTs transferred in one transaction.");
       }
