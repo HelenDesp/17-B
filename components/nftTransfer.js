@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import { encodeFunctionData } from "viem";
@@ -75,6 +74,7 @@ export default function BatchTransfer({ nfts }) {
   const nftContract = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
   const executorAddress = "0xca006CDA54644010aa869Ced9DDaAe85b54937Ba";
 
+  // PATCHED handleTransfer for deep debugging
   const handleTransfer = async () => {
     if (!recipient.startsWith("0x") || recipient.length !== 42) {
       setStatus("❌ Invalid recipient address");
@@ -98,14 +98,13 @@ export default function BatchTransfer({ nfts }) {
           args: [sender, recipient, BigInt(selectedTokenId)],
           chain: base,
           gas: 120000n,
-          maxFeePerGas: 8n * 10n ** 6n,
-          maxPriorityFeePerGas: 1n * 10n ** 6n
         });
         setStatus("✅ Single transfer successful.");
       } else {
         const calls = [];
         const targets = [];
 
+        // DEBUG: Log owner and approval for each NFT
         for (let nft of nfts) {
           const owner = await publicClient.readContract({
             address: nftContract,
@@ -114,9 +113,32 @@ export default function BatchTransfer({ nfts }) {
             args: [BigInt(nft.tokenId)]
           });
 
+          const approved = await publicClient.readContract({
+            address: nftContract,
+            abi: isApprovedForAllAbi,
+            functionName: "isApprovedForAll",
+            args: [owner, executorAddress]
+          });
+
+          console.log(`TokenID: ${nft.tokenId} | owner: ${owner} | isApprovedForAll: ${approved}`);
+
           if (owner.toLowerCase() !== sender.toLowerCase()) {
             console.warn(`Skipping token ${nft.tokenId} not owned by sender`);
             continue;
+          }
+
+          if (!approved) {
+            setStatus(`⏳ Approving executor for token ${nft.tokenId}...`);
+            const tx = await writeContractAsync({
+              address: nftContract,
+              abi: erc721Abi,
+              functionName: "setApprovalForAll",
+              args: [executorAddress, true],
+              chain: base
+            });
+            setStatus(`✅ Approval tx sent for token ${nft.tokenId}. Waiting for confirmation...`);
+            // Wait for block confirmation (optional, but safest)
+            await new Promise(resolve => setTimeout(resolve, 12000));
           }
 
           calls.push(
@@ -131,27 +153,20 @@ export default function BatchTransfer({ nfts }) {
 
         if (calls.length === 0) {
           setStatus("❌ No valid NFTs to transfer");
+          setTxInProgress(false);
           return;
         }
 
-        const approved = await publicClient.readContract({
-          address: nftContract,
-          abi: isApprovedForAllAbi,
-          functionName: "isApprovedForAll",
-          args: [sender, executorAddress]
+        // Estimate gas dynamically
+        const estimatedGas = await publicClient.estimateContractGas({
+          address: executorAddress,
+          abi: executorAbi,
+          functionName: "execute",
+          args: [calls, targets],
         });
+        console.log(`Estimated gas for batch: ${estimatedGas.toString()}`);
 
-        if (!approved) {
-          setStatus("⏳ Approving executor contract...");
-          await writeContractAsync({
-            address: nftContract,
-            abi: erc721Abi,
-            functionName: "setApprovalForAll",
-            args: [executorAddress, true],
-            chain: base
-          });
-          setStatus("✅ Executor approved.");
-        }
+        setStatus("⏳ Sending batch...");
 
         await writeContractAsync({
           address: executorAddress,
@@ -159,16 +174,14 @@ export default function BatchTransfer({ nfts }) {
           functionName: "execute",
           args: [calls, targets],
           chain: base,
-          gas: 500000n,
-          maxFeePerGas: 8n * 10n ** 6n,
-          maxPriorityFeePerGas: 1n * 10n ** 6n
+          gas: estimatedGas
         });
 
-        setStatus("✅ Batch transfer successful.");
+        setStatus("✅ Batch transfer submitted!");
       }
     } catch (err) {
-      console.error(err);
-      setStatus("❌ Transfer failed.");
+      console.error("Batch transfer error:", err);
+      setStatus(`❌ Transfer failed: ${err.shortMessage || err.message || "Unknown error"}`);
     } finally {
       setTxInProgress(false);
     }
