@@ -73,7 +73,7 @@ export default function BatchTransfer({ nfts }) {
   const [selectedTokenId, setSelectedTokenId] = useState(null);
 
   const nftContract = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const executorAddress = "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2";
+  const executorAddress = "0xca006CDA54644010aa869Ced9DDaAe85b54937Ba";
 
   const handleTransfer = async () => {
     if (!recipient.startsWith("0x") || recipient.length !== 42) {
@@ -96,7 +96,10 @@ export default function BatchTransfer({ nfts }) {
           abi: erc721Abi,
           functionName: "transferFrom",
           args: [sender, recipient, BigInt(selectedTokenId)],
-          chain: base
+          chain: base,
+          gas: 120000n,
+          maxFeePerGas: 8n * 10n ** 6n,
+          maxPriorityFeePerGas: 1n * 10n ** 6n
         });
         setStatus("✅ Single transfer successful.");
       } else {
@@ -150,21 +153,15 @@ export default function BatchTransfer({ nfts }) {
           setStatus("✅ Executor approved.");
         }
 
-        const estimatedGas = await publicClient.estimateContractGas({
-          address: executorAddress,
-          abi: executorAbi,
-          functionName: "execute",
-          args: [calls, targets],
-          account: sender
-        });
-
         await writeContractAsync({
           address: executorAddress,
           abi: executorAbi,
           functionName: "execute",
           args: [calls, targets],
           chain: base,
-          gas: estimatedGas
+          gas: 500000n,
+          maxFeePerGas: 8n * 10n ** 6n,
+          maxPriorityFeePerGas: 1n * 10n ** 6n
         });
 
         setStatus("✅ Batch transfer successful.");
