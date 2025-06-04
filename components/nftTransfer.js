@@ -1,10 +1,7 @@
+
 import { useState } from "react";
-import { useAccount, useNetwork, useWriteContract } from "wagmi";
-import {
-  createPublicClient,
-  http,
-  encodeFunctionData,
-} from "viem";
+import { useAccount, useWriteContract } from "wagmi";
+import { encodeFunctionData } from "viem";
 import { base } from "viem/chains";
 
 const erc721Abi = [
@@ -19,156 +16,136 @@ const erc721Abi = [
     ],
     outputs: [],
   },
-  {
-    name: "setApprovalForAll",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "operator", type: "address" },
-      { name: "approved", type: "bool" },
-    ],
-    outputs: [],
-  },
-  {
-    name: "isApprovedForAll",
-    type: "function",
-    stateMutability: "view",
-    inputs: [
-      { name: "owner", type: "address" },
-      { name: "operator", type: "address" },
-    ],
-    outputs: [{ name: "", type: "bool" }],
-  },
 ];
 
-const smartWalletAbi = [
+const executorAbi = [
   {
-    name: "executeBatch",
+    name: "execute",
     type: "function",
     stateMutability: "nonpayable",
     inputs: [
+      { name: "calls", type: "bytes[]" },
       { name: "targets", type: "address[]" },
-      { name: "values", type: "uint256[]" },
-      { name: "data", type: "bytes[]" },
     ],
     outputs: [],
   },
 ];
 
-export default function NFTTransfer({ nfts }) {
-  const { address: eoa } = useAccount();
-  const { chain } = useNetwork();
+export default function BatchTransfer({ nfts }) {
+  const { address: sender } = useAccount();
   const { writeContractAsync } = useWriteContract();
 
   const [recipient, setRecipient] = useState("");
-  const [mode, setMode] = useState("single");
-  const [selectedTokenId, setSelectedTokenId] = useState(null);
   const [status, setStatus] = useState("");
   const [txInProgress, setTxInProgress] = useState(false);
+  const [mode, setMode] = useState("batch");
+  const [selectedTokenId, setSelectedTokenId] = useState(null);
 
-  const NFT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const SMART_WALLET_ADDRESS = "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2";
-  const client = createPublicClient({ chain: base, transport: http() });
+  const nftContract = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
+  const executorAddress = "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2";
 
   const handleTransfer = async () => {
-    if (chain?.id !== base.id) {
-      setStatus("❌ Please switch to Base network in MetaMask.");
+    if (!recipient.startsWith("0x") || recipient.length !== 42) {
+      setStatus("❌ Invalid recipient address");
       return;
     }
 
-    if (!recipient.match(/^0x[a-fA-F0-9]{40}$/)) {
-      setStatus("❌ Invalid recipient address.");
-      return;
-    }
     if (mode === "single" && !selectedTokenId) {
-      setStatus("❌ Please select an NFT to transfer.");
+      setStatus("❌ Please select a token");
       return;
     }
 
     setTxInProgress(true);
-    setStatus("⏳ Sending transaction…");
+    setStatus("⏳ Preparing transfer...");
 
     try {
       if (mode === "single") {
+        // Single NFT transfer
         await writeContractAsync({
-          address: NFT_ADDRESS,
+          address: nftContract,
           abi: erc721Abi,
           functionName: "safeTransferFrom",
-          args: [eoa, recipient, BigInt(selectedTokenId)],
-          chainId: base.id,
+          args: [sender, recipient, BigInt(selectedTokenId)],
+          chain: base,
+          gas: 120000n,
+          maxFeePerGas: 8n * 10n ** 6n,
+          maxPriorityFeePerGas: 1n * 10n ** 6n,
         });
-        setStatus("✅ NFT transferred successfully.");
+        setStatus("✅ Single transfer successful.");
       } else {
-        const approved = await client.readContract({
-          address: NFT_ADDRESS,
-          abi: erc721Abi,
-          functionName: "isApprovedForAll",
-          args: [eoa, SMART_WALLET_ADDRESS],
-        });
+        // Batch transfer
+        const calls = [];
+        const targets = [];
 
-        if (!approved) {
-          await writeContractAsync({
-            address: NFT_ADDRESS,
-            abi: erc721Abi,
-            functionName: "setApprovalForAll",
-            args: [SMART_WALLET_ADDRESS, true],
-            chainId: base.id,
-          });
+        for (let nft of nfts) {
+          calls.push(
+            encodeFunctionData({
+              abi: erc721Abi,
+              functionName: "safeTransferFrom",
+              args: [sender, recipient, BigInt(nft.tokenId)],
+            })
+          );
+          targets.push(nftContract);
         }
 
-        const tokenIds = nfts.map((n) => BigInt(n.tokenId));
-        const targets = tokenIds.map(() => NFT_ADDRESS);
-        const values = tokenIds.map(() => 0n);
-        const data = tokenIds.map((id) =>
-          encodeFunctionData({
-            abi: erc721Abi,
-            functionName: "safeTransferFrom",
-            args: [SMART_WALLET_ADDRESS, recipient, id],
-          })
-        );
-
         await writeContractAsync({
-          address: SMART_WALLET_ADDRESS,
-          abi: smartWalletAbi,
-          functionName: "executeBatch",
-          args: [targets, values, data],
-          chainId: base.id,
+          address: executorAddress,
+          abi: executorAbi,
+          functionName: "execute",
+          args: [calls, targets],
+          chain: base,
+          gas: 500000n,
+          maxFeePerGas: 8n * 10n ** 6n,
+          maxPriorityFeePerGas: 1n * 10n ** 6n,
         });
 
-        setStatus("✅ All selected NFTs transferred in one tx.");
+        setStatus("✅ Batch transfer successful.");
       }
     } catch (err) {
       console.error(err);
-      setStatus("❌ Transaction failed – check console.");
+      setStatus("❌ Transfer failed.");
     } finally {
       setTxInProgress(false);
     }
   };
 
   return (
-    <div className="bg-white dark:bg-dark-200 rounded-xl shadow-card dark:shadow-card-dark p-6 mt-6">
-      <h2 className="text-xl font-semibold mb-4">Transfer Your NFT(s)</h2>
-      <div className="mb-4 space-x-6">
-        <label>
-          <input type="radio" checked={mode === "single"} onChange={() => setMode("single")} className="mr-1" />
-          Single
+    <div className="bg-white dark:bg-dark-200 p-6 rounded shadow">
+      <h2 className="text-xl font-bold mb-4">NFT Transfer</h2>
+
+      <div className="mb-4">
+        <label className="mr-4">
+          <input
+            type="radio"
+            value="batch"
+            checked={mode === "batch"}
+            onChange={() => setMode("batch")}
+            className="mr-1"
+          />
+          Batch Transfer
         </label>
-        <label>
-          <input type="radio" checked={mode === "batch"} onChange={() => setMode("batch")} className="mr-1" />
-          Batch (Smart Wallet)
+        <label className="ml-4">
+          <input
+            type="radio"
+            value="single"
+            checked={mode === "single"}
+            onChange={() => setMode("single")}
+            className="mr-1"
+          />
+          Single Transfer
         </label>
       </div>
 
       {mode === "single" && (
         <div className="mb-4">
-          <label className="block mb-1 text-sm">Select NFT:</label>
+          <label className="block text-sm mb-1">Select NFT</label>
           <select
             value={selectedTokenId || ""}
             onChange={(e) => setSelectedTokenId(e.target.value)}
             className="w-full p-2 border rounded"
           >
             <option value="">-- Select NFT --</option>
-            {nfts.map((nft) => (
+            {nfts.map(nft => (
               <option key={nft.tokenId} value={nft.tokenId}>
                 #{nft.tokenId} — {nft.name}
               </option>
@@ -177,30 +154,23 @@ export default function NFTTransfer({ nfts }) {
         </div>
       )}
 
-      <div className="mb-4">
-        <label className="block mb-1 text-sm">Recipient Wallet Address:</label>
-        <input
-          type="text"
-          value={recipient}
-          onChange={(e) => setRecipient(e.target.value)}
-          placeholder="0x…"
-          className="w-full p-2 border rounded"
-        />
-      </div>
+      <input
+        type="text"
+        value={recipient}
+        onChange={(e) => setRecipient(e.target.value)}
+        placeholder="Recipient address"
+        className="w-full p-2 mb-4 border rounded"
+      />
 
       <button
         onClick={handleTransfer}
         disabled={txInProgress}
-        className="w-full py-2 px-4 bg-primary-600 text-white rounded disabled:opacity-50"
+        className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
       >
-        {txInProgress
-          ? "Transferring…"
-          : mode === "single"
-          ? "Transfer NFT"
-          : "Transfer Selected NFTs"}
+        {txInProgress ? "Transferring..." : "Transfer NFT(s)"}
       </button>
 
-      {status && <p className="mt-4 text-sm">{status}</p>}
+      {status && <p className="mt-4 text-sm text-gray-800">{status}</p>}
     </div>
   );
 }
