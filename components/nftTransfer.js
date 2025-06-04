@@ -5,7 +5,7 @@ import { base } from "viem/chains";
 
 const helperAbi = [
   {
-    name: "batchTransfer",
+    name: "transferBatch",
     type: "function",
     stateMutability: "nonpayable",
     inputs: [
@@ -62,7 +62,7 @@ export default function NFTTransfer({ nfts }) {
   const { writeContractAsync } = useWriteContract();
 
   const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const batchHelperAddress = "0x147FB891Ee911562a7C70E5Eb7F7a4D9f0681f29";
+  const batchHelperAddress = "0xca006CDA54644010aa869Ced9DDaAe85b54937Ba";
 
   const client = createPublicClient({
     chain: base,
