@@ -25,22 +25,6 @@ import ContextProvider from "../context";
 import { ThemeProvider } from "../context/ThemeContext";
 import "../styles/globals.css";
 
-import { ThirdwebProvider } from "thirdweb/react";
-import { createThirdwebClient } from "thirdweb";
-import { base } from "thirdweb/chains";
-import { smartWallet, embeddedWallet } from "thirdweb/wallets";
-
-const client = createThirdwebClient({
-  clientId: "40cb8b1796ed4c206ecd1445911c5ab8",
-});
-
-const smartWalletConfig = smartWallet({
-  factoryAddress: "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2", // ✅ Your Smart Wallet factory
-  gasless: false,
-  client,
-  personalWallets: [embeddedWallet()],
-});
-
 function MyApp({ Component, pageProps }) {
   const [cookieString, setCookieString] = useState(null);
   const [mounted, setMounted] = useState(false);
@@ -50,16 +34,17 @@ function MyApp({ Component, pageProps }) {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  // Prevent flash of unstyled content
+  if (!mounted) {
+    return null;
+  }
 
   return (
-    <ThirdwebProvider client={client} activeChain={base} wallets={[smartWalletConfig]}>
-      <ThemeProvider>
-        <ContextProvider cookies={cookieString}>
-          <Component {...pageProps} />
-        </ContextProvider>
-      </ThemeProvider>
-    </ThirdwebProvider>
+    <ThemeProvider>
+      <ContextProvider cookies={cookieString}>
+        <Component {...pageProps} />
+      </ContextProvider>
+    </ThemeProvider>
   );
 }
 
