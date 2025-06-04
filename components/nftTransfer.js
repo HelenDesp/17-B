@@ -23,6 +23,29 @@ const erc721Abi = [
     inputs: [{ name: "tokenId", type: "uint256" }],
     outputs: [{ name: "owner", type: "address" }],
   },
+  {
+    name: "setApprovalForAll",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "operator", type: "address" },
+      { name: "approved", type: "bool" },
+    ],
+    outputs: [],
+  },
+];
+
+const isApprovedForAllAbi = [
+  {
+    name: "isApprovedForAll",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "operator", type: "address" }
+    ],
+    outputs: [{ name: "", type: "bool" }]
+  },
 ];
 
 const executorAbi = [
@@ -64,7 +87,7 @@ export default function BatchTransfer({ nfts }) {
     }
 
     setTxInProgress(true);
-    setStatus("⏳ Validating ownership...");
+    setStatus("⏳ Validating...");
 
     try {
       if (mode === "single") {
@@ -109,6 +132,25 @@ export default function BatchTransfer({ nfts }) {
         if (calls.length === 0) {
           setStatus("❌ No valid NFTs to transfer");
           return;
+        }
+
+        const approved = await publicClient.readContract({
+          address: nftContract,
+          abi: isApprovedForAllAbi,
+          functionName: "isApprovedForAll",
+          args: [sender, executorAddress],
+        });
+
+        if (!approved) {
+          setStatus("⏳ Approving executor contract...");
+          await writeContractAsync({
+            address: nftContract,
+            abi: erc721Abi,
+            functionName: "setApprovalForAll",
+            args: [executorAddress, true],
+            chain: base,
+          });
+          setStatus("✅ Executor approved.");
         }
 
         await writeContractAsync({
