@@ -62,7 +62,7 @@ export default function NFTTransfer({ nfts }) {
   const { writeContractAsync } = useWriteContract();
 
   const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const batchHelperAddress = "0x10046F0E910Eea3Bc03a23CAb8723bF6b405FBB2";
+  const batchHelperAddress = "0xca006CDA54644010aa869Ced9DDaAe85b54937";
 
   const client = createPublicClient({
     chain: base,
