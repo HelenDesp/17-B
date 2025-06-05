@@ -74,7 +74,7 @@ export default function NFTViewer({
       id={`select-nft-${nft.tokenId}`}
     />
     <div
-      className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bottom-[16px] z-50"
+      className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bottom-[10px] z-50"
       style={{ width: 24, height: 24 }}
     >
       {/* Auto-dark/light plane icon */}
