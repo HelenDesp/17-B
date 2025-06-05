@@ -75,12 +75,12 @@ export default function NFTViewer({
   <div className="relative flex flex-col items-center">
     <div
       className="opacity-0 group-hover:opacity-100 transition pointer-events-none absolute left-1/2 -translate-x-[90%] bottom-[16px] z-50"
-      style={{ width: 20, height: 20 }}
+      style={{ width: 24, height: 24 }}
     >
       {/* Auto-dark/light plane icon */}
       <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
-        width="20" height="20" viewBox="0 0 512 512"
-        className="w-5 h-5 fill-black dark:fill-white"
+        width="24" height="24" viewBox="0 0 512 512"
+        className="w-6 h-6 fill-black dark:fill-white"
         preserveAspectRatio="xMidYMid meet"
       >
         <g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
