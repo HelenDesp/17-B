@@ -73,18 +73,17 @@ export default function NFTViewer({
     id={`select-nft-${nft.tokenId}`}
   />
   <div className="relative flex flex-col items-center">
-    {/* SVG PLANE ICON TOOLTIP */}
     <div
-      className="opacity-0 group-hover:opacity-100 transition pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-[34px] z-50"
-      style={{ width: 28, height: 28 }} // Adjust for perfect size/placement
+      className="opacity-0 group-hover:opacity-100 transition pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-[20px] z-50"
+      style={{ width: 28, height: 28 }}
     >
-      {/* Your provided SVG, fill changed to white for contrast */}
+      {/* Auto-dark/light plane icon */}
       <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
         width="28" height="28" viewBox="0 0 512 512"
-        style={{ display: 'block' }}
+        className="w-7 h-7 fill-black dark:fill-white"
         preserveAspectRatio="xMidYMid meet"
       >
-        <g transform="translate(0,512) scale(0.1,-0.1)" fill="#fff" stroke="none">
+        <g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
           <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
           -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
           31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
