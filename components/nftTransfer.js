@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { encodeFunctionData, createPublicClient, http } from "viem";
 import { base } from "viem/chains";
@@ -89,6 +89,12 @@ export default function NFTTransfer({
   const [showApprovalExplanation, setShowApprovalExplanation] = useState(false);
   const [showBatchExplanation, setShowBatchExplanation] = useState(false);
   const [showSingleTooltip, setShowSingleTooltip] = useState(false);
+  
+  useEffect(() => {
+    if (mode === "all" && typeof setSelectedNFTsFromDashboard === "function" && nfts.length) {
+      setSelectedNFTsFromDashboard(nfts.map(n => n.tokenId));
+    }
+  }, [mode, nfts, setSelectedNFTsFromDashboard]);  
 
   const { writeContractAsync } = useWriteContract();
 
