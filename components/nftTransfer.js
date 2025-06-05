@@ -75,6 +75,10 @@ export default function NFTTransfer({ nfts, chainId = 8453 }) { // 8453 is Base
   const [status, setStatus] = useState("");
   const [txInProgress, setTxInProgress] = useState(false);
 
+  // Tooltip states
+  const [showApprovalExplanation, setShowApprovalExplanation] = useState(false);
+  const [showBatchExplanation, setShowBatchExplanation] = useState(false);
+
   const { writeContractAsync } = useWriteContract();
 
   // Your NFT contract address
@@ -114,6 +118,9 @@ export default function NFTTransfer({ nfts, chainId = 8453 }) { // 8453 is Base
       const gas = await getLowGasFee();
 
       if (mode === "single") {
+        setShowApprovalExplanation(false);
+        setShowBatchExplanation(false);
+
         await writeContractAsync({
           address: contractAddress,
           abi: erc721TransferAbi,
@@ -133,6 +140,9 @@ export default function NFTTransfer({ nfts, chainId = 8453 }) { // 8453 is Base
         });
 
         if (!isApproved) {
+          setShowApprovalExplanation(true); // Show approval tip
+          setShowBatchExplanation(false);
+
           await writeContractAsync({
             address: contractAddress,
             abi: erc721TransferAbi,
@@ -141,6 +151,9 @@ export default function NFTTransfer({ nfts, chainId = 8453 }) { // 8453 is Base
             ...gas
           });
         }
+
+        setShowApprovalExplanation(false);
+        setShowBatchExplanation(true); // Show batch tip
 
         // Build batch arrays
         const targets = [];
@@ -166,9 +179,13 @@ export default function NFTTransfer({ nfts, chainId = 8453 }) { // 8453 is Base
           args: [targets, values, datas],
           ...gas
         });
+
+        setShowBatchExplanation(false);
         setStatus("✅ All NFTs transferred in one transaction.");
       }
     } catch (error) {
+      setShowApprovalExplanation(false);
+      setShowBatchExplanation(false);
       console.error(error);
       setStatus("❌ Transaction failed.");
     } finally {
@@ -235,6 +252,18 @@ export default function NFTTransfer({ nfts, chainId = 8453 }) { // 8453 is Base
           className="w-full p-2 border rounded dark:bg-dark-300 dark:text-white"
         />
       </div>
+
+      {/* Tooltip Explanations */}
+      {showApprovalExplanation && (
+        <div className="mb-2 p-2 bg-yellow-100 rounded">
+          <b>Heads up:</b> You’ll see a wallet popup saying “Approve REVERSE with no spend limit.” This is needed for batch transfers and is standard for all NFT dApps.
+        </div>
+      )}
+      {showBatchExplanation && (
+        <div className="mb-2 p-2 bg-blue-100 rounded">
+          <b>Next step:</b> After approval, you’ll see a wallet popup for “Execute Batch” to transfer your NFTs.
+        </div>
+      )}
 
       <button
         onClick={handleTransfer}
