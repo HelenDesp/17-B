@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { encodeFunctionData, createPublicClient, http } from "viem";
 import { base } from "viem/chains";
@@ -79,13 +79,6 @@ export default function NFTTransfer({
   setSelectedNFTsFromDashboard,
   chainId = 8453,
 }) {
-	
-  useEffect(() => {
-    if (mode === "all" && typeof setSelectedNFTsFromDashboard === "function" && nfts.length) {
-      setSelectedNFTsFromDashboard(nfts.map(n => n.tokenId));
-    }
-  }, [mode, nfts, setSelectedNFTsFromDashboard]);	
-	
   const { address } = useAccount();
   const [recipient, setRecipient] = useState("");
   const [mode, setMode] = useState("single");
@@ -311,8 +304,23 @@ export default function NFTTransfer({
         />
       </div>
 
+      {/* Tooltip Explanations */}
+      {showSingleTooltip && (
+        <div className="mb-2 p-2 bg-green-100 rounded">
+          <b>Single Transfer:</b> You’ll see a wallet popup for transferring your selected NFT.
+        </div>
+      )}
+      {showApprovalExplanation && (
+        <div className="mb-2 p-2 bg-yellow-100 rounded">
+          <b>Heads up:</b> You’ll see a wallet popup saying “Approve REVERSE with no spend limit.” This is needed for batch transfers and is standard for all NFT dApps.
+        </div>
+      )}
+      {showBatchExplanation && (
+        <div className="mb-2 p-2 bg-blue-100 rounded">
+          <b>Next step:</b> After approval, you’ll see a wallet popup for “Execute Batch” to transfer your NFTs.
+        </div>
+      )}
 
-	  
       <button
         onClick={handleTransfer}
         disabled={txInProgress}
@@ -326,12 +334,6 @@ export default function NFTTransfer({
           ? "Transfer Selected NFTs"
           : "Transfer All NFTs"}
       </button>
-	  
-{mode === "single" && selectedNFTsFromDashboard && selectedNFTsFromDashboard.length > 1 && (
-  <div className="mt-2 text-xs text-yellow-700 bg-yellow-50 rounded p-2 text-center">
-    Only the first selected NFT will be transferred.
-  </div>
-)}	  
 
       {status && (
         <p className="mt-4 text-sm text-gray-700 dark:text-gray-200">
