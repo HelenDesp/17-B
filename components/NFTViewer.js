@@ -74,7 +74,7 @@ export default function NFTViewer({
   />
   <div className="relative flex flex-col items-center">
     <div
-      className="opacity-0 group-hover:opacity-100 transition pointer-events-none absolute left-1/2 -translate-x-[90%] bottom-[16px] z-50"
+      className="opacity-0 group-hover:opacity-100 transition pointer-events-none absolute left-1/2 -translate-x-[90%] bottom-[12px] z-50"
       style={{ width: 24, height: 24 }}
     >
       {/* Auto-dark/light plane icon */}
