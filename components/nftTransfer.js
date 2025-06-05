@@ -67,19 +67,21 @@ function getArchetypeBatchAddress(chainId = 0) {
   }
 }
 
-// Helper for option list
 const TRANSFER_MODES = [
   { value: "single", label: "Single" },
   { value: "multiple", label: "Multiple" },
   { value: "all", label: "All" },
 ];
 
-export default function NFTTransfer({ nfts, selectedNFTsFromDashboard, setSelectedNFTsFromDashboard, chainId = 8453 }) {
+export default function NFTTransfer({
+  nfts,
+  selectedNFTsFromDashboard = [],
+  setSelectedNFTsFromDashboard,
+  chainId = 8453,
+}) {
   const { address } = useAccount();
   const [recipient, setRecipient] = useState("");
   const [mode, setMode] = useState("single");
-  const [selectedTokenId, setSelectedTokenId] = useState(null); // single
-  const [localSelectedNFTs, setLocalSelectedNFTs] = useState([]); // multiple
   const [status, setStatus] = useState("");
   const [txInProgress, setTxInProgress] = useState(false);
 
@@ -90,9 +92,7 @@ export default function NFTTransfer({ nfts, selectedNFTsFromDashboard, setSelect
 
   const { writeContractAsync } = useWriteContract();
 
-  // Your NFT contract address
   const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  // ArchetypeBatch address for selected chain
   const batchHelperAddress = getArchetypeBatchAddress(chainId);
 
   const client = createPublicClient({
@@ -100,7 +100,6 @@ export default function NFTTransfer({ nfts, selectedNFTsFromDashboard, setSelect
     transport: http()
   });
 
-  // Get lowest reasonable gas settings dynamically (optional)
   const getLowGasFee = async () => {
     const block = await client.getBlock();
     const baseFeePerGas = block.baseFeePerGas ?? 0n;
@@ -109,15 +108,16 @@ export default function NFTTransfer({ nfts, selectedNFTsFromDashboard, setSelect
     return { maxPriorityFeePerGas, maxFeePerGas };
   };
 
-  // Helper: Which NFTs are being transferred this time?
+  // Which NFTs to transfer:
   const getNFTsToTransfer = () => {
     if (mode === "single") {
-      const nft = nfts.find(nft => nft.tokenId === selectedTokenId);
+      if (!selectedNFTsFromDashboard || selectedNFTsFromDashboard.length === 0) return [];
+      const nft = nfts.find(nft => nft.tokenId === selectedNFTsFromDashboard[0]);
       return nft ? [nft] : [];
     }
     if (mode === "multiple") {
-      // Use selection from Dashboard/NFTViewer if present
-      return (selectedNFTsFromDashboard?.length ? nfts.filter(nft => selectedNFTsFromDashboard.includes(nft.tokenId)) : localSelectedNFTs.map(tokenId => nfts.find(nft => nft.tokenId === tokenId))).filter(Boolean);
+      if (!selectedNFTsFromDashboard || selectedNFTsFromDashboard.length === 0) return [];
+      return nfts.filter(nft => selectedNFTsFromDashboard.includes(nft.tokenId));
     }
     if (mode === "all") {
       return nfts;
@@ -126,45 +126,39 @@ export default function NFTTransfer({ nfts, selectedNFTsFromDashboard, setSelect
   };
 
   const handleTransfer = async () => {
+    setStatus("");
+    setTxInProgress(true);
+
+    // Validate recipient
     if (!recipient || !recipient.startsWith("0x") || recipient.length !== 42) {
       setStatus("❌ Invalid recipient address.");
+      setTxInProgress(false);
       return;
     }
 
-const nftsToTransfer = getNFTsToTransfer();
+    const nftsToTransfer = getNFTsToTransfer();
 
-if (mode === "single") {
-  if (!selectedNFTsFromDashboard.length) {
-    setStatus("❌ Please select NFT to transfer.");
-    setTxInProgress(false);
-    return;
-  }
-  // Use the first selected NFT only
-  const tokenId = selectedNFTsFromDashboard[0];
-  const nft = nfts.find(n => n.tokenId === tokenId);
-  if (!nft) {
-    setStatus("❌ Selected NFT not found.");
-    setTxInProgress(false);
-    return;
-  }
-  // ...continue with single transfer logic using [nft]
-}
-
-if (mode === "multiple") {
-  if (!selectedNFTsFromDashboard.length) {
-    setStatus("❌ Please select NFT(s) to transfer.");
-    setTxInProgress(false);
-    return;
-  }
-  // ...continue with multiple transfer logic using selectedNFTsFromDashboard
-}
-
+    // Selection error messages
+    if (mode === "single") {
+      if (!selectedNFTsFromDashboard || selectedNFTsFromDashboard.length === 0) {
+        setStatus("❌ Please select NFT to transfer.");
+        setTxInProgress(false);
+        return;
+      }
+    }
+    if (mode === "multiple") {
+      if (!selectedNFTsFromDashboard || selectedNFTsFromDashboard.length === 0) {
+        setStatus("❌ Please select NFT(s) to transfer.");
+        setTxInProgress(false);
+        return;
+      }
+    }
     if (!nftsToTransfer.length) {
       setStatus("❌ Please select NFT(s) to transfer.");
+      setTxInProgress(false);
       return;
     }
 
-    setTxInProgress(true);
     setStatus("⏳ Sending transaction...");
 
     try {
@@ -185,8 +179,8 @@ if (mode === "multiple") {
         setShowSingleTooltip(false);
         setStatus("✅ NFT transferred successfully.");
       } else {
-        // --- MULTIPLE/ALL BATCH MODE ---
         setShowSingleTooltip(false);
+
         // Check approval for batch helper
         const isApproved = await client.readContract({
           address: contractAddress,
@@ -237,9 +231,13 @@ if (mode === "multiple") {
         });
 
         setShowBatchExplanation(false);
-        setStatus("✅ Selected NFTs transferred in one transaction.");
+        setStatus(
+          mode === "all"
+            ? "✅ All NFTs transferred in one transaction."
+            : "✅ Selected NFTs transferred in one transaction."
+        );
         if (mode === "multiple" && setSelectedNFTsFromDashboard) {
-          setSelectedNFTsFromDashboard([]); // reset selection
+          setSelectedNFTsFromDashboard([]);
         }
       }
     } catch (error) {
@@ -253,16 +251,6 @@ if (mode === "multiple") {
     }
   };
 
-  // Checkbox UI for "multiple" mode selection (local)
-  const toggleSelectNFT = (tokenId) => {
-    setLocalSelectedNFTs(prev =>
-      prev.includes(tokenId)
-        ? prev.filter(id => id !== tokenId)
-        : [...prev, tokenId]
-    );
-  };
-
-  // ---- UI ----
   return (
     <div className="bg-white dark:bg-dark-200 rounded-xl shadow-card dark:shadow-card-dark p-6 mt-6">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
@@ -285,8 +273,6 @@ if (mode === "multiple") {
               setShowApprovalExplanation(false);
               setShowBatchExplanation(false);
               setStatus("");
-              // Reset selection if switching away from "multiple"
-              if (opt.value !== "multiple") setLocalSelectedNFTs([]);
             }}
             type="button"
           >
@@ -304,55 +290,6 @@ if (mode === "multiple") {
           </button>
         ))}
       </div>
-
-      {/* NFT selection for single/multiple/all */}
-      {mode === "single" && (
-        <div className="mb-4">
-          <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
-            Select NFT:
-          </label>
-          <select
-            value={selectedTokenId || ""}
-            onChange={e => setSelectedTokenId(e.target.value)}
-            className="w-full p-2 border rounded dark:bg-dark-300 dark:text-white"
-          >
-            <option value="">-- Select NFT --</option>
-            {nfts.map(nft => (
-              <option key={nft.tokenId} value={nft.tokenId}>
-                #{nft.tokenId} — {nft.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {mode === "multiple" && (
-        <div className="mb-4">
-          <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
-            Select NFTs to transfer:
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {nfts.map(nft => (
-              <label
-                key={nft.tokenId}
-                className={`flex items-center p-2 border rounded cursor-pointer
-                  ${localSelectedNFTs.includes(nft.tokenId)
-                    ? 'bg-primary-100 border-primary-600'
-                    : 'bg-gray-50 dark:bg-dark-100 border-gray-200 dark:border-dark-400'
-                  }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={localSelectedNFTs.includes(nft.tokenId)}
-                  onChange={() => toggleSelectNFT(nft.tokenId)}
-                  className="mr-2 accent-primary-600"
-                />
-                <span>#{nft.tokenId} — {nft.name}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="mb-4">
         <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
@@ -389,7 +326,9 @@ if (mode === "multiple") {
         disabled={txInProgress}
         className="w-full py-2 px-4 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50"
       >
-        {txInProgress ? "Transferring..." : mode === "single"
+        {txInProgress
+          ? "Transferring..."
+          : mode === "single"
           ? "Transfer NFT"
           : mode === "multiple"
           ? "Transfer Selected NFTs"

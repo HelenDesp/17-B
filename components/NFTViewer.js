@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
@@ -8,12 +7,11 @@ const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YW
 
 export default function NFTViewer({
   nfts,
-  selectMode = "none", // "none" | "multiple"
   selectedNFTs = [],
   onSelectNFT = () => {},
 }) {
   const { address, isConnected } = useAccount();
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false); // For future use if needed
   const [selectedNFT, setSelectedNFT] = useState(null);
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   const [nameError, setNameError] = useState("");
@@ -23,14 +21,12 @@ export default function NFTViewer({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.name.trim()) {
       setNameError("Name is required.");
       return;
     } else {
       setNameError("");
     }
-
     try {
       await axios.post("https://reversegenesis.org/edata/meta.php", {
         original: selectedNFT.name,
@@ -40,7 +36,6 @@ export default function NFTViewer({
         friend: formData.friend,
         weapon: formData.weapon,
       });
-
       setSelectedNFT(null);
       setShowThankYou(true);
     } catch (error) {
@@ -65,53 +60,51 @@ export default function NFTViewer({
         ) : nfts.length === 0 ? (
           <p className="text-gray-500">No NFTs found for this wallet.</p>
         ) : (
-<div
-  key={i}
-  className="relative bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow group"
->
-  {/* Checkbox at bottom left with hover tooltip */}
-  <div className="absolute left-2 bottom-2 z-10 flex items-center">
-    <input
-      type="checkbox"
-      checked={selectedNFTs.includes(nft.tokenId)}
-      onChange={() => onSelectNFT(nft.tokenId)}
-      className="w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600"
-      id={`select-nft-${nft.tokenId}`}
-    />
-    <div className="ml-2 relative">
-      <div className="invisible group-hover:visible absolute left-7 bottom-0 bg-black text-white text-xs rounded py-1 px-2 whitespace-nowrap z-50">
-        TRANSFER
-      </div>
-    </div>
-  </div>
-  {nft.image ? (
-    <img
-      src={nft.image}
-      alt={nft.name}
-      className="w-full aspect-square object-cover rounded-md"
-    />
-  ) : (
-    <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
-      No Image
-    </div>
-  )}
-  <div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
-    #{nft.tokenId} — {nft.name}
-  </div>
-  <div className="flex justify-center mt-3">
-    <button
-      onClick={() => setSelectedNFT(nft)}
-      className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-    >
-      UPGRADE YOUR NFT
-    </button>
-  </div>
-</div>
-
-
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {nfts.map((nft, i) => (
+              <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow group">
+                {/* Checkbox always at bottom left with tooltip */}
+                <div className="absolute left-2 bottom-2 z-10 flex items-center group">
+                  <input
+                    type="checkbox"
+                    checked={selectedNFTs.includes(nft.tokenId)}
+                    onChange={() => onSelectNFT(nft.tokenId)}
+                    className="w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600"
+                    id={`select-nft-${nft.tokenId}`}
+                  />
+                  <div className="ml-2 relative">
+                    <div className="invisible group-hover:visible absolute left-7 bottom-0 bg-black text-white text-xs rounded py-1 px-2 whitespace-nowrap z-50">
+                      TRANSFER
+                    </div>
+                  </div>
+                </div>
+                {nft.image ? (
+                  <img
+                    src={nft.image}
+                    alt={nft.name}
+                    className="w-full aspect-square object-cover rounded-md"
+                  />
+                ) : (
+                  <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+                    No Image
+                  </div>
+                )}
+                <div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
+                  #{nft.tokenId} — {nft.name}
+                </div>
+                <div className="flex justify-center mt-3">
+                  <button
+                    onClick={() => setSelectedNFT(nft)}
+                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+                  >
+                    UPGRADE YOUR NFT
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
-
       {selectedNFT && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
           <div className="min-h-screen flex items-center justify-center px-4 py-10">
