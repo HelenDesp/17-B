@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useWriteContract } from "wagmi";
 import { encodeFunctionData, createPublicClient, http } from "viem";
 import { base } from "viem/chains";
