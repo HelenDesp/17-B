@@ -131,7 +131,33 @@ export default function NFTTransfer({ nfts, selectedNFTsFromDashboard, setSelect
       return;
     }
 
-    const nftsToTransfer = getNFTsToTransfer();
+const nftsToTransfer = getNFTsToTransfer();
+
+if (mode === "single") {
+  if (!selectedNFTsFromDashboard.length) {
+    setStatus("❌ Please select NFT to transfer.");
+    setTxInProgress(false);
+    return;
+  }
+  // Use the first selected NFT only
+  const tokenId = selectedNFTsFromDashboard[0];
+  const nft = nfts.find(n => n.tokenId === tokenId);
+  if (!nft) {
+    setStatus("❌ Selected NFT not found.");
+    setTxInProgress(false);
+    return;
+  }
+  // ...continue with single transfer logic using [nft]
+}
+
+if (mode === "multiple") {
+  if (!selectedNFTsFromDashboard.length) {
+    setStatus("❌ Please select NFT(s) to transfer.");
+    setTxInProgress(false);
+    return;
+  }
+  // ...continue with multiple transfer logic using selectedNFTsFromDashboard
+}
 
     if (!nftsToTransfer.length) {
       setStatus("❌ Please select NFT(s) to transfer.");

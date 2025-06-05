@@ -25,6 +25,12 @@ export default function Dashboard() {
   // For selection and mode:
   const [selectedNFTs, setSelectedNFTs] = useState([]);
   const [transferMode, setTransferMode] = useState("single"); // "single" | "multiple" | "all"
+  
+  useEffect(() => {
+    if (transferMode === "all") {
+      setSelectedNFTs(nfts.map(n => n.tokenId));
+    }
+  }, [transferMode, nfts]);  
 
   useEffect(() => {
     const fetchGasPrice = async () => {
