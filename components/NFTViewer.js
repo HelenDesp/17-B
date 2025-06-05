@@ -80,7 +80,7 @@ export default function NFTViewer({
       {/* Auto-dark/light plane icon */}
       <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
         width="20" height="20" viewBox="0 0 512 512"
-        className="w-7 h-7 fill-black dark:fill-white"
+        className="w-5 h-5 fill-black dark:fill-white"
         preserveAspectRatio="xMidYMid meet"
       >
         <g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
