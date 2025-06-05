@@ -64,20 +64,24 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow group">
                 {/* Checkbox always at bottom left with tooltip */}
-                <div className="absolute left-2 bottom-2 z-10 flex items-center group">
-                  <input
-                    type="checkbox"
-                    checked={selectedNFTs.includes(nft.tokenId)}
-                    onChange={() => onSelectNFT(nft.tokenId)}
-                    className="w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600"
-                    id={`select-nft-${nft.tokenId}`}
-                  />
-                  <div className="ml-2 relative">
-                    <div className="invisible group-hover:visible absolute left-7 bottom-0 bg-black text-white text-xs rounded py-1 px-2 whitespace-nowrap z-50">
-                      TRANSFER
-                    </div>
-                  </div>
-                </div>
+<div className="absolute left-2 bottom-2 z-10 flex items-center group">
+  <input
+    type="checkbox"
+    checked={selectedNFTs.includes(nft.tokenId)}
+    onChange={() => onSelectNFT(nft.tokenId)}
+    className="w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600"
+    id={`select-nft-${nft.tokenId}`}
+  />
+  <div className="ml-2 relative flex flex-col items-center">
+    <div className="opacity-0 group-hover:opacity-100 transition pointer-events-none absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50 bg-black text-white p-2 rounded shadow">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"
+        strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+        <path strokeLinecap="round" strokeLinejoin="round"
+          d="M2.5 17.5l15-6a1 1 0 000-1.9l-15-6A1 1 0 001 5.1v9.8a1 1 0 001.5.6z" />
+      </svg>
+    </div>
+  </div>
+</div>
                 {nft.image ? (
                   <img
                     src={nft.image}
