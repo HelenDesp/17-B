@@ -117,7 +117,7 @@ export default function NFTTransfer({ nfts, selectedNFTsFromDashboard, setSelect
     }
     if (mode === "multiple") {
       // Use selection from Dashboard/NFTViewer if present
-      return (selectedNFTsFromDashboard?.length ? nfts.filter(nft => selectedNFTsFromDashboard.includes(String(nft.tokenId))) : localSelectedNFTs.map(tokenId => nfts.find(nft => nft.tokenId === tokenId))).filter(Boolean);
+      return (selectedNFTsFromDashboard?.length ? nfts.filter(nft => selectedNFTsFromDashboard.includes(nft.tokenId)) : localSelectedNFTs.map(tokenId => nfts.find(nft => nft.tokenId === tokenId))).filter(Boolean);
     }
     if (mode === "all") {
       return nfts;
