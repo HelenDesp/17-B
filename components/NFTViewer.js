@@ -93,7 +93,6 @@ export default function NFTViewer({
           1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
         </g>
       </svg>
-    </div>
   </div>
 </div>
                 {nft.image ? (
