@@ -64,7 +64,7 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow group">
                 {/* Checkbox always at bottom left with tooltip */}
-<div className="absolute left-2 bottom-2 z-10 flex items-center group">
+<div className="absolute left-2 bottom-2 z-10 flex items-center">
   <input
     type="checkbox"
     checked={selectedNFTs.includes(nft.tokenId)}
