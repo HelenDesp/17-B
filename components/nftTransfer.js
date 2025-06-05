@@ -1,22 +1,24 @@
 import { useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
-import { createPublicClient, http } from "viem";
+import { encodeFunctionData, createPublicClient, http } from "viem";
 import { base } from "viem/chains";
 
-const helperAbi = [
+// --- Scatter's ArchetypeBatch ABI
+const archetypeBatchAbi = [
   {
-    name: "transferBatch",
+    name: "executeBatch",
     type: "function",
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
     inputs: [
-      { name: "nftContract", type: "address" },
-      { name: "to", type: "address" },
-      { name: "tokenIds", type: "uint256[]" }
+      { name: "targets", type: "address[]" },
+      { name: "values", type: "uint256[]" },
+      { name: "data", type: "bytes[]" }
     ],
     outputs: []
   }
 ];
 
+// --- Standard ERC-721 ABI fragment
 const erc721TransferAbi = [
   {
     name: "safeTransferFrom",
@@ -25,9 +27,9 @@ const erc721TransferAbi = [
     inputs: [
       { name: "from", type: "address" },
       { name: "to", type: "address" },
-      { name: "tokenId", type: "uint256" },
+      { name: "tokenId", type: "uint256" }
     ],
-    outputs: [],
+    outputs: []
   },
   {
     name: "setApprovalForAll",
@@ -51,7 +53,21 @@ const erc721TransferAbi = [
   }
 ];
 
-export default function NFTTransfer({ nfts }) {
+// --- Scatter's ArchetypeBatch addresses for each chain
+function getArchetypeBatchAddress(chainId = 0) {
+  if (chainId === 1) {
+    return "0x6Bc558A6DC48dEfa0e7022713c23D65Ab26e4Fa7";
+  } else if (chainId === 11124) {
+    return "0x467177879f29A253680f037F3D30c94F7C6F1ED4";
+  } else if (chainId === 2741) {
+    return "0x5D4A8C47ae56C02Bdb41D2E5D4957b7A0bE9c619";
+  } else {
+    // BASE default (or fallback)
+    return "0xEa49e7bE310716dA66725c84a5127d2F6A202eAf";
+  }
+}
+
+export default function NFTTransfer({ nfts, chainId = 8453 }) { // 8453 is Base
   const { address } = useAccount();
   const [recipient, setRecipient] = useState("");
   const [mode, setMode] = useState("single");
@@ -61,15 +77,17 @@ export default function NFTTransfer({ nfts }) {
 
   const { writeContractAsync } = useWriteContract();
 
+  // Your NFT contract address
   const contractAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const batchHelperAddress = "0xca006CDA54644010aa869Ced9DDaAe85b54937Ba";
+  // ArchetypeBatch address for selected chain
+  const batchHelperAddress = getArchetypeBatchAddress(chainId);
 
   const client = createPublicClient({
     chain: base,
     transport: http()
   });
 
-  // Get lowest reasonable gas settings dynamically
+  // Get lowest reasonable gas settings dynamically (optional)
   const getLowGasFee = async () => {
     const block = await client.getBlock();
     const baseFeePerGas = block.baseFeePerGas ?? 0n;
@@ -93,7 +111,6 @@ export default function NFTTransfer({ nfts }) {
     setStatus("⏳ Sending transaction...");
 
     try {
-      // Get gas fee params dynamically (for both single and batch)
       const gas = await getLowGasFee();
 
       if (mode === "single") {
@@ -106,6 +123,8 @@ export default function NFTTransfer({ nfts }) {
         });
         setStatus("✅ NFT transferred successfully.");
       } else {
+        // --- BATCH MODE ---
+        // Check approval for batch helper
         const isApproved = await client.readContract({
           address: contractAddress,
           abi: erc721TransferAbi,
@@ -123,12 +142,28 @@ export default function NFTTransfer({ nfts }) {
           });
         }
 
-        const tokenIds = nfts.map(nft => BigInt(nft.tokenId));
+        // Build batch arrays
+        const targets = [];
+        const values = [];
+        const datas = [];
+
+        for (const nft of nfts) {
+          targets.push(contractAddress);
+          values.push(0n);
+          datas.push(
+            encodeFunctionData({
+              abi: erc721TransferAbi,
+              functionName: "safeTransferFrom",
+              args: [address, recipient, BigInt(nft.tokenId)]
+            })
+          );
+        }
+
         await writeContractAsync({
           address: batchHelperAddress,
-          abi: helperAbi,
-          functionName: "transferBatch",
-          args: [contractAddress, recipient, tokenIds],
+          abi: archetypeBatchAbi,
+          functionName: "executeBatch",
+          args: [targets, values, datas],
           ...gas
         });
         setStatus("✅ All NFTs transferred in one transaction.");
