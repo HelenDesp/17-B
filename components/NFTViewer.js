@@ -65,38 +65,38 @@ export default function NFTViewer({
         ) : nfts.length === 0 ? (
           <p className="text-gray-500">No NFTs found for this wallet.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {nfts.map((nft, i) => (
-              <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow">
-                {selectMode === "multiple" && (
-                  <input
-                    type="checkbox"
-                    checked={selectedNFTs.includes(nft.tokenId)}
-                    onChange={() => onSelectNFT(nft.tokenId)}
-                    className="absolute left-2 top-2 w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600 z-10"
-                  />
-                )}
-                {nft.image ? (
-                  <img src={nft.image} alt={nft.name} className="w-full aspect-square object-cover rounded-md" />
-                ) : (
-                  <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
-                    No Image
-                  </div>
-                )}
-                <div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
-                  #{nft.tokenId} — {nft.name}
-                </div>
-                <div className="flex justify-center mt-3">
-                  <button
-                    onClick={() => setSelectedNFT(nft)}
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                  >
-                    UPGRADE YOUR NFT
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+  {nfts.map((nft, i) => (
+    <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow">
+      {/* Checkbox always shown */}
+      <input
+        type="checkbox"
+        checked={selectedNFTs.includes(nft.tokenId)}
+        onChange={() => onSelectNFT(nft.tokenId)}
+        className="absolute left-2 top-2 w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600 z-10"
+      />
+      {nft.image ? (
+        <img src={nft.image} alt={nft.name} className="w-full aspect-square object-cover rounded-md" />
+      ) : (
+        <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+          No Image
+        </div>
+      )}
+      <div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
+        #{nft.tokenId} — {nft.name}
+      </div>
+      <div className="flex justify-center mt-3">
+        <button
+          onClick={() => setSelectedNFT(nft)}
+          className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+        >
+          UPGRADE YOUR NFT
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
+
         )}
       </div>
 
