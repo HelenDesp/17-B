@@ -166,10 +166,6 @@ export default function NFTTransfer({
       const gas = await getLowGasFee();
 
       if (mode === "single") {
-        setShowSingleTooltip(true);
-        setShowApprovalExplanation(false);
-        setShowBatchExplanation(false);
-
         await writeContractAsync({
           address: contractAddress,
           abi: erc721TransferAbi,
@@ -177,11 +173,8 @@ export default function NFTTransfer({
           args: [address, recipient, nftsToTransfer[0].tokenId],
           ...gas
         });
-        setShowSingleTooltip(false);
         setStatus("✅ NFT transferred successfully.");
       } else {
-        setShowSingleTooltip(false);
-
         // Check approval for batch helper
         const isApproved = await client.readContract({
           address: contractAddress,
@@ -191,9 +184,6 @@ export default function NFTTransfer({
         });
 
         if (!isApproved) {
-          setShowApprovalExplanation(true);
-          setShowBatchExplanation(false);
-
           await writeContractAsync({
             address: contractAddress,
             abi: erc721TransferAbi,
@@ -202,9 +192,6 @@ export default function NFTTransfer({
             ...gas
           });
         }
-
-        setShowApprovalExplanation(false);
-        setShowBatchExplanation(true);
 
         // Build batch arrays
         const targets = [];
@@ -231,7 +218,6 @@ export default function NFTTransfer({
           ...gas
         });
 
-        setShowBatchExplanation(false);
         setStatus(
           mode === "all"
             ? "✅ All NFTs transferred in one transaction."
@@ -242,9 +228,6 @@ export default function NFTTransfer({
         }
       }
     } catch (error) {
-      setShowSingleTooltip(false);
-      setShowApprovalExplanation(false);
-      setShowBatchExplanation(false);
       console.error(error);
       setStatus("❌ Transaction failed.");
     } finally {
@@ -270,9 +253,6 @@ export default function NFTTransfer({
               }`}
             onClick={() => {
               setMode(opt.value);
-              setShowSingleTooltip(false);
-              setShowApprovalExplanation(false);
-              setShowBatchExplanation(false);
               setStatus("");
             }}
             type="button"
@@ -318,11 +298,11 @@ export default function NFTTransfer({
           ? "Transfer Selected NFTs"
           : "Transfer All NFTs"}
       </button>
-		{mode === "single" && selectedNFTsFromDashboard && selectedNFTsFromDashboard.length > 1 && (
-		  <div className="mt-2 text-xs text-yellow-800 bg-yellow-100 rounded p-2 text-center">
-			Only the first selected NFT will be transferred.
-		  </div>
-		)}	  
+      {mode === "single" && selectedNFTsFromDashboard && selectedNFTsFromDashboard.length > 1 && (
+        <div className="mt-2 text-xs text-yellow-800 bg-yellow-100 rounded p-2 text-center">
+          Only the first selected NFT will be transferred.
+        </div>
+      )}
 
       {status && (
         <p className="mt-4 text-sm text-gray-700 dark:text-gray-200">
