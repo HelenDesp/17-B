@@ -225,13 +225,13 @@ export default function Dashboard() {
         nfts={nfts}
         selectMode={transferMode === "multiple" ? "multiple" : "none"}
         selectedNFTs={selectedNFTs}
-        onSelectNFT={(tokenId) =>
-          setSelectedNFTs((prev) =>
-            prev.includes(tokenId)
-              ? prev.filter((id) => id !== tokenId)
-              : [...prev, tokenId]
-          )
-        }
+		onSelectNFT={(tokenId) =>
+		  setSelectedNFTs((prev) =>
+			prev.includes(String(tokenId))
+			  ? prev.filter((id) => id !== String(tokenId))
+			  : [...prev, String(tokenId)]
+		  )
+		}
       />
 
       <NFTTransfer

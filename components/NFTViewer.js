@@ -71,8 +71,8 @@ export default function NFTViewer({
                 {selectMode === "multiple" && (
                   <input
                     type="checkbox"
-                    checked={selectedNFTs.includes(nft.tokenId)}
-                    onChange={() => onSelectNFT(nft.tokenId)}
+					checked={selectedNFTs.includes(String(nft.tokenId))}
+					onChange={() => onSelectNFT(String(nft.tokenId))}
                     className="absolute left-2 top-2 w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600 z-10"
                   />
                 )}
