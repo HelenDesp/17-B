@@ -64,18 +64,19 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow group">
                 {/* Checkbox always at bottom left with tooltip */}
-<div className="absolute left-2 bottom-2 z-10 flex items-center relative">
-  <input
-    type="checkbox"
-    checked={selectedNFTs.includes(nft.tokenId)}
-    onChange={() => onSelectNFT(nft.tokenId)}
-    className="peer w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600"
-    id={`select-nft-${nft.tokenId}`}
-  />
-  <div
-    className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute left-1/2 -translate-x-[100%] bottom-[18px] z-50"
-    style={{ width: 24, height: 24 }}
-  >
+<div className="absolute left-2 bottom-2 z-10">
+  <div className="relative flex flex-col items-center">
+    <input
+      type="checkbox"
+      checked={selectedNFTs.includes(nft.tokenId)}
+      onChange={() => onSelectNFT(nft.tokenId)}
+      className="peer w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600"
+      id={`select-nft-${nft.tokenId}`}
+    />
+    <div
+      className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-1 left-1/2 -translate-x-1/2 z-50"
+      style={{ width: 24, height: 24 }}
+    >
       {/* Auto-dark/light plane icon */}
       <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
         width="24" height="24" viewBox="0 0 512 512"
@@ -93,6 +94,7 @@ export default function NFTViewer({
           1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
         </g>
       </svg>
+	 </div>  
   </div>
 </div>
                 {nft.image ? (
