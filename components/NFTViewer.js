@@ -72,11 +72,10 @@ export default function NFTViewer({
     className="peer w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600"
     id={`select-nft-${nft.tokenId}`}
   />
-  <div className="relative flex flex-col items-center">
-    <div
-      className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute left-1/2 -translate-x-[90%] bottom-[12px] z-50"
-      style={{ width: 24, height: 24 }}
-    >
+  <div
+    className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute left-1/2 -translate-x-[90%] bottom-[12px] z-50"
+    style={{ width: 24, height: 24 }}
+  >
       {/* Auto-dark/light plane icon */}
       <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
         width="24" height="24" viewBox="0 0 512 512"
