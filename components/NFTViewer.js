@@ -74,7 +74,7 @@ export default function NFTViewer({
       id={`select-nft-${nft.tokenId}`}
     />
     <div
-      className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-1 left-1/2 -translate-x-1/2 z-50"
+      className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bottom-[16px] z-50"
       style={{ width: 24, height: 24 }}
     >
       {/* Auto-dark/light plane icon */}
@@ -116,7 +116,7 @@ export default function NFTViewer({
                     onClick={() => setSelectedNFT(nft)}
                     className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
                   >
-                    UPGRADE YOUR NFT
+                    UPGRADE NFT
                   </button>
                 </div>
               </div>
