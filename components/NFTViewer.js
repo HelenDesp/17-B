@@ -72,12 +72,28 @@ export default function NFTViewer({
     className="w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600"
     id={`select-nft-${nft.tokenId}`}
   />
-  <div className="ml-2 relative flex flex-col items-center">
-    <div className="opacity-0 group-hover:opacity-100 transition pointer-events-none absolute bottom-8 left-1/2 transform -translate-x-1/2 z-50 bg-black text-white p-2 rounded shadow">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"
-        strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-        <path strokeLinecap="round" strokeLinejoin="round"
-          d="M2.5 17.5l15-6a1 1 0 000-1.9l-15-6A1 1 0 001 5.1v9.8a1 1 0 001.5.6z" />
+  <div className="relative flex flex-col items-center">
+    {/* SVG PLANE ICON TOOLTIP */}
+    <div
+      className="opacity-0 group-hover:opacity-100 transition pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-[34px] z-50"
+      style={{ width: 28, height: 28 }} // Adjust for perfect size/placement
+    >
+      {/* Your provided SVG, fill changed to white for contrast */}
+      <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+        width="28" height="28" viewBox="0 0 512 512"
+        style={{ display: 'block' }}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <g transform="translate(0,512) scale(0.1,-0.1)" fill="#fff" stroke="none">
+          <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
+          -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
+          31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
+          23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460
+          l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774
+          368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795
+          c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003
+          1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
+        </g>
       </svg>
     </div>
   </div>
