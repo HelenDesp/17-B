@@ -12,7 +12,7 @@ import { readContract } from 'viem/actions';
 import { abi as erc721Abi } from './erc721'; 
 import { defineChain } from "viem";
 
-const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YWU4Y2E2LWNiNWUtNDJmNi1hYjQ5LWUzZWEwZTM5NTI2MSIsIm9yZ0lkIjoiNDQ1NTcxIiwidXNlcklkIjoiNDU4NDM4IiwidHlwZUlkIjoiMDhiYmI4YTgtMzQxYy00YTJhLTk2NGUtN2FlMGZmMzI2ODUxIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDY1NDA1MzgsImV4cCI6NDkwMjMwMDUzOH0._O5uiNnyo2sXnJDbre0_9mDklKTmrj90Yn2HXJJnZRk";
+const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YWU4Y2E2LWNiNWUtNDJmNi1hYjQ5LWUzZWEwZTM5NTI2MSIsIm9yZ0lkIjoiNDQ1NTcxIiwidXNlcklkIjoiNDU4NDM4IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDY1NDA1MzgsImV4cCI6NDkwMjMwMDUzOH0._O5uiNnyo2sXnJDbre0_9mDklKTmrj90Yn2HXJJnZRk";
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
 export default function Dashboard() {
@@ -21,6 +21,10 @@ export default function Dashboard() {
   const { data: ethBalance } = useBalance({ address, enabled: !!address });
   const [nfts, setNfts] = useState([]);
   const [gasPriceGwei, setGasPriceGwei] = useState(null);
+
+  // For selection and mode:
+  const [selectedNFTs, setSelectedNFTs] = useState([]);
+  const [transferMode, setTransferMode] = useState("single"); // "single" | "multiple" | "all"
 
   useEffect(() => {
     const fetchGasPrice = async () => {
@@ -72,35 +76,35 @@ export default function Dashboard() {
           }
         );
         const data = await res.json();
-		const parsed = (data.result || [])
-		  .filter(nft =>
-			nft.token_address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase() &&
-			nft.owner_of?.toLowerCase() === address.toLowerCase()
-		  )
-		  .map(nft => {
-			let metadata = {};
-			try {
-			  metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
-			} catch {
-			  metadata = {};
-			}
-			const image = metadata.image?.startsWith("ipfs://")
-			  ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-			  : metadata.image;
-			const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\\d+\\s*[-–—]*\\s*/, "");
-			const getTrait = (type) =>
-			  metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
-			return {
-			  tokenId: nft.token_id,
-			  name,
-			  image,
-			  traits: {
-				manifesto: getTrait("Manifesto"),
-				friend: getTrait("Friend"),
-				weapon: getTrait("Weapon"),
-			  },
-			};
-		  });
+        const parsed = (data.result || [])
+          .filter(nft =>
+            nft.token_address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase() &&
+            nft.owner_of?.toLowerCase() === address.toLowerCase()
+          )
+          .map(nft => {
+            let metadata = {};
+            try {
+              metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
+            } catch {
+              metadata = {};
+            }
+            const image = metadata.image?.startsWith("ipfs://")
+              ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+              : metadata.image;
+            const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\\d+\\s*[-–—]*\\s*/, "");
+            const getTrait = (type) =>
+              metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
+            return {
+              tokenId: nft.token_id,
+              name,
+              image,
+              traits: {
+                manifesto: getTrait("Manifesto"),
+                friend: getTrait("Friend"),
+                weapon: getTrait("Weapon"),
+              },
+            };
+          });
         
         // Hybrid verification with viem
         const client = createPublicClient({
@@ -216,8 +220,28 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <NFTViewer nfts={nfts} />
-      <NFTTransfer nfts={nfts} />
+      {/* --- Pass mode and selection state to NFTViewer and NFTTransfer --- */}
+      <NFTViewer
+        nfts={nfts}
+        selectMode={transferMode === "multiple" ? "multiple" : "none"}
+        selectedNFTs={selectedNFTs}
+        onSelectNFT={(tokenId) =>
+          setSelectedNFTs((prev) =>
+            prev.includes(tokenId)
+              ? prev.filter((id) => id !== tokenId)
+              : [...prev, tokenId]
+          )
+        }
+      />
+
+      <NFTTransfer
+        nfts={nfts}
+        mode={transferMode}
+        setMode={setTransferMode}
+        selectedNFTsFromDashboard={selectedNFTs}
+        setSelectedNFTsFromDashboard={setSelectedNFTs}
+        chainId={8453}
+      />
 
       <div className="dashboard-columns">
         <div className="space-y-6">
