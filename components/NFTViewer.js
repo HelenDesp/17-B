@@ -107,12 +107,6 @@ export default function NFTViewer({
                     }}
                   />
                 ) : (
-                  <img
-                    src={nft.image}
-                    alt={nft.name}
-                    className="w-full aspect-square object-cover rounded-md"
-                  />
-                ) : (
                   <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
                     No Image
                   </div>
