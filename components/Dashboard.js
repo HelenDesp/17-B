@@ -24,7 +24,7 @@ export default function Dashboard() {
   // For selection and mode:
   const [selectedNFTs, setSelectedNFTs] = useState([]);
   const [transferMode, setTransferMode] = useState("single"); // "single" | "multiple" | "all"
-  
+
   useEffect(() => {
     if (transferMode === "all") {
       setSelectedNFTs(nfts.map(n => n.tokenId));
@@ -71,7 +71,6 @@ export default function Dashboard() {
     const fetchNFTs = async () => {
       if (!address) return;
       try {
-        
         const res = await fetch(
           `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&withMetadata=true`,
           {
@@ -85,24 +84,32 @@ export default function Dashboard() {
           if (nft.contract?.address?.toLowerCase() !== CONTRACT_ADDRESS.toLowerCase()) continue;
 
           let metadata = {};
+          let tokenUri = '';
           try {
             const metaRes = await fetch(
               `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTMetadata?contractAddress=${CONTRACT_ADDRESS}&tokenId=${nft.tokenId}`
             );
             const metaDataJson = await metaRes.json();
 
-            const tokenUri = metaDataJson.tokenUri?.gateway;
+            tokenUri = metaDataJson.tokenUri?.gateway;
+            console.log(`TOKEN #${nft.tokenId} tokenUri.gateway:`, tokenUri);
+
             if (tokenUri) {
               const fetched = await fetch(tokenUri).then(r => r.json());
+              console.log(`TOKEN #${nft.tokenId} fetched metadata:`, fetched);
               metadata = fetched;
+            } else {
+              console.log(`TOKEN #${nft.tokenId} has no tokenUri.gateway!`);
             }
-          } catch {
+          } catch (err) {
+            console.log(`Error fetching metadata for token #${nft.tokenId}:`, err);
             metadata = {};
           }
 
           const image = metadata.image?.startsWith("ipfs://")
             ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
             : metadata.image;
+          console.log(`TOKEN #${nft.tokenId} final image:`, image);
 
           const name = metadata.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
 
@@ -157,11 +164,10 @@ export default function Dashboard() {
           }
         }
         setNfts(verifiedNFTs);
-
         return;
 
       } catch (err) {
-        console.error("Failed to fetch NFTs from Moralis:", err);
+        console.error("Failed to fetch NFTs from Alchemy:", err);
       }
     };
     fetchNFTs();
