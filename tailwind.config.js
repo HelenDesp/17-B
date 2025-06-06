@@ -109,9 +109,15 @@ module.exports = {
           "0 2px 15px -3px rgba(0, 0, 0, 0.2), 0 10px 20px -2px rgba(0, 0, 0, 0.1)",
       },
       borderRadius: {
-        xl: "0rem",
-        "2xl": "0rem",
-        "3xl": "0rem",
+		  none: "0rem",
+		  sm: "0rem",
+		  DEFAULT: "0rem",
+		  md: "0rem",
+		  lg: "0rem",
+		  xl: "0rem",
+		  "2xl": "0rem",
+		  "3xl": "0rem",
+		  full: "0rem",
       },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
