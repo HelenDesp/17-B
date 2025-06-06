@@ -91,10 +91,9 @@ export default function Dashboard() {
             );
             const metaDataJson = await metaRes.json();
 
-            if (metaDataJson.metadata) {
-              metadata = metaDataJson.metadata;
-            } else if (metaDataJson.tokenUri?.gateway) {
-              const fetched = await fetch(metaDataJson.tokenUri.gateway).then(r => r.json());
+            const tokenUri = metaDataJson.tokenUri?.gateway;
+            if (tokenUri) {
+              const fetched = await fetch(tokenUri).then(r => r.json());
               metadata = fetched;
             }
           } catch {
