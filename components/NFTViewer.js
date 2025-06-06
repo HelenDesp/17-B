@@ -49,7 +49,7 @@ export default function NFTViewer({
 
   return (
     <>
-      <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+      <div className="p-6 bg-white border-b2 dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">ReVerse Genesis NFTs</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.
@@ -63,44 +63,44 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow group">
                 {/* Checkbox always at bottom left with tooltip */}
-<div className="absolute left-2 bottom-2 z-10">
-  <div className="relative flex flex-col items-center">
-    <input
-      type="checkbox"
-      checked={selectedNFTs.includes(nft.tokenId)}
-      onChange={() => onSelectNFT(nft.tokenId)}
-      className="peer w-5 h-5 border-2 border-gray-400 rounded-sm bg-white text-primary-600 accent-primary-600"
-      id={`select-nft-${nft.tokenId}`}
-    />
-    <div
-      className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-0 left-1/2 -translate-x-1/2 z-50"
-      style={{ width: 24, height: 24 }}
-    >
-      {/* Auto-dark/light plane icon */}
-      <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
-        width="24" height="24" viewBox="0 0 512 512"
-        className="w-6 h-6 fill-black dark:fill-white"
-        preserveAspectRatio="xMidYMid meet"
-      >
-        <g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
-          <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
-          -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
-          31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
-          23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460
-          l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774
-          368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795
-          c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003
-          1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
-        </g>
-      </svg>
-	 </div>  
-  </div>
-</div>
+				<div className="absolute left-2 bottom-2 z-10">
+				  <div className="relative flex flex-col items-center">
+					<input
+					  type="checkbox"
+					  checked={selectedNFTs.includes(nft.tokenId)}
+					  onChange={() => onSelectNFT(nft.tokenId)}
+					  className="peer w-5 h-5 border-2 border-gray-400 bg-white text-primary-600 accent-primary-600 rvg-checkbox"
+					  id={`select-nft-${nft.tokenId}`}
+					/>
+					<div
+					  className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-0 left-1/2 -translate-x-1/2 z-50"
+					  style={{ width: 24, height: 24 }}
+					>
+					  {/* Auto-dark/light plane icon */}
+					  <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+						width="24" height="24" viewBox="0 0 512 512"
+						className="w-6 h-6 fill-black dark:fill-white"
+						preserveAspectRatio="xMidYMid meet"
+					  >
+						<g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
+						  <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
+						  -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
+						  31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
+						  23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460
+						  l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774
+						  368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795
+						  c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003
+						  1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
+						</g>
+					  </svg>
+					 </div>  
+				  </div>
+				</div>
                 {nft.image ? (
                   <img
                     src={nft.image}
                     alt={nft.name}
-                    className="w-full aspect-square object-cover rounded-md"
+                    className="w-full aspect-square object-cover border-b1"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = "";
