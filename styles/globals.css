@@ -445,8 +445,8 @@ appkit-button wui-image {
 /* Checkmark - checked, nudge up and left to compensate for thicker border */
 .rvg-checkbox:checked::after {
   display: block;
-  left: 4.5px;  /* was 5px */
-  top: 0.5px;   /* was 1.5px */
+  left: 5px;  /* was 5px */
+  top: 1.5px;   /* was 1.5px */
   border-color: #fff;
 }
 .dark .rvg-checkbox:checked::after {
