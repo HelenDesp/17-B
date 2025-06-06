@@ -3,7 +3,6 @@ import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
 
-const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YWU4Y2E2LWNiNWUtNDJmNi1hYjQ5LWUzZWEwZTM5NTI2MSIsIm9yZ0lkIjoiNDQ1NTcxIiwidXNlcklkIjoiNDU4NDM4IiwidHlwZUlkIjoiMDhiYmI4YTgtMzQxYy00YTJhLTk2NGUtN2FlMGZmMzI2ODUxIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDY1NDA1MzgsImV4cCI6NDkwMjMwMDUzOH0._O5uiNnyo2sXnJDbre0_9mDklKTmrj90Yn2HXJJnZRk";
 
 export default function NFTViewer({
   nfts,
@@ -102,6 +101,17 @@ export default function NFTViewer({
                     src={nft.image}
                     alt={nft.name}
                     className="w-full aspect-square object-cover rounded-md"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = '';
+                      e.currentTarget.closest('div').innerHTML = '<div class="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">No Image</div>';
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={nft.image}
+                    alt={nft.name}
+                    className="w-full aspect-square object-cover rounded-md"
                   />
                 ) : (
                   <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
@@ -109,7 +119,7 @@ export default function NFTViewer({
                   </div>
                 )}
                 <div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
-                  #{nft.tokenId} — {nft.name}
+                  {nft.name}
                 </div>
                 <div className="flex justify-center mt-3">
                   <button
