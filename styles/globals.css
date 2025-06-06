@@ -431,7 +431,7 @@ appkit-button wui-image {
   position: absolute;
   display: none;
   left: 6px;
-  top: 0px;
+  top: 1px;
   width: 6px;
   height: 12px;
   border: solid #000;
