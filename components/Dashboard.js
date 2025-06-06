@@ -72,36 +72,34 @@ export default function Dashboard() {
     const fetchNFTs = async () => {
       if (!address) return;
       try {
+        
         const res = await fetch(
-          `https://deep-index.moralis.io/api/v2.2/${address}/nft?chain=base&format=decimal&normalizeMetadata=true&exclude_spam=true&media_items=false`,
+          `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&withMetadata=true`,
           {
-            headers: {
-              "X-API-Key": MORALIS_API_KEY,
-              accept: "application/json",
-            },
+            headers: { accept: "application/json" }
           }
         );
         const data = await res.json();
-        const parsed = (data.result || [])
+        const parsed = (data.ownedNfts || [])
           .filter(nft =>
-            nft.token_address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase() &&
-            nft.owner_of?.toLowerCase() === address.toLowerCase()
+            nft.contract?.address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase()
           )
           .map(nft => {
-            let metadata = {};
-            try {
-              metadata = nft.metadata ? JSON.parse(nft.metadata) : {};
-            } catch {
-              metadata = {};
+            let metadata = nft.metadata || {};
+            if (!metadata.image && nft.tokenUri?.gateway) {
+              try {
+                const fetched = await fetch(nft.tokenUri.gateway).then(r => r.json());
+                metadata = fetched;
+              } catch { metadata = {}; }
             }
             const image = metadata.image?.startsWith("ipfs://")
               ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
               : metadata.image;
-            const name = (metadata.name || nft.name || `Token #${nft.token_id}`).replace(/^#\\d+\\s*[-–—]*\\s*/, "");
+            const name = (metadata.name || nft.title || `Token #${nft.tokenId}`).replace(/^#\d+\s*[-–—]*\s*/, "");
             const getTrait = (type) =>
               metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
             return {
-              tokenId: nft.token_id,
+              tokenId: nft.tokenId,
               name,
               image,
               traits: {
@@ -111,7 +109,7 @@ export default function Dashboard() {
               },
             };
           });
-        
+
         // Hybrid verification with viem
         const client = createPublicClient({
           chain: defineChain({
@@ -148,6 +146,7 @@ export default function Dashboard() {
           }
         }
         setNfts(verifiedNFTs);
+
         return;
 
       } catch (err) {
