@@ -395,3 +395,48 @@ appkit-button wui-image {
 .border-b1 {
   @apply border border-solid border-black dark:border-white;
 }
+
+.rvg-checkbox {
+  border: 1px solid #000;
+  background: #fff;
+  position: relative;
+  border-radius: 0 !important;
+  cursor: pointer;
+  transition: border 0.15s, background 0.15s;
+}
+.dark .rvg-checkbox {
+  border: 1px solid #fff;
+  background: #000;
+}
+
+/* Checked states */
+.rvg-checkbox:checked {
+  border: 2px solid #000;
+  background: #000;
+}
+.rvg-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 6px;
+  height: 12px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  display: block;
+}
+.dark .rvg-checkbox:checked {
+  border: 2px solid #fff;
+  background: #fff;
+}
+.dark .rvg-checkbox:checked::after {
+  border-color: #000 !important;
+}
+
+/* Only show checkmark when checked */
+.rvg-checkbox::after {
+  display: none;
+}
+.rvg-checkbox:checked::after {
+  display: block;
