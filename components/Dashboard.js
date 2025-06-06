@@ -186,19 +186,19 @@ export default function Dashboard() {
           history in one place.
         </p>
 
-        <div className="mt-6 border-1 dashboard-grid">
+        <div className="mt-6 border-b dashboard-grid">
           <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Total Balance
             </div>
-            <div className="mt-1 text-2xl font-normal text-gray-900 dark:text-white">
+            <div className="mt-c text-2xl font-normal text-gray-900 dark:text-white">
               {ethBalance
                 ? parseFloat(ethBalance.formatted).toFixed(5)
                 : "0.00000"}{" "}
               {ethBalance?.symbol || "ETH"}
             </div>
           </div>
-          <div className="bg-gray-50 border-1 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
+          <div className="bg-gray-50 border-c dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Network
             </div>
@@ -207,7 +207,7 @@ export default function Dashboard() {
               {chain?.name || "Ethereum Mainnet"}
             </div>
           </div>
-          <div className="bg-gray-50 border-1 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
+          <div className="bg-gray-50 border-c dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Gas Price
             </div>
