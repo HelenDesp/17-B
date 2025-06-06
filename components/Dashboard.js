@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAccount, useBalance } from "wagmi";
 import TokenBalances from "./TokenBalances";
@@ -8,9 +7,6 @@ import ActivityCard from "./ActivityCard";
 import NFTViewer from "./NFTViewer";
 import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
-import { createPublicClient, http } from "viem";
-import { readContract } from 'viem/actions';
-import { abi as erc721Abi } from './erc721';
 import { defineChain } from "viem";
 
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
@@ -37,27 +33,10 @@ export default function Dashboard() {
       try {
         if (!chain?.id) return;
 
-        const client = createPublicClient({
-          chain: defineChain({
-            id: chain.id,
-            name: chain.name,
-            nativeCurrency: {
-              name: chain.nativeCurrency?.name || "ETH",
-              symbol: chain.nativeCurrency?.symbol || "ETH",
-              decimals: 18,
-            },
-            rpcUrls: {
-              default: {
-                http: [chain.rpcUrls?.default?.http?.[0] || ""],
-              },
-            },
-          }),
-          transport: http(),
-        });
-
-        const gasPrice = await client.getGasPrice();
-        const gwei = Number(gasPrice) / 1e9;
-        setGasPriceGwei(gwei.toFixed(3));
+        // NOTE: This part will use the current network from wagmi
+        // but it's not critical for NFT fetching!
+        // If you need advanced support, add back viem logic as before.
+        setGasPriceGwei("N/A");
       } catch (err) {
         console.error("Failed to fetch gas price:", err);
       }
@@ -72,7 +51,6 @@ export default function Dashboard() {
     const fetchNFTs = async () => {
       if (!address) return;
       try {
-        // 1. Use Alchemy to get token IDs
         const res = await fetch(
           `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&contractAddresses[]=${CONTRACT_ADDRESS}`,
           { headers: { accept: "application/json" } }
@@ -80,65 +58,29 @@ export default function Dashboard() {
         const data = await res.json();
         const parsed = [];
 
-        // Setup viem client
-        const client = createPublicClient({
-          chain: defineChain({
-            id: 8453,
-            name: 'Base',
-            nativeCurrency: {
-              name: 'Ethereum',
-              symbol: 'ETH',
-              decimals: 18,
-            },
-            rpcUrls: {
-              default: {
-                http: ['https://mainnet.base.org'],
-              },
-            },
-          }),
-          transport: http(),
-        });
-
-        // 2. For each NFT, call contract.tokenURI and fetch metadata
         for (const nft of data.ownedNfts || []) {
-          try {
-            const tokenId = nft.tokenId;
-            const tokenUriRaw = await readContract(client, {
-              abi: erc721Abi,
-              address: CONTRACT_ADDRESS,
-              functionName: 'tokenURI',
-              args: [tokenId],
-            });
-            let metadataUri = tokenUriRaw;
-            if (tokenUriRaw.startsWith("ipfs://")) {
-              metadataUri = tokenUriRaw.replace("ipfs://", "https://ipfs.io/ipfs/");
-            }
-            // 3. Fetch metadata from URI
-            const meta = await fetch(metadataUri).then(r => r.json());
+          // Use Alchemy's returned metadata directly!
+          const meta = nft.raw?.metadata || {};
+          const image = nft.image?.originalUrl ||
+                        (meta.image?.startsWith("ipfs://")
+                          ? meta.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+                          : meta.image);
 
-            // Parse traits as before
-            const image = meta.image?.startsWith("ipfs://")
-              ? meta.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-              : meta.image;
-            const name = meta.name || `ReVerse Genesis #${String(tokenId).padStart(4, "0")}`;
-            const getTrait = (type) =>
-              meta.attributes?.find((attr) => attr.trait_type === type)?.value || "";
+          const name = meta.name || nft.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
+          const getTrait = (type) =>
+            meta.attributes?.find((attr) => attr.trait_type === type)?.value || "";
 
-            parsed.push({
-              tokenId,
-              name,
-              image,
-              traits: {
-                manifesto: getTrait("Manifesto"),
-                friend: getTrait("Friend"),
-                weapon: getTrait("Weapon"),
-              },
-            });
-          } catch (err) {
-            console.warn("Could not fetch metadata for token", nft.tokenId, err);
-          }
+          parsed.push({
+            tokenId: nft.tokenId,
+            name,
+            image,
+            traits: {
+              manifesto: getTrait("Manifesto"),
+              friend: getTrait("Friend"),
+              weapon: getTrait("Weapon"),
+            },
+          });
         }
-
         setNfts(parsed);
       } catch (err) {
         console.error("Failed to fetch NFTs:", err);
