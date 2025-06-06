@@ -61,7 +61,7 @@ export default function NFTViewer({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {nfts.map((nft, i) => (
-              <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow group">
+              <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 {/* Checkbox always at bottom left with tooltip */}
 				<div className="absolute left-2 bottom-2 z-10">
 				  <div className="relative flex flex-col items-center">
@@ -69,7 +69,7 @@ export default function NFTViewer({
 					  type="checkbox"
 					  checked={selectedNFTs.includes(nft.tokenId)}
 					  onChange={() => onSelectNFT(nft.tokenId)}
-					  className="peer w-5 h-5 border-2 border-gray-400 bg-white text-primary-600 accent-primary-600 rvg-checkbox"
+					  className="peer rvg-checkbox"
 					  id={`select-nft-${nft.tokenId}`}
 					/>
 					<div
