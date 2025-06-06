@@ -90,7 +90,13 @@ export default function Dashboard() {
               `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTMetadata?contractAddress=${CONTRACT_ADDRESS}&tokenId=${nft.tokenId}`
             );
             const metaDataJson = await metaRes.json();
-            metadata = metaDataJson?.metadata || {};
+
+            if (metaDataJson.metadata) {
+              metadata = metaDataJson.metadata;
+            } else if (metaDataJson.tokenUri?.gateway) {
+              const fetched = await fetch(metaDataJson.tokenUri.gateway).then(r => r.json());
+              metadata = fetched;
+            }
           } catch {
             metadata = {};
           }
