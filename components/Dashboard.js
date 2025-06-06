@@ -9,8 +9,20 @@ import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
+import { readContract } from "viem/actions"; // <-- ADD THIS
 
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
+
+// Minimal ERC721 ABI for ownerOf
+const erc721Abi = [
+  {
+    name: "ownerOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "owner", type: "address" }]
+  }
+];
 
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
@@ -95,7 +107,43 @@ export default function Dashboard() {
             },
           });
         }
-        setNfts(parsed);
+
+        // --- On-chain ownerOf filtering for trustless UI
+        const client = createPublicClient({
+          chain: defineChain({
+            id: 8453,
+            name: 'Base',
+            nativeCurrency: {
+              name: 'Ethereum',
+              symbol: 'ETH',
+              decimals: 18,
+            },
+            rpcUrls: {
+              default: {
+                http: ['https://mainnet.base.org'],
+              },
+            },
+          }),
+          transport: http(),
+        });
+
+        const verified = [];
+        for (const nft of parsed) {
+          try {
+            const owner = await readContract(client, {
+              abi: erc721Abi,
+              address: CONTRACT_ADDRESS,
+              functionName: 'ownerOf',
+              args: [nft.tokenId],
+            });
+            if (owner.toLowerCase() === address.toLowerCase()) {
+              verified.push(nft);
+            }
+          } catch (err) {
+            // If error, skip NFT (may be burned or unminted)
+          }
+        }
+        setNfts(verified);
       } catch (err) {
         console.error("Failed to fetch NFTs:", err);
       }
@@ -191,7 +239,7 @@ export default function Dashboard() {
         selectedNFTsFromDashboard={selectedNFTs}
         setSelectedNFTsFromDashboard={setSelectedNFTs}
         chainId={8453}
-        fetchNFTs={fetchNFTsRef} // <-- Pass the fetchNFTs ref!
+        fetchNFTs={fetchNFTsRef}
       />
 
       <div className="dashboard-columns">
