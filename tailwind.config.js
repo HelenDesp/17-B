@@ -30,8 +30,8 @@ module.exports = {
           900: "#4c1d95",
         },
 		gray: {
-		  50: "#fcfcfc",
-		  100: "#fcfcfc",
+		  50: "#ffffff",
+		  100: "#ffffff",
 		  200: "#e2e8f0",
 		  300: "#cbd5e1",
 		  400: "#a0aec0",
@@ -86,11 +86,11 @@ module.exports = {
           500: "#090f1c",
         },
         light: {
-          100: "#fcfcfc",
-          200: "#fcfcfc",
-          300: "#fcfcfc",
-          400: "#fcfcfc",
-          500: "#fcfcfc",
+          100: "#ffffff",
+          200: "#ffffff",
+          300: "#ffffff",
+          400: "#ffffff",
+          500: "#ffffff",
         },
       },
       fontFamily: {
