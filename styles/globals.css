@@ -397,46 +397,56 @@ appkit-button wui-image {
 }
 
 .rvg-checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
   border: 1px solid #000;
   background: #fff;
   position: relative;
   border-radius: 0 !important;
   cursor: pointer;
   transition: border 0.15s, background 0.15s;
+  margin: 0;
+  display: inline-block;
+  vertical-align: middle;
 }
+
+/* dark mode (unchecked) */
 .dark .rvg-checkbox {
   border: 1px solid #fff;
   background: #000;
 }
 
-/* Checked states */
+/* checked, light mode */
 .rvg-checkbox:checked {
   border: 2px solid #000;
   background: #000;
 }
-.rvg-checkbox:checked::after {
-  content: "";
-  position: absolute;
-  left: 6px;
-  top: 2px;
-  width: 6px;
-  height: 12px;
-  border: solid #fff;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-  display: block;
-}
+/* checked, dark mode */
 .dark .rvg-checkbox:checked {
   border: 2px solid #fff;
   background: #fff;
 }
-.dark .rvg-checkbox:checked::after {
-  border-color: #000 !important;
+
+/* Checkmark */
+.rvg-checkbox::after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 5px;
+  top: 1.5px;
+  width: 6px;
+  height: 12px;
+  border: solid #000;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
-/* Only show checkmark when checked */
-.rvg-checkbox::after {
-  display: none;
-}
 .rvg-checkbox:checked::after {
   display: block;
+  border-color: #fff; /* light mode checkmark is white */
+}
+
+.dark .rvg-checkbox:checked::after {
+  border-color: #000; /* dark mode checkmark is black */
+}
