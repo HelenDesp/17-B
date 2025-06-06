@@ -69,7 +69,7 @@ export default function NFTViewer({
 					  type="checkbox"
 					  checked={selectedNFTs.includes(nft.tokenId)}
 					  onChange={() => onSelectNFT(nft.tokenId)}
-					  className="peer rvg-checkbox"
+					  className="peer w-5 h-5 appearance-none rvg-checkbox"
 					  id={`select-nft-${nft.tokenId}`}
 					/>
 					<div
