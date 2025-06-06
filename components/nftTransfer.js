@@ -265,7 +265,7 @@ export default function NFTTransfer({
             type="button"
           >
             <span
-              className={`w-5 h-5 border mr-2 flex items-center justify-center rounded-sm 
+              className={`w-5 h-5 border mr-2 flex items-center justify-center rvg-checkbox 
                 ${mode === opt.value ? 'bg-white border-primary-600' : 'bg-gray-200 border-gray-400'}`}
             >
               {mode === opt.value && (
