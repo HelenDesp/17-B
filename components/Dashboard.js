@@ -95,7 +95,7 @@ export default function Dashboard() {
             ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
             : metadata.image;
 
-          const name = (metadata.name || nft.title || `Token #${nft.tokenId}`).replace(/^#\d+\s*[-–—]*\s*/, "");
+          const name = metadata.name || nft.title || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
 
           const getTrait = (type) =>
             metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
