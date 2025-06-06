@@ -176,10 +176,6 @@ export default function NFTTransfer({
         });
         setStatus("✅ NFT transferred successfully.");
 
-      // --- REFRESH NFTs after transfer ---
-      if (fetchNFTs && typeof fetchNFTs.current === "function") {
-        await fetchNFTs.current();
-      }
       } else {
         // Check approval for batch helper
         const isApproved = await client.readContract({
@@ -233,6 +229,11 @@ export default function NFTTransfer({
           setSelectedNFTsFromDashboard([]);
         }
       }
+	        // --- REFRESH NFTs after transfer ---
+	  if (fetchNFTs && typeof fetchNFTs.current === "function") {
+		await fetchNFTs.current();
+	  }	  
+	  
     } catch (error) {
       console.error(error);
       setStatus("❌ Transaction failed.");
