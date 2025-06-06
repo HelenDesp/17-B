@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAccount, useBalance } from "wagmi";
 import TokenBalances from "./TokenBalances";
@@ -9,7 +10,7 @@ import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
 import { createPublicClient, http } from "viem";
 import { readContract } from 'viem/actions';
-import { abi as erc721Abi } from './erc721'; 
+import { abi as erc721Abi } from './erc721';
 import { defineChain } from "viem";
 
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
@@ -23,13 +24,13 @@ export default function Dashboard() {
 
   // For selection and mode:
   const [selectedNFTs, setSelectedNFTs] = useState([]);
-  const [transferMode, setTransferMode] = useState("single"); // "single" | "multiple" | "all"
+  const [transferMode, setTransferMode] = useState("single");
 
   useEffect(() => {
     if (transferMode === "all") {
       setSelectedNFTs(nfts.map(n => n.tokenId));
     }
-  }, [transferMode, nfts]);  
+  }, [transferMode, nfts]);
 
   useEffect(() => {
     const fetchGasPrice = async () => {
@@ -71,16 +72,15 @@ export default function Dashboard() {
     const fetchNFTs = async () => {
       if (!address) return;
       try {
+        // 1. Use Alchemy to get token IDs
         const res = await fetch(
-          `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&withMetadata=true`,
-          {
-            headers: { accept: "application/json" }
-          }
+          `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&contractAddresses[]=${CONTRACT_ADDRESS}`,
+          { headers: { accept: "application/json" } }
         );
         const data = await res.json();
         const parsed = [];
 
-        // Create viem client for both tokenURI and on-chain verification
+        // Setup viem client
         const client = createPublicClient({
           chain: defineChain({
             id: 8453,
@@ -99,99 +99,49 @@ export default function Dashboard() {
           transport: http(),
         });
 
+        // 2. For each NFT, call contract.tokenURI and fetch metadata
         for (const nft of data.ownedNfts || []) {
-          if (nft.contract?.address?.toLowerCase() !== CONTRACT_ADDRESS.toLowerCase()) continue;
-
-          let metadata = {};
-          let tokenUri = '';
           try {
-            // Step 1: Try Alchemy getNFTMetadata for tokenUri.gateway
-            const metaRes = await fetch(
-              `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTMetadata?contractAddress=${CONTRACT_ADDRESS}&tokenId=${nft.tokenId}`
-            );
-            const metaDataJson = await metaRes.json();
-
-            tokenUri = metaDataJson.tokenUri?.gateway;
-            console.log(`TOKEN #${nft.tokenId} tokenUri.gateway from Alchemy:`, tokenUri);
-
-            if (tokenUri) {
-              const fetched = await fetch(tokenUri).then(r => r.json());
-              console.log(`TOKEN #${nft.tokenId} fetched metadata from tokenUri.gateway:`, fetched);
-              metadata = fetched;
-            } else {
-              // Step 2: If Alchemy has no gateway, fetch from contract directly
-              try {
-                const onChainTokenUri = await readContract(client, {
-                  abi: erc721Abi,
-                  address: CONTRACT_ADDRESS,
-                  functionName: 'tokenURI',
-                  args: [nft.tokenId],
-                });
-                console.log(`TOKEN #${nft.tokenId} tokenURI from contract:`, onChainTokenUri);
-
-                // Support IPFS and HTTP
-                let onChainUri = onChainTokenUri;
-                if (onChainTokenUri.startsWith("ipfs://")) {
-                  onChainUri = onChainTokenUri.replace("ipfs://", "https://ipfs.io/ipfs/");
-                }
-
-                const fetched = await fetch(onChainUri).then(r => r.json());
-                console.log(`TOKEN #${nft.tokenId} fetched metadata from contract tokenURI:`, fetched);
-                metadata = fetched;
-              } catch (err) {
-                console.log(`Error reading tokenURI on-chain for token #${nft.tokenId}:`, err);
-                metadata = {};
-              }
-            }
-          } catch (err) {
-            console.log(`Error fetching metadata for token #${nft.tokenId}:`, err);
-            metadata = {};
-          }
-
-          const image = metadata.image?.startsWith("ipfs://")
-            ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-            : metadata.image;
-          console.log(`TOKEN #${nft.tokenId} final image:`, image);
-
-          const name = metadata.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
-
-          const getTrait = (type) =>
-            metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
-
-          parsed.push({
-            tokenId: nft.tokenId,
-            name,
-            image,
-            traits: {
-              manifesto: getTrait("Manifesto"),
-              friend: getTrait("Friend"),
-              weapon: getTrait("Weapon"),
-            },
-          });
-        }
-
-        // Hybrid verification with viem
-        const verifiedNFTs = [];
-        for (const nft of parsed) {
-          try {
-            const owner = await readContract(client, {
+            const tokenId = nft.tokenId;
+            const tokenUriRaw = await readContract(client, {
               abi: erc721Abi,
               address: CONTRACT_ADDRESS,
-              functionName: 'ownerOf',
-              args: [nft.tokenId],
+              functionName: 'tokenURI',
+              args: [tokenId],
             });
-            if (owner.toLowerCase() === address.toLowerCase()) {
-              verifiedNFTs.push(nft);
+            let metadataUri = tokenUriRaw;
+            if (tokenUriRaw.startsWith("ipfs://")) {
+              metadataUri = tokenUriRaw.replace("ipfs://", "https://ipfs.io/ipfs/");
             }
+            // 3. Fetch metadata from URI
+            const meta = await fetch(metadataUri).then(r => r.json());
+
+            // Parse traits as before
+            const image = meta.image?.startsWith("ipfs://")
+              ? meta.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+              : meta.image;
+            const name = meta.name || `ReVerse Genesis #${String(tokenId).padStart(4, "0")}`;
+            const getTrait = (type) =>
+              meta.attributes?.find((attr) => attr.trait_type === type)?.value || "";
+
+            parsed.push({
+              tokenId,
+              name,
+              image,
+              traits: {
+                manifesto: getTrait("Manifesto"),
+                friend: getTrait("Friend"),
+                weapon: getTrait("Weapon"),
+              },
+            });
           } catch (err) {
-            console.warn('Verification failed for token', nft.tokenId, err);
+            console.warn("Could not fetch metadata for token", nft.tokenId, err);
           }
         }
-        setNfts(verifiedNFTs);
-        return;
 
+        setNfts(parsed);
       } catch (err) {
-        console.error("Failed to fetch NFTs from Alchemy:", err);
+        console.error("Failed to fetch NFTs:", err);
       }
     };
     fetchNFTs();
@@ -266,7 +216,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* --- Pass mode and selection state to NFTViewer and NFTTransfer --- */}
       <NFTViewer
         nfts={nfts}
         selectMode={transferMode === "multiple" ? "multiple" : "none"}
