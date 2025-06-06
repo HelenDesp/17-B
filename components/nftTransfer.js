@@ -243,7 +243,7 @@ export default function NFTTransfer({
   };
 
   return (
-    <div className="bg-white dark:bg-dark-200 rounded-xl shadow-card dark:shadow-card-dark p-6 mt-6">
+    <div className="bg-white dark:bg-dark-200 border-b2 shadow-card dark:shadow-card-dark p-6 mt-6">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
         Transfer Your NFT(s)
       </h2>
@@ -289,7 +289,7 @@ export default function NFTTransfer({
       <button
         onClick={handleTransfer}
         disabled={txInProgress}
-        className="w-full py-2 px-4 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50"
+        className="w-full px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 dark:bg-dark-300 text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50"
       >
         {txInProgress
           ? "Transferring..."
@@ -300,7 +300,7 @@ export default function NFTTransfer({
           : "Transfer All NFTs"}
       </button>
       {mode === "single" && selectedNFTsFromDashboard && selectedNFTsFromDashboard.length > 1 && (
-        <div className="mt-2 text-xs text-yellow-800 bg-yellow-100 rounded p-2 text-center">
+        <div className="mt-2 text-xs text-gray-700 dark:text-white text-center">
           Only the first selected NFT will be transferred.
         </div>
       )}
