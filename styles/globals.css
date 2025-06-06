@@ -390,3 +390,10 @@ appkit-button wui-image {
 .border-b {
   @apply border-2 border-solid border-black dark:border-white;
 }
+.main-content,
+.card,
+.dashboard-grid,
+.dashboard-columns,
+.info-card {
+  @apply border-b;
+}
