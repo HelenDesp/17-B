@@ -103,8 +103,7 @@ export default function NFTViewer({
                     className="w-full aspect-square object-cover rounded-md"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = '';
-                      e.currentTarget.closest('div').innerHTML = '<div class="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">No Image</div>';
+                      e.currentTarget.src = "";
                     }}
                   />
                 ) : (
