@@ -409,9 +409,9 @@ appkit-button wui-image {
   margin: 0;
   display: inline-block;
   vertical-align: middle;
+  box-sizing: border-box;
 }
 
-/* dark mode (unchecked) */
 .dark .rvg-checkbox {
   border: 1px solid #fff;
   background: #000;
@@ -428,7 +428,7 @@ appkit-button wui-image {
   background: #fff;
 }
 
-/* Checkmark */
+/* Checkmark - normal */
 .rvg-checkbox::after {
   content: "";
   position: absolute;
@@ -442,11 +442,13 @@ appkit-button wui-image {
   transform: rotate(45deg);
 }
 
+/* Checkmark - checked, nudge up and left to compensate for thicker border */
 .rvg-checkbox:checked::after {
   display: block;
-  border-color: #fff; /* light mode checkmark is white */
+  left: 4.5px;  /* was 5px */
+  top: 0.5px;   /* was 1.5px */
+  border-color: #fff;
 }
-
 .dark .rvg-checkbox:checked::after {
-  border-color: #000; /* dark mode checkmark is black */
+  border-color: #000;
 }
