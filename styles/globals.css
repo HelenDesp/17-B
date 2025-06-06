@@ -387,13 +387,9 @@ appkit-button wui-image {
   opacity: 0 !important;
 }
 
-.border-b {
+.border-2 {
   @apply border-2 border-solid border-black dark:border-white;
 }
-.main-content,
-.card,
-.dashboard-grid,
-.dashboard-columns,
-.info-card {
-  @apply border-b;
+.border-1 {
+  @apply border-1 border-solid border-black dark:border-white;
 }
