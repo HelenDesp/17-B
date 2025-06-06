@@ -80,22 +80,26 @@ export default function Dashboard() {
         );
         const data = await res.json();
         const parsed = [];
+
         for (const nft of data.ownedNfts || []) {
           if (nft.contract?.address?.toLowerCase() !== CONTRACT_ADDRESS.toLowerCase()) continue;
 
-          let metadata = nft.metadata || {};
-          if ((!metadata.image || !metadata.attributes) && nft.tokenUri?.gateway) {
-            try {
-              const fetched = await fetch(nft.tokenUri.gateway).then(r => r.json());
-              metadata = fetched;
-            } catch { metadata = {}; }
+          let metadata = {};
+          try {
+            const metaRes = await fetch(
+              `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTMetadata?contractAddress=${CONTRACT_ADDRESS}&tokenId=${nft.tokenId}`
+            );
+            const metaDataJson = await metaRes.json();
+            metadata = metaDataJson?.metadata || {};
+          } catch {
+            metadata = {};
           }
 
           const image = metadata.image?.startsWith("ipfs://")
             ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
             : metadata.image;
 
-          const name = metadata.name || nft.title || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
+          const name = metadata.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
 
           const getTrait = (type) =>
             metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
