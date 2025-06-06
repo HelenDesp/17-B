@@ -398,18 +398,18 @@ appkit-button wui-image {
 
 .rvg-checkbox {
   appearance: none;
-  width: 20px;
-  height: 20px;
-  border: 1px solid #000;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #000;   /* Always 1px, always black (light) */
   background: #fff;
   position: relative;
   border-radius: 0 !important;
   cursor: pointer;
-  transition: border 0.15s, background 0.15s;
   margin: 0;
   display: inline-block;
   vertical-align: middle;
   box-sizing: border-box;
+  transition: background 0.15s;
 }
 
 .dark .rvg-checkbox {
@@ -418,16 +418,14 @@ appkit-button wui-image {
 }
 
 .rvg-checkbox:checked {
-  border: 2px solid #000;
-  background: #000;
+  background: #000;         /* Checked = black bg in light */
 }
 
 .dark .rvg-checkbox:checked {
-  border: 2px solid #fff;
-  background: #fff;
+  background: #fff;         /* Checked = white bg in dark */
 }
 
-/* Checkmark: always vertically centered */
+/* Checkmark - always in the same position */
 .rvg-checkbox::after {
   content: "";
   position: absolute;
@@ -443,10 +441,9 @@ appkit-button wui-image {
 
 .rvg-checkbox:checked::after {
   display: block;
-  left: 4px;   /* nudge left to compensate for thicker border */
-  top: 0px;    /* nudge up to compensate for thicker border */
-  border-color: #fff;
+  border-color: #fff;        /* Checkmark is white when checked in light */
 }
+
 .dark .rvg-checkbox:checked::after {
-  border-color: #000;
+  border-color: #000;        /* Checkmark is black when checked in dark */
 }
