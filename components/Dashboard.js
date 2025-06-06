@@ -80,26 +80,68 @@ export default function Dashboard() {
         const data = await res.json();
         const parsed = [];
 
+        // Create viem client for both tokenURI and on-chain verification
+        const client = createPublicClient({
+          chain: defineChain({
+            id: 8453,
+            name: 'Base',
+            nativeCurrency: {
+              name: 'Ethereum',
+              symbol: 'ETH',
+              decimals: 18,
+            },
+            rpcUrls: {
+              default: {
+                http: ['https://mainnet.base.org'],
+              },
+            },
+          }),
+          transport: http(),
+        });
+
         for (const nft of data.ownedNfts || []) {
           if (nft.contract?.address?.toLowerCase() !== CONTRACT_ADDRESS.toLowerCase()) continue;
 
           let metadata = {};
           let tokenUri = '';
           try {
+            // Step 1: Try Alchemy getNFTMetadata for tokenUri.gateway
             const metaRes = await fetch(
               `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTMetadata?contractAddress=${CONTRACT_ADDRESS}&tokenId=${nft.tokenId}`
             );
             const metaDataJson = await metaRes.json();
 
             tokenUri = metaDataJson.tokenUri?.gateway;
-            console.log(`TOKEN #${nft.tokenId} tokenUri.gateway:`, tokenUri);
+            console.log(`TOKEN #${nft.tokenId} tokenUri.gateway from Alchemy:`, tokenUri);
 
             if (tokenUri) {
               const fetched = await fetch(tokenUri).then(r => r.json());
-              console.log(`TOKEN #${nft.tokenId} fetched metadata:`, fetched);
+              console.log(`TOKEN #${nft.tokenId} fetched metadata from tokenUri.gateway:`, fetched);
               metadata = fetched;
             } else {
-              console.log(`TOKEN #${nft.tokenId} has no tokenUri.gateway!`);
+              // Step 2: If Alchemy has no gateway, fetch from contract directly
+              try {
+                const onChainTokenUri = await readContract(client, {
+                  abi: erc721Abi,
+                  address: CONTRACT_ADDRESS,
+                  functionName: 'tokenURI',
+                  args: [nft.tokenId],
+                });
+                console.log(`TOKEN #${nft.tokenId} tokenURI from contract:`, onChainTokenUri);
+
+                // Support IPFS and HTTP
+                let onChainUri = onChainTokenUri;
+                if (onChainTokenUri.startsWith("ipfs://")) {
+                  onChainUri = onChainTokenUri.replace("ipfs://", "https://ipfs.io/ipfs/");
+                }
+
+                const fetched = await fetch(onChainUri).then(r => r.json());
+                console.log(`TOKEN #${nft.tokenId} fetched metadata from contract tokenURI:`, fetched);
+                metadata = fetched;
+              } catch (err) {
+                console.log(`Error reading tokenURI on-chain for token #${nft.tokenId}:`, err);
+                metadata = {};
+              }
             }
           } catch (err) {
             console.log(`Error fetching metadata for token #${nft.tokenId}:`, err);
@@ -129,24 +171,6 @@ export default function Dashboard() {
         }
 
         // Hybrid verification with viem
-        const client = createPublicClient({
-          chain: defineChain({
-            id: 8453,
-            name: 'Base',
-            nativeCurrency: {
-              name: 'Ethereum',
-              symbol: 'ETH',
-              decimals: 18,
-            },
-            rpcUrls: {
-              default: {
-                http: ['https://mainnet.base.org'],
-              },
-            },
-          }),
-          transport: http(),
-        });
-
         const verifiedNFTs = [];
         for (const nft of parsed) {
           try {
