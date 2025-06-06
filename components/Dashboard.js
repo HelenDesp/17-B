@@ -177,7 +177,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border-2 dark:bg-dark-200 rounded-xl shadow-sm p-6">
+      <div className="bg-white border-b dark:bg-dark-200 rounded-xl shadow-sm p-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Welcome to your Web3 Wallet
         </h1>
@@ -186,7 +186,7 @@ export default function Dashboard() {
           history in one place.
         </p>
 
-        <div className="mt-6 border-b dashboard-grid">
+        <div className="mt-6 border-c dashboard-grid">
           <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Total Balance
