@@ -12,7 +12,6 @@ import { readContract } from 'viem/actions';
 import { abi as erc721Abi } from './erc721'; 
 import { defineChain } from "viem";
 
-const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YWU4Y2E2LWNiNWUtNDJmNi1hYjQ5LWUzZWEwZTM5NTI2MSIsIm9yZ0lkIjoiNDQ1NTcxIiwidXNlcklkIjoiNDU4NDM4IiwidHlwZUlkIjoiMDhiYmI4YTgtMzQxYy00YTJhLTk2NGUtN2FlMGZmMzI2ODUxIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDY1NDA1MzgsImV4cCI6NDkwMjMwMDUzOH0._O5uiNnyo2sXnJDbre0_9mDklKTmrj90Yn2HXJJnZRk";
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
 export default function Dashboard() {
@@ -80,35 +79,38 @@ export default function Dashboard() {
           }
         );
         const data = await res.json();
-        const parsed = (data.ownedNfts || [])
-          .filter(nft =>
-            nft.contract?.address?.toLowerCase() === CONTRACT_ADDRESS.toLowerCase()
-          )
-          .map(nft => {
-            let metadata = nft.metadata || {};
-            if (!metadata.image && nft.tokenUri?.gateway) {
-              try {
-                const fetched = await fetch(nft.tokenUri.gateway).then(r => r.json());
-                metadata = fetched;
-              } catch { metadata = {}; }
-            }
-            const image = metadata.image?.startsWith("ipfs://")
-              ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-              : metadata.image;
-            const name = (metadata.name || nft.title || `Token #${nft.tokenId}`).replace(/^#\d+\s*[-–—]*\s*/, "");
-            const getTrait = (type) =>
-              metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
-            return {
-              tokenId: nft.tokenId,
-              name,
-              image,
-              traits: {
-                manifesto: getTrait("Manifesto"),
-                friend: getTrait("Friend"),
-                weapon: getTrait("Weapon"),
-              },
-            };
+        const parsed = [];
+        for (const nft of data.ownedNfts || []) {
+          if (nft.contract?.address?.toLowerCase() !== CONTRACT_ADDRESS.toLowerCase()) continue;
+
+          let metadata = nft.metadata || {};
+          if ((!metadata.image || !metadata.attributes) && nft.tokenUri?.gateway) {
+            try {
+              const fetched = await fetch(nft.tokenUri.gateway).then(r => r.json());
+              metadata = fetched;
+            } catch { metadata = {}; }
+          }
+
+          const image = metadata.image?.startsWith("ipfs://")
+            ? metadata.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+            : metadata.image;
+
+          const name = (metadata.name || nft.title || `Token #${nft.tokenId}`).replace(/^#\d+\s*[-–—]*\s*/, "");
+
+          const getTrait = (type) =>
+            metadata.attributes?.find((attr) => attr.trait_type === type)?.value || "";
+
+          parsed.push({
+            tokenId: nft.tokenId,
+            name,
+            image,
+            traits: {
+              manifesto: getTrait("Manifesto"),
+              friend: getTrait("Friend"),
+              weapon: getTrait("Weapon"),
+            },
           });
+        }
 
         // Hybrid verification with viem
         const client = createPublicClient({
