@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAccount, useBalance } from "wagmi";
 import TokenBalances from "./TokenBalances";
 import TokenTransfer from "./TokenTransfer";
@@ -23,17 +23,12 @@ export default function Dashboard() {
   const [selectedNFTs, setSelectedNFTs] = useState([]);
   const [transferMode, setTransferMode] = useState("single");
 
-  useEffect(() => {
-    if (transferMode === "all") {
-      setSelectedNFTs(nfts.map(n => n.tokenId));
-    }
-  }, [transferMode, nfts]);
+  const fetchNFTsRef = useRef();
 
   useEffect(() => {
     const fetchGasPrice = async () => {
       try {
         if (!chain?.id) return;
-
         const client = createPublicClient({
           chain: defineChain({
             id: chain.id,
@@ -51,7 +46,6 @@ export default function Dashboard() {
           }),
           transport: http(),
         });
-
         const gasPrice = await client.getGasPrice();
         const gwei = Number(gasPrice) / 1e9;
         setGasPriceGwei(gwei.toFixed(3));
@@ -66,8 +60,9 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [chain]);
 
+  // EXPOSE fetchNFTs on ref and run on mount/address change:
   useEffect(() => {
-    const fetchNFTs = async () => {
+    fetchNFTsRef.current = async () => {
       if (!address) return;
       try {
         const res = await fetch(
@@ -105,7 +100,8 @@ export default function Dashboard() {
         console.error("Failed to fetch NFTs:", err);
       }
     };
-    fetchNFTs();
+
+    fetchNFTsRef.current(); // Run on mount and address change!
   }, [address]);
 
   useEffect(() => {
@@ -154,7 +150,6 @@ export default function Dashboard() {
               {ethBalance?.symbol || "ETH"}
             </div>
           </div>
-
           <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Network
@@ -164,7 +159,6 @@ export default function Dashboard() {
               {chain?.name || "Ethereum Mainnet"}
             </div>
           </div>
-
           <div className="bg-gray-50 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Gas Price
@@ -197,6 +191,7 @@ export default function Dashboard() {
         selectedNFTsFromDashboard={selectedNFTs}
         setSelectedNFTsFromDashboard={setSelectedNFTs}
         chainId={8453}
+        fetchNFTs={fetchNFTsRef} // <-- Pass the fetchNFTs ref!
       />
 
       <div className="dashboard-columns">

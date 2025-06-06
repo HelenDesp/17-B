@@ -78,6 +78,7 @@ export default function NFTTransfer({
   selectedNFTsFromDashboard = [],
   setSelectedNFTsFromDashboard,
   chainId = 8453,
+  fetchNFTs // <-- this is the new prop for refreshin
 }) {
   const { address } = useAccount();
   const [recipient, setRecipient] = useState("");
@@ -174,6 +175,11 @@ export default function NFTTransfer({
           ...gas
         });
         setStatus("✅ NFT transferred successfully.");
+
+      // --- REFRESH NFTs after transfer ---
+      if (fetchNFTs && typeof fetchNFTs.current === "function") {
+        await fetchNFTs.current();
+      }
       } else {
         // Check approval for batch helper
         const isApproved = await client.readContract({
