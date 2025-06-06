@@ -265,7 +265,7 @@ export default function NFTTransfer({
   type="button"
 >
   <span
-    className={`rvg-checkbox-trnf w-5 h-5 mr-4 flex items-center justify-center
+    className={`rvg-checkbox-trnf w-5 h-5 mr-rvg mr-4 flex items-center justify-center
       ${mode === opt.value ? 'checked' : ''}`}
   />
   {opt.label}
