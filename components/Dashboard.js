@@ -7,6 +7,7 @@ import ActivityCard from "./ActivityCard";
 import NFTViewer from "./NFTViewer";
 import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
+import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
 
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
@@ -33,12 +34,30 @@ export default function Dashboard() {
       try {
         if (!chain?.id) return;
 
-        // NOTE: This part will use the current network from wagmi
-        // but it's not critical for NFT fetching!
-        // If you need advanced support, add back viem logic as before.
-        setGasPriceGwei("N/A");
+        const client = createPublicClient({
+          chain: defineChain({
+            id: chain.id,
+            name: chain.name,
+            nativeCurrency: {
+              name: chain.nativeCurrency?.name || "ETH",
+              symbol: chain.nativeCurrency?.symbol || "ETH",
+              decimals: 18,
+            },
+            rpcUrls: {
+              default: {
+                http: [chain.rpcUrls?.default?.http?.[0] || ""],
+              },
+            },
+          }),
+          transport: http(),
+        });
+
+        const gasPrice = await client.getGasPrice();
+        const gwei = Number(gasPrice) / 1e9;
+        setGasPriceGwei(gwei.toFixed(3));
       } catch (err) {
         console.error("Failed to fetch gas price:", err);
+        setGasPriceGwei("N/A");
       }
     };
 
