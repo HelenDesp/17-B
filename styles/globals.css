@@ -398,8 +398,8 @@ appkit-button wui-image {
 
 .rvg-checkbox {
   appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border: 1px solid #000;   /* Always 1px, always black (light) */
   background: #fff;
   position: relative;
