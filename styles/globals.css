@@ -386,3 +386,12 @@ appkit-button wui-image {
   pointer-events: none !important;
   opacity: 0 !important;
 }
+/* 2px themed border */
+.border-b2 {
+  @apply border-2 border-solid border-black dark:border-white;
+}
+
+/* 1px themed border */
+.border-b1 {
+  @apply border border-solid border-black dark:border-white;
+}
