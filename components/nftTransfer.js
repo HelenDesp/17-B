@@ -253,7 +253,7 @@ export default function NFTTransfer({
         {TRANSFER_MODES.map(opt => (
 <button
   key={opt.value}
-  className={`flex items-center px-3 py-2 border rounded-none shadow-sm text-base font-medium transition
+  className={`flex items-center px-3 py-2 border shadow-sm text-base font-medium transition
     ${mode === opt.value
       ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
       : 'bg-white dark:bg-black text-black dark:text-white border-black dark:border-white'
@@ -265,7 +265,7 @@ export default function NFTTransfer({
   type="button"
 >
   <span
-    className={`rvg-checkbox w-5 h-5 mr-2 flex items-center justify-center
+    className={`rvg-checkbox-trnf w-5 h-5 mr-4 flex items-center justify-center
       ${mode === opt.value ? 'checked' : ''}`}
   />
   {opt.label}
