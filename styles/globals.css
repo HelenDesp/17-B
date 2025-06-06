@@ -447,3 +447,55 @@ appkit-button wui-image {
 .dark .rvg-checkbox:checked::after {
   border-color: #000;        /* Checkmark is black when checked in dark */
 }
+
+
+.rvg-checkbox-trnf {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #000;
+  background: #fff;
+  position: relative;
+  border-radius: 0 !important;
+  margin: 0;
+  display: inline-block;
+  vertical-align: middle;
+  box-sizing: border-box;
+  transition: background 0.15s;
+}
+
+.dark .rvg-checkbox-trnf {
+  border: 1px solid #fff;
+  background: #000;
+}
+
+/* Checked state for the <span>, use .checked not :checked */
+.rvg-checkbox-trnf.checked {
+  background: #000;
+  border: 1px solid #000;
+}
+.dark .rvg-checkbox-trnf.checked {
+  background: #fff;
+  border: 1px solid #fff;
+}
+
+/* Checkmark - always in the same position */
+.rvg-checkbox-trnf::after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 6px;
+  top: 1px;
+  width: 6px;
+  height: 12px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.dark .rvg-checkbox-trnf::after {
+  border-color: #000;
+}
+
+/* Show checkmark when checked class present */
+.rvg-checkbox-trnf.checked::after {
+  display: block;
+}
