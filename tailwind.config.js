@@ -40,7 +40,8 @@ module.exports = {
 		  700: "#2d3748",
 		  800: "#1a202c",
 		  900: "#171923",
-		},		
+		},
+        white: '#ffffff',		
 				success: {
           50: "#ecfdf5",
           100: "#d1fae5",
