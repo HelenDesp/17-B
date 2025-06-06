@@ -251,31 +251,25 @@ export default function NFTTransfer({
       {/* Mode select as square checkboxes (styled as a select group) */}
       <div className="mb-4 flex gap-4">
         {TRANSFER_MODES.map(opt => (
-          <button
-            key={opt.value}
-            className={`flex items-center px-3 py-2 border rounded shadow-sm text-base font-medium transition
-              ${mode === opt.value
-                ? 'bg-primary-600 text-white border-primary-600'
-                : 'bg-gray-100 dark:bg-dark-100 text-gray-800 dark:text-gray-300 border-gray-300 dark:border-gray-600'
-              }`}
-            onClick={() => {
-              setMode(opt.value);
-              setStatus("");
-            }}
-            type="button"
-          >
-            <span
-              className={`w-5 h-5 border mr-2 flex items-center justify-center rvg-checkbox 
-                ${mode === opt.value ? 'bg-white border-primary-600' : 'bg-gray-200 border-gray-400'}`}
-            >
-              {mode === opt.value && (
-                <svg className="w-3 h-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" />
-                </svg>
-              )}
-            </span>
-            {opt.label}
-          </button>
+<button
+  key={opt.value}
+  className={`flex items-center px-3 py-2 border rounded-none shadow-sm text-base font-medium transition
+    ${mode === opt.value
+      ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white'
+      : 'bg-white dark:bg-black text-black dark:text-white border-black dark:border-white'
+    }`}
+  onClick={() => {
+    setMode(opt.value);
+    setStatus("");
+  }}
+  type="button"
+>
+  <span
+    className={`rvg-checkbox w-5 h-5 mr-2 flex items-center justify-center
+      ${mode === opt.value ? 'checked' : ''}`}
+  />
+  {opt.label}
+</button>
         ))}
       </div>
 
