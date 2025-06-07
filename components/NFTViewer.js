@@ -143,7 +143,7 @@ export default function NFTViewer({
                 onClick={() => setSelectedNFT(null)}
                 aria-label="Close"
               >
-                <span className="text-2xl leading-none font-bold dark:font-bold">&#215;</span>
+                <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
               </button>
               
               <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
@@ -163,7 +163,7 @@ export default function NFTViewer({
                     value={formData.name}
                     onChange={e => handleChange("name", e.target.value)}
                     placeholder={selectedNFT.name}
-                    className="w-full p-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-2 rounded-none focus:outline-none focus:ring-0"
+                    className="w-full p-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-400 focus:!border-black dark:focus:!border-white focus:!border-2 focus:!outline-none focus:!ring-0 rounded-none"
                     style={{ boxShadow: 'none' }}
                   />
                   {nameError && (
@@ -184,7 +184,7 @@ export default function NFTViewer({
                       value={formData[field]}
                       onChange={e => handleChange(field, e.target.value)}
                       placeholder={selectedNFT.traits[field]}
-                      className="w-full p-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-2 rounded-none focus:outline-none focus:ring-0"
+                      className="w-full p-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-400 focus:!border-black dark:focus:!border-white focus:!border-2 focus:!outline-none focus:!ring-0 rounded-none"
                       style={{ boxShadow: 'none' }}
                     />
                   </div>
@@ -218,7 +218,7 @@ export default function NFTViewer({
               className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
               onClick={() => setShowThankYou(false)}
             >
-              <span className="text-2xl leading-none font-bold dark:font-bold">&#215;</span>
+              <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
             </button>
             <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               THANK YOU
