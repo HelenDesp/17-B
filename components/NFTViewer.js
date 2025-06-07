@@ -139,7 +139,7 @@ export default function NFTViewer({
               
               {/* Close Button */}
               <button
-                className="absolute top-3 right-3 text-lg text-gray-800 dark:text-white border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                className="absolute top-3 right-3 text-3xl border-2 border-black dark:border-white w-10 h-10 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
                 onClick={() => setSelectedNFT(null)}
                 aria-label="Close"
               >
@@ -163,7 +163,7 @@ export default function NFTViewer({
                     value={formData.name}
                     onChange={e => handleChange("name", e.target.value)}
                     placeholder={selectedNFT.name}
-                    className="w-full p-2 border border-black dark:border-white bg-white dark:bg-black text-gray-900 dark:text-white placeholder-gray-400 focus:placeholder-transparent border-2 rounded-none focus:outline-none focus:ring-0"
+                    className="w-full p-2 border border-black dark:border-white bg-white text-gray-900 dark:text-black placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-2 rounded-none focus:outline-none focus:ring-0"
                     style={{ boxShadow: 'none' }}
                   />
                   {nameError && (
@@ -184,7 +184,7 @@ export default function NFTViewer({
                       value={formData[field]}
                       onChange={e => handleChange(field, e.target.value)}
                       placeholder={selectedNFT.traits[field]}
-                      className="w-full p-2 border border-black dark:border-white bg-white dark:bg-black text-gray-900 dark:text-white placeholder-gray-400 focus:placeholder-transparent border-2 rounded-none focus:outline-none focus:ring-0"
+                      className="w-full p-2 border border-black dark:border-white bg-white text-gray-900 dark:text-black placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-2 rounded-none focus:outline-none focus:ring-0"
                       style={{ boxShadow: 'none' }}
                     />
                   </div>
@@ -215,7 +215,7 @@ export default function NFTViewer({
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
           <div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
             <button
-              className="absolute top-3 right-3 text-lg text-gray-800 dark:text-white border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="absolute top-3 right-3 text-3xl border-2 border-black dark:border-white w-10 h-10 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
               onClick={() => setShowThankYou(false)}
             >
               &times;
