@@ -184,7 +184,7 @@ export default function NFTViewer({
                       value={formData[field]}
                       onChange={e => handleChange(field, e.target.value)}
                       placeholder={selectedNFT.traits[field]}
-                      className="w-full p-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+                      className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
                       style={{ boxShadow: 'none' }}
                     />
                   </div>
