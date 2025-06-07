@@ -3,14 +3,13 @@ import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
 
-
 export default function NFTViewer({
   nfts,
   selectedNFTs = [],
   onSelectNFT = () => {},
 }) {
   const { address, isConnected } = useAccount();
-  const [loading] = useState(false); // For future use if needed
+  const [loading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   const [nameError, setNameError] = useState("");
@@ -63,39 +62,39 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 {/* Checkbox always at bottom left with tooltip */}
-				<div className="absolute left-2 bottom-2 z-10">
-				  <div className="relative flex flex-col items-center">
-					<input
-					  type="checkbox"
-					  checked={selectedNFTs.includes(nft.tokenId)}
-					  onChange={() => onSelectNFT(nft.tokenId)}
-					  className="peer w-5 h-5 appearance-none rvg-checkbox"
-					  id={`select-nft-${nft.tokenId}`}
-					/>
-					<div
-					  className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-0 left-1/2 -translate-x-1/2 z-50"
-					  style={{ width: 24, height: 24 }}
-					>
-					  {/* Auto-dark/light plane icon */}
-					  <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
-						width="24" height="24" viewBox="0 0 512 512"
-						className="w-6 h-6 fill-black dark:fill-white"
-						preserveAspectRatio="xMidYMid meet"
-					  >
-						<g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
-						  <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
-						  -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
-						  31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
-						  23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460
-						  l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774
-						  368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795
-						  c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003
-						  1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
-						</g>
-					  </svg>
-					 </div>  
-				  </div>
-				</div>
+                <div className="absolute left-2 bottom-2 z-10">
+                  <div className="relative flex flex-col items-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedNFTs.includes(nft.tokenId)}
+                      onChange={() => onSelectNFT(nft.tokenId)}
+                      className="peer w-5 h-5 appearance-none rvg-checkbox"
+                      id={`select-nft-${nft.tokenId}`}
+                    />
+                    <div
+                      className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-0 left-1/2 -translate-x-1/2 z-50"
+                      style={{ width: 24, height: 24 }}
+                    >
+                      {/* Auto-dark/light plane icon */}
+                      <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+                        width="24" height="24" viewBox="0 0 512 512"
+                        className="w-6 h-6 fill-black dark:fill-white"
+                        preserveAspectRatio="xMidYMid meet"
+                      >
+                        <g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
+                          <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
+                          -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
+                          31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
+                          23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460
+                          l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774
+                          368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795
+                          c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003
+                          1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
                 {nft.image ? (
                   <img
                     src={nft.image}
@@ -127,12 +126,33 @@ export default function NFTViewer({
           </div>
         )}
       </div>
+
+      {/* ===== UPGRADE MODAL ===== */}
       {selectedNFT && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto">
-          <div className="min-h-screen flex items-center justify-center px-4 py-10">
-            <div className="bg-white dark:bg-gray-800 p-6 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+          {/* Overlay */}
+          <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" />
+
+          {/* Modal */}
+          <div className="relative z-[10000] flex items-center justify-center min-h-screen w-full px-4 py-10">
+            <div className="relative bg-white dark:bg-gray-800 p-6 border-b1 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
+              
+              {/* Close Button */}
+              <button
+                className="absolute top-3 right-3 text-lg text-gray-800 dark:text-white border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                onClick={() => setSelectedNFT(null)}
+                aria-label="Close"
+              >
+                &times;
+              </button>
+              
               <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
-              <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded-md mb-4" />
+              
+              {/* Border around image */}
+              <div className="mb-4 border-b1 border-2 border-black dark:border-white rounded">
+                <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded" />
+              </div>
+              
               <form onSubmit={handleSubmit} className="space-y-3">
                 <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
                 <div>
@@ -143,7 +163,7 @@ export default function NFTViewer({
                     value={formData.name}
                     onChange={e => handleChange("name", e.target.value)}
                     placeholder={selectedNFT.name}
-                    className="w-full p-2 !border !border-black dark:!border-white !bg-white dark:! bg-gray-700 !text-gray-900 dark:!text-white placeholder-gray-400 focus:placeholder-transparent focus:!border-2 !rounded-none focus:outline-none focus:ring-0"
+                    className="w-full p-2 border border-black dark:border-white bg-white dark:bg-black text-gray-900 dark:text-white placeholder-gray-400 focus:placeholder-transparent border-2 rounded-none focus:outline-none focus:ring-0"
                     style={{ boxShadow: 'none' }}
                   />
                   {nameError && (
@@ -164,7 +184,7 @@ export default function NFTViewer({
                       value={formData[field]}
                       onChange={e => handleChange(field, e.target.value)}
                       placeholder={selectedNFT.traits[field]}
-                      className="w-full p-2 !border !border-black dark:!border-white !bg-white dark:! bg-gray-700 !text-gray-900 dark:!text-white placeholder-gray-400 focus:placeholder-transparent focus:!border-2 !rounded-none focus:outline-none focus:ring-0"
+                      className="w-full p-2 border border-black dark:border-white bg-white dark:bg-black text-gray-900 dark:text-white placeholder-gray-400 focus:placeholder-transparent border-2 rounded-none focus:outline-none focus:ring-0"
                       style={{ boxShadow: 'none' }}
                     />
                   </div>
@@ -189,8 +209,10 @@ export default function NFTViewer({
           </div>
         </div>
       )}
+
+      {/* ===== THANK YOU MODAL ===== */}
       {showThankYou && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4 py-10">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
           <div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
             <button
               className="absolute top-3 right-3 text-lg text-gray-800 dark:text-white border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition"
