@@ -187,7 +187,7 @@ export default function Dashboard() {
         </p>
 
         <div className="mt-6 dashboard-grid">
-          <div className="bg-gray-50 border-b1 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
+          <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Total Balance
             </div>
@@ -198,7 +198,7 @@ export default function Dashboard() {
               {ethBalance?.symbol || "ETH"}
             </div>
           </div>
-          <div className="bg-gray-50 border-b1 dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-dark-300">
+          <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
               Network
             </div>
