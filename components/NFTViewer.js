@@ -135,7 +135,7 @@ export default function NFTViewer({
 
           {/* Modal */}
           <div className="relative z-[10000] flex items-center justify-center min-h-screen w-full px-4 py-10">
-            <div className="relative bg-white dark:bg-gray-800 p-6 border-b1 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
+            <div className="relative bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
               
               {/* Close Button */}
               <button
@@ -163,7 +163,7 @@ export default function NFTViewer({
                     value={formData.name}
                     onChange={e => handleChange("name", e.target.value)}
                     placeholder={selectedNFT.name}
-                    className="w-full p-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+                    className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
                     style={{ boxShadow: 'none' }}
                   />
                   {nameError && (
