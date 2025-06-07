@@ -502,10 +502,10 @@ appkit-button wui-image {
   margin-right: 1rem !important;
 }
 input, textarea, select {
-  @apply border border-black;
+  @apply border !border-black;
 }
 .dark input,
 .dark textarea,
 .dark select {
-  @apply border-white;
+  @apply !border-white;
 }
