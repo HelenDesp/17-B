@@ -51,7 +51,7 @@ export default function Footer() {
             >
               <span className="sr-only">Warpcast</span>
               <svg
-                className="h-8 w-8"
+                className="h-8 w-8 align-middle -mt-1"
                 fill="currentColor"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
@@ -65,7 +65,7 @@ export default function Footer() {
             >
               <span className="sr-only">Discord</span>
               <svg
-                className="h-8 w-8"
+                className="h-8 w-8 align-middle -mt-1"
                 fill="currentColor"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
