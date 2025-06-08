@@ -44,7 +44,7 @@ export default function Header({ toggleSidebar }) {
   if (!mounted) return null;
 
   return (
-    <header className="sticky top-0 z-50 border-b-2 border-dark-200 bg-white dark:bg-dark-200 border-light-20 shadow-md transition-colors duration-200">
+    <header className="sticky top-0 z-50 border-b-2 border-dark-200 bg-white dark:bg-dark-200 border-light-200 shadow-md transition-colors duration-200">
       <div className="header-container">
         <div className="header-logo">
           {isConnected && (
@@ -88,9 +88,16 @@ export default function Header({ toggleSidebar }) {
           {/* Theme Toggle Button */}
 		<button
 		  onClick={toggleTheme}
-		  className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-100 transition-colors"
+		  className="flex items-center gap-2 px-3 py-2 text-dark-200 dark:text-light-200 transition-colors"
 		  aria-label="Toggle dark mode"
 		>
+		  {isHomePage && (
+			<span
+			  className="text-sm uppercase text-dark-200 [font-family:'Cygnito_Mono',sans-serif] dark:text-light-200"
+			>
+			  THEME
+			</span>
+		  )}		
 		  {theme === "dark" ? (
 			<svg
 			  xmlns="http://www.w3.org/2000/svg"
@@ -113,13 +120,6 @@ export default function Header({ toggleSidebar }) {
 				clipRule="evenodd"
 			  />
 			</svg>
-		  )}
-		  {isHomePage && (
-			<span
-			  className="text-sm uppercase text-gray-700 [font-family:'Cygnito_Mono',sans-serif] dark:text-gray-300"
-			>
-			  THEME
-			</span>
 		  )}
 		</button>
 
