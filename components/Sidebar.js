@@ -128,7 +128,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-dark-200 shadow-lg">
+    <div className="h-full flex flex-col bg-white border-r-2 border-dark-200 dark:bg-dark-200 dark:border-light-200 shadow-lg">
       {/* User info */}
       <div className="p-4 border-b border-gray-200 dark:border-dark-100">
         <div className="flex items-center space-x-3">
