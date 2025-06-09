@@ -203,7 +203,7 @@ const getExplorerUrl = (chainId) => {
           >
             View on Explorer
           </button>
-          <button className="bg-white hover:bg-white/90 transition-colors py-2 px-4 rounded-lg text-sm font-medium text-primary-600">
+          <button className="bg-white hover:bg-white/90 transition-colors py-2 px-4 rounded-lg text-sm font-medium text-secondary-600">
             Receive
           </button>
         </div>

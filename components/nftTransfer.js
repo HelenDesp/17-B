@@ -282,7 +282,7 @@ export default function NFTTransfer({
           value={recipient}
           onChange={e => setRecipient(e.target.value)}
           placeholder="0x..."
-          className="w-full p-2 border rounded dark:bg-dark-300 dark:text-white"
+          className="w-full p-2 border border-black dark:border-white text-black dark:bg-dark-300 dark:text-white focus:border-2 focus:border-black dark:focus:border-white outline-none transition-all"
         />
       </div>
 
