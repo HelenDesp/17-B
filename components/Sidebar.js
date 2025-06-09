@@ -162,12 +162,11 @@ export default function Sidebar() {
 			<li key={item.title}>
 			  <Link href={item.path} legacyBehavior>
 				<a
-				  className={`flex items-center space-x-3 px-4 py-3 transition-colors border font-medium rounded-none
-					${
-					  router.pathname === item.path
-						? "text-black dark:text-white border-black dark:border-white"
-						: "text-gray-700 dark:text-gray-300 border-transparent"
-					}`
+				  className={
+					"flex items-center space-x-3 px-4 py-3 transition-colors font-medium rounded-none border " +
+					(router.pathname === item.path
+					  ? "text-black dark:text-white border-black dark:border-white"
+					  : "text-gray-700 dark:text-gray-300 border-transparent hover:bg-gray-100 dark:hover:bg-dark-100")
 				  }
 				>
 				  <span className="w-5 h-5">{item.icon}</span>
