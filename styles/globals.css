@@ -46,7 +46,7 @@ appkit-button wui-image {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-black dark:bg-white;
+  @apply bg-white dark:bg-black;
 }
 
 ::-webkit-scrollbar-thumb {
