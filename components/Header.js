@@ -44,7 +44,7 @@ export default function Header({ toggleSidebar }) {
   if (!mounted) return null;
 
   return (
-    <header className="relative sticky top-0 z-50 bg-white shadow-md dark:bg-dark-200 dark:shadow-white/30 transition-colors duration-200">
+    <header className="relative sticky top-0 z-50 bg-white shadow-md dark:bg-dark-200 dark:shadow-white/50 transition-colors duration-200">
       <div className="header-container">
 	  <div className="absolute left-0 right-0 bottom-0 h-0.5 md:h-0.5.5 z-10 bg-dark-200 dark:bg-white pointer-events-none" />
         <div className="header-logo">
