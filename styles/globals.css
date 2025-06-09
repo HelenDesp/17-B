@@ -39,28 +39,29 @@ appkit-button wui-image {
     }
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  ::-webkit-scrollbar-track {
-    @apply bg-gray-100 dark:bg-dark-100;
-  }
+::-webkit-scrollbar-track {
+  @apply bg-black dark:bg-white;
+}
 
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-dark-400 rounded-full;
-  }
+::-webkit-scrollbar-thumb {
+  @apply bg-black dark:bg-white;
+}
 
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-dark-500;
-  }
+/* Optional: On hover, keep same color or slightly lighten/darken */
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-black dark:bg-white;
+}
 
-  /* Focus outline */
-  *:focus-visible {
-    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white dark:ring-offset-dark-300;
-  }
+/* Focus outline (keep as you have it) */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white dark:ring-offset-dark-300;
+}
 
   /* Inputs and form elements */
   input[type="text"],
