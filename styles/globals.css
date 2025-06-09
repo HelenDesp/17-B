@@ -509,3 +509,6 @@ input, textarea, select {
 .dark select {
   @apply !border-white;
 }
+.dark .shadow-white {
+  color: #ffffff !important;
+}
