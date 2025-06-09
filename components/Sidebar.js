@@ -39,6 +39,24 @@ export default function Sidebar() {
       path: "/",
     },
     {
+      title: "NFTs",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+            clipRule="evenodd"
+          />
+        </svg>
+      ),
+      path: "#",
+    },	
+    {
       title: "Tokens",
       icon: (
         <svg
@@ -83,24 +101,6 @@ export default function Sidebar() {
           <path
             fillRule="evenodd"
             d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-            clipRule="evenodd"
-          />
-        </svg>
-      ),
-      path: "#",
-    },
-    {
-      title: "NFTs",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
             clipRule="evenodd"
           />
         </svg>
@@ -157,24 +157,26 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-grow overflow-y-auto py-2">
-        <ul className="space-y-1 px-2">
-          {menuItems.map((item) => (
-            <li key={item.title}>
-              <Link href={item.path} legacyBehavior>
-                <a
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                    router.pathname === item.path
-                      ? "text-black dark:text-white border border-black dark:border-white font-medium"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-dark-100"
-                  }`}
-                >
-                  <span className="w-5 h-5">{item.icon}</span>
-                  <span>{item.title}</span>
-                </a>
-              </Link>
-            </li>
-          ))}
-        </ul>
+		<ul className="space-y-1 px-2">
+		  {menuItems.map((item) => (
+			<li key={item.title}>
+			  <Link href={item.path} legacyBehavior>
+				<a
+				  className={`flex items-center space-x-3 px-4 py-3 transition-colors border font-medium rounded-none
+					${
+					  router.pathname === item.path
+						? "text-black dark:text-white border-black dark:border-white"
+						: "text-gray-700 dark:text-gray-300 border-transparent"
+					}`
+				  }
+				>
+				  <span className="w-5 h-5">{item.icon}</span>
+				  <span>{item.title}</span>
+				</a>
+			  </Link>
+			</li>
+		  ))}
+		</ul>
       </nav>
     </div>
   );
