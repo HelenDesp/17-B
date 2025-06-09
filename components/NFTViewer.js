@@ -177,7 +177,7 @@ export default function NFTViewer({
                 </div>
                 {["manifesto", "friend", "weapon"].map(field => (
                   <div key={field}>
-                    <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">{field}</label>
+                    <label className="block text-base font-medium text-gray-700 dark:text-gray-100 capitalize">{field}</label>
                     <input
                       type="text"
                       name={field}
