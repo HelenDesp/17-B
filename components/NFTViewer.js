@@ -149,21 +149,21 @@ export default function NFTViewer({
               <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
               
               {/* Border around image */}
-              <div className="mb-4 border-b1 border-2 border-black dark:border-white rounded">
-                <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover rounded" />
+              <div className="mb-4 border-b1 border-2 border-black dark:border-white">
+                <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover" />
               </div>
               
               <form onSubmit={handleSubmit} className="space-y-3">
                 <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
                 <div>
-                  <label className="block text-base font-medium text-gray-700 dark:text-gray-200 capitalize">name <span className="text-red-500">*</span></label>
+                  <label className="block text-base font-medium text-gray-700 dark:text-gray-100 capitalize">name <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={e => handleChange("name", e.target.value)}
                     placeholder={selectedNFT.name}
-                    className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+                    className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
                     style={{ boxShadow: 'none' }}
                   />
                   {nameError && (
@@ -184,7 +184,7 @@ export default function NFTViewer({
                       value={formData[field]}
                       onChange={e => handleChange(field, e.target.value)}
                       placeholder={selectedNFT.traits[field]}
-                      className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+                      className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
                       style={{ boxShadow: 'none' }}
                     />
                   </div>
