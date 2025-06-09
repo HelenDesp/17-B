@@ -127,7 +127,7 @@ const getExplorerUrl = (chainId) => {
 };  
 
   return (
-    <div className="bg-gradient-to-r from-primary-600 to-secondary-600 p-6 text-white relative overflow-hidden">
+    <div className="bg-gradient-to-r from-primary-950 to-secondary-950 p-6 text-white relative overflow-hidden">
       <div className="relative z-10">
         <div className="flex justify-between items-center mb-4">
           <div>
