@@ -132,16 +132,18 @@ export default function Sidebar() {
       {/* User info */}
       <div className="p-4 border-b border-gray-200 dark:border-dark-100">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+          <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-primary-600 dark:text-primary-300"
+              className="h-6 w-6 text-black dark:text-white"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
               <path
                 fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                d="M0 2080 l0 -2080 2080 0 2080 0 0 2080 0 2080 -2080 0 -2080 0 0 -2080z m3840 0 l0 -1760 -1760 0 -1760 0 0 1760 0 1760 1760 0 1760 0 0 -1760z"
+				d="M1983 3300 c-157 -24 -280 -87 -393 -200 -85 -85 -130 -156 -166 -259 -85 -246 -29 -510 150 -699 217 -229 528 -284 815 -145 278 134 432 456 367 765 -53 248 -265 467 -506 522 -85 20 -202 27 -267 16z m233 -341 c32 -12 77 -41 110 -71 138 -127 164 -321 64 -478 -179 -276 -607 -196 -675 126 -61 292 219 528 501 423z"
+				d="M1855 1555 c-301 -47 -585 -180 -778 -365 l-71 -67 108 -104 c60 -57 112 -106 117 -107 5 -2 35 20 67 49 420 385 1159 386 1564 1 52 -49 60 -53 75 -41 46 36 213 194 213 202 0 14 -101 107 -183 168 -188 140 -423 235 -670 268 -103 14 -341 12 -442 -4z"
                 clipRule="evenodd"
               />
             </svg>
