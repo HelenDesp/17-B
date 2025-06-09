@@ -132,10 +132,10 @@ export default function Sidebar() {
       {/* User info */}
       <div className="p-4 border-b border-gray-200 dark:border-dark-100">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+          <div className="w-10 h-10 flex items-center justify-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-black dark:text-white"
+              className="h-10 w-10 text-black dark:text-white"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
