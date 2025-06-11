@@ -515,14 +515,14 @@ input, textarea, select {
 }
 
 .rvg-darkfocus {
-  border: 1px solid #000 !important;
+  @apply border border-black;
 }
 .dark .rvg-darkfocus {
-  border: 1px solid #fff !important;
+  @apply border border-white;
 }
 .rvg-darkfocus:focus {
-  border: 2px solid #000 !important;
+  @apply border-2 border-black;
 }
 .dark .rvg-darkfocus:focus {
-  border: 2px solid #fff !important;
+  @apply border-2 border-white;
 }
