@@ -526,3 +526,6 @@ input, textarea, select {
 .dark .rvg-darkfocus:focus {
   @apply border-2 border-white;
 }
+.rvg-darkfocus:focus {
+  @apply ring-0 ring-offset-0;
+}
