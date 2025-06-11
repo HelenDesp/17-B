@@ -526,3 +526,6 @@ input, textarea, select {
 .dark .rvg-darkfocus:focus {
   @apply border-2 border-white ring-0 ring-offset-0;
 }
+.dark .token-option img {
+  filter: invert(1);
+}
