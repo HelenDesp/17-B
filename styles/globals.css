@@ -513,3 +513,16 @@ input, textarea, select {
 .dark .shadow-white {
   color: #ffffff !important;
 }
+
+.rvg-darkfocus {
+  border: 1px solid #000 !important;
+}
+.dark .rvg-darkfocus {
+  border: 1px solid #fff !important;
+}
+.rvg-darkfocus:focus {
+  border: 2px solid #000 !important;
+}
+.dark .rvg-darkfocus:focus {
+  border: 2px solid #fff !important;
+}
