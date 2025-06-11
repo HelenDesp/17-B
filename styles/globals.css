@@ -521,11 +521,8 @@ input, textarea, select {
   @apply border border-white;
 }
 .rvg-darkfocus:focus {
-  @apply border-2 border-black;
+  @apply border-2 border-black ring-0 ring-offset-0;
 }
 .dark .rvg-darkfocus:focus {
-  @apply border-2 border-white;
-}
-.rvg-darkfocus:focus {
-  @apply ring-0 ring-offset-0;
+  @apply border-2 border-white ring-0 ring-offset-0;
 }
