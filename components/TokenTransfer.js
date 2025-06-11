@@ -378,7 +378,7 @@ export default function TokenTransfer() {
                     <img
                       src={t.logo}
                       alt={t.symbol}
-                      className="w-8 h-8 rounded-full"
+                      className="w-8 h-8 dark:invert"
                     />
                   </span>
                 </div>
@@ -411,7 +411,7 @@ export default function TokenTransfer() {
               addressError
                 ? "border-red-500 dark:border-red-500"
                 : "border-gray-300 dark:border-gray-600"
-            } rounded-lg bg-white dark:bg-dark-300 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
+            } bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:outline-none focus:ring-0 focus:ring-offset-0 rounded-none rvg-darkfocus`}
             required
             disabled={isSubmitting}
           />
@@ -446,7 +446,7 @@ export default function TokenTransfer() {
                 amountError
                   ? "border-red-500 dark:border-red-500"
                   : "border-gray-300 dark:border-gray-600"
-              } rounded-lg bg-white dark:bg-dark-300 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500`}
+              } bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:outline-none focus:ring-0 focus:ring-offset-0 rounded-none rvg-darkfocus`}
               required
               disabled={isSubmitting}
             />
