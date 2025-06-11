@@ -360,33 +360,30 @@ export default function TokenTransfer() {
             Select Token
           </label>
           <div className="token-selector">
-            {tokens.map((t) => (
-              <button
-                key={t.symbol}
-                type="button"
-                onClick={() => setSelectedToken(t.symbol)}
-                className={`token-option ${
-                  selectedToken === t.symbol
-                    ? "border-primary-500 bg-primary-50 dark:bg-primary-900/30"
-                    : "border-gray-200 dark:border-dark-100 hover:bg-gray-50 dark:hover:bg-dark-100"
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 flex items-center justify-center mb-1`}
-                >
-                  <span className="text-base">
-                    <img
-                      src={t.logo}
-                      alt={t.symbol}
-                      className="w-8 h-8 dark:invert"
-                    />
-                  </span>
-                </div>
-                <span className="text-xs font-medium text-gray-900 dark:text-white">
-                  {t.symbol}
-                </span>
-              </button>
-            ))}
+{tokens.map((t) => (
+  <button
+    key={t.symbol}
+    type="button"
+    onClick={() => setSelectedToken(t.symbol)}
+    className={`token-option 
+      ${selectedToken === t.symbol
+        ? 'border border-primary-500 bg-transparent' // Active: border, no bg
+        : 'bg-transparent' // Inactive: no border, no bg, even on hover
+      }`
+    }
+  >
+    <div className="w-8 h-8 flex items-center justify-center mb-1">
+      <img
+        src={t.logo}
+        alt={t.symbol}
+        className="w-8 h-8 object-cover aspect-square"
+      />
+    </div>
+    <span className="text-xs font-medium text-gray-900 dark:text-white">
+      {t.symbol}
+    </span>
+  </button>
+))}
           </div>
         </div>
 
@@ -463,7 +460,7 @@ export default function TokenTransfer() {
           )}
           {ethBalance && selectedToken === "ETH" && (
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Balance: {parseFloat(ethBalance.formatted).toFixed(4)} ETH
+              Balance: {parseFloat(ethBalance.formatted).toFixed(5)} ETH
             </p>
           )}
         </div>
