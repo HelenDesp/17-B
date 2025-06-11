@@ -365,18 +365,18 @@ export default function TokenTransfer() {
     key={t.symbol}
     type="button"
     onClick={() => setSelectedToken(t.symbol)}
-    className={`token-option 
-      ${selectedToken === t.symbol
-        ? 'border border-primary-500 bg-transparent' // Active: border, no bg
-        : 'bg-transparent' // Inactive: no border, no bg, even on hover
-      }`
-    }
+	className={`token-option 
+	  ${selectedToken === t.symbol
+		? 'border border-primary-500 bg-transparent'
+		: 'bg-transparent'
+	  }`
+	}
   >
     <div className="w-8 h-8 flex items-center justify-center mb-1">
       <img
         src={t.logo}
         alt={t.symbol}
-        className="w-8 h-8 object-cover aspect-square"
+        className="w-8 h-8 object-contain aspect-square"
       />
     </div>
     <span className="text-xs font-medium text-gray-900 dark:text-white">
