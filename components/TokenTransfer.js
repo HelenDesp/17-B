@@ -311,7 +311,7 @@ export default function TokenTransfer() {
 
   if (!isConnected) {
     return (
-      <div className="bg-white dark:bg-dark-200 border-b2 shadow-card dark:shadow-card-dark p-6">
+      <div className="bg-white dark:bg-dark-200 shadow-card dark:shadow-card-dark p-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           Transfer Tokens
         </h2>
@@ -372,13 +372,13 @@ export default function TokenTransfer() {
                 }`}
               >
                 <div
-                  className={`w-8 h-8 ${t.color} bg-opacity-20 dark:bg-opacity-30 rounded-full flex items-center justify-center mb-1`}
+                  className={`w-8 h-8 flex items-center justify-center mb-1`}
                 >
                   <span className="text-base">
                     <img
                       src={t.logo}
                       alt={t.symbol}
-                      className="w-5 h-5 rounded-full"
+                      className="w-8 h-8 rounded-full"
                     />
                   </span>
                 </div>
