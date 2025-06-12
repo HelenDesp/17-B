@@ -104,6 +104,38 @@ export default function TokenBalances() {
   
 const [ethUsd, setEthUsd] = useState(null);  
 
+useEffect(() => {
+    const fetchAllTokenPrices = async () => {
+      if (!chain?.id || !popularTokens[chain.id]) return;
+
+      const platformMap = {
+        1: "ethereum",
+        137: "polygon-pos",
+        8453: "base",
+        42161: "arbitrum-one",
+        10: "optimistic-ethereum",
+        56: "binance-smart-chain",
+      };
+
+      const platform = platformMap[chain.id];
+      if (!platform) return;
+
+      const tokenList = popularTokens[chain.id];
+      const addresses = tokenList.map(t => t.address.toLowerCase()).join(",");
+
+      const url = `https://api.coingecko.com/api/v3/simple/token_price/${platform}?contract_addresses=${addresses}&vs_currencies=usd`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        setTokenPrices(data);
+      } catch (err) {
+        console.warn("Failed to fetch token prices:", err);
+      }
+    };
+
+    fetchAllTokenPrices();
+  }, [chain]);
 	useEffect(() => {
 	  if (chain?.id && popularTokens[chain.id]) {
 		setTokens(popularTokens[chain.id]);
