@@ -24,52 +24,28 @@ const erc20TransferAbi = [
 ];
 
 // List of popular tokens with their addresses, logos, and colors on different networks
+
 const popularTokens = {
-  // Mainnet
   1: [
-    {
-      symbol: "ETH",
-      name: "Ethereum",
-      address: null,
-      decimals: 18,
-      logo: "/ethereum.svg",
-      color: "bg-blue-500",
-    },
-    {
-      symbol: "USDT",
-      name: "Tether",
-      address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-      decimals: 6,
-      logo: "/usdt.svg",
-      color: "bg-green-500",
-    },
-    {
-      symbol: "USDC",
-      name: "USD Coin",
-      address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-      decimals: 6,
-      logo: "/usdc.svg",
-      color: "bg-blue-500",
-    },
-    {
-      symbol: "DAI",
-      name: "Dai Stablecoin",
-      address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      decimals: 18,
-      logo: "/dai.svg",
-      color: "bg-yellow-500",
-    },
-    {
-      symbol: "WBTC",
-      name: "Wrapped Bitcoin",
-      address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-      decimals: 8,
-      logo: "/wrappedbtc.svg",
-      color: "bg-orange-500",
-    },
+    { symbol: "USDT", name: "Tether", address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", decimals: 6, logo: "/usdt.svg", color: "bg-green-500" },
+    { symbol: "USDC", name: "USD Coin", address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6, logo: "/usdc.svg", color: "bg-blue-500" },
+    { symbol: "DAI", name: "Dai Stablecoin", address: "0x6B175474E89094C44Da98b954EedeAC495271d0F", decimals: 18, logo: "/dai.svg", color: "bg-yellow-500" },
+    { symbol: "WBTC", name: "Wrapped Bitcoin", address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals: 8, logo: "/wrappedbtc.svg", color: "bg-orange-500" }
   ],
-  // Add other networks here
+  137: [
+    { symbol: "USDT", name: "Tether", address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6, logo: "/usdt.svg", color: "bg-green-500" },
+    { symbol: "USDC", name: "USD Coin", address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", decimals: 6, logo: "/usdc.svg", color: "bg-blue-500" },
+    { symbol: "DAI", name: "Dai Stablecoin", address: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063", decimals: 18, logo: "/dai.svg", color: "bg-yellow-500" },
+    { symbol: "WBTC", name: "Wrapped Bitcoin", address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6", decimals: 8, logo: "/wrappedbtc.svg", color: "bg-orange-500" }
+  ],
+  8453: [
+    { symbol: "USDT", name: "Tether", address: "0x2b89184578b2c2b3f736dfc6f13b2d204b114123", decimals: 6, logo: "/usdt.svg", color: "bg-green-500" },
+    { symbol: "USDC", name: "USD Coin", address: "0xd9fcd98c322942075a5c3860693e9f4f03aae07b", decimals: 6, logo: "/usdc.svg", color: "bg-blue-500" },
+    { symbol: "DAI", name: "Dai Stablecoin", address: "0x7d6a162d6d9db308e6a7f235a768e9ac640d6a4e", decimals: 18, logo: "/dai.svg", color: "bg-yellow-500" },
+    { symbol: "WBTC", name: "Wrapped Bitcoin", address: "0xdc4c35f760a6214516c2063be82a0c8ce63d49aa", decimals: 8, logo: "/wrappedbtc.svg", color: "bg-orange-500" }
+  ]
 };
+
 
 export default function TokenTransfer() {
   const { isConnected, chainId, address, chain } = useAccount();
@@ -87,12 +63,6 @@ export default function TokenTransfer() {
   // Check balance of selected token
   const [tokenBalances, setTokenBalances] = useState({});
   const publicClient = usePublicClient();
-  
-  // Get tokens based on current chain
-  const tokens =
-    chain && popularTokens[chain.id]
-      ? popularTokens[chain.id]
-      : popularTokens[1]; // Default to Ethereum mainnet  
 
   useEffect(() => {
     if (!address || !publicClient) return;
@@ -128,6 +98,12 @@ const { data: ethBalance } = useBalance({
     address,
     enabled: !!address && selectedToken === "ETH",
   });
+
+  // Get tokens based on current chain
+  const tokens =
+    chain && popularTokens[chain.id]
+      ? popularTokens[chain.id]
+      : popularTokens[1]; // Default to Ethereum mainnet
 
   // Find the selected token object
   const token = tokens.find((t) => t.symbol === selectedToken);
