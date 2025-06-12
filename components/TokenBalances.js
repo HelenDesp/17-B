@@ -95,7 +95,6 @@ export default function TokenBalances() {
   const [tokens, setTokens] = useState([]);
   const [tokenPrices, setTokenPrices] = useState({});
 
-
   // Get ETH balance
   const { data: ethBalance } = useBalance({
     address,
@@ -104,38 +103,6 @@ export default function TokenBalances() {
   
 const [ethUsd, setEthUsd] = useState(null);  
 
-useEffect(() => {
-    const fetchAllTokenPrices = async () => {
-      if (!chain?.id || !popularTokens[chain.id]) return;
-
-      const platformMap = {
-        1: "ethereum",
-        137: "polygon-pos",
-        8453: "base",
-        42161: "arbitrum-one",
-        10: "optimistic-ethereum",
-        56: "binance-smart-chain",
-      };
-
-      const platform = platformMap[chain.id];
-      if (!platform) return;
-
-      const tokenList = popularTokens[chain.id];
-      const addresses = tokenList.map(t => t.address.toLowerCase()).join(",");
-
-      const url = `https://api.coingecko.com/api/v3/simple/token_price/${platform}?contract_addresses=${addresses}&vs_currencies=usd`;
-
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        setTokenPrices(data);
-      } catch (err) {
-        console.warn("Failed to fetch token prices:", err);
-      }
-    };
-
-    fetchAllTokenPrices();
-  }, [chain]);
 	useEffect(() => {
 	  if (chain?.id && popularTokens[chain.id]) {
 		setTokens(popularTokens[chain.id]);
@@ -183,7 +150,42 @@ useEffect(() => {
   fetchEthPrice();
 }, [chain]);	
 
-  if (!isConnected) {
+  
+  useEffect(() => {
+    if (!chain?.id || !popularTokens[chain.id]) return;
+
+    const fetchAllTokenPrices = async () => {
+      const platformMap = {
+        1: "ethereum",
+        137: "polygon-pos",
+        8453: "base",
+        42161: "arbitrum-one",
+        10: "optimistic-ethereum",
+        56: "binance-smart-chain",
+      };
+
+      const platform = platformMap[chain.id];
+      if (!platform) return;
+
+      const tokenList = popularTokens[chain.id];
+      const addresses = tokenList.map(t => t.address.toLowerCase()).join(",");
+
+      const url = `https://api.coingecko.com/api/v3/simple/token_price/${platform}?contract_addresses=${addresses}&vs_currencies=usd`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        setTokenPrices(data);
+      } catch (err) {
+        console.warn("Failed to fetch token prices:", err);
+      }
+    };
+
+    fetchAllTokenPrices();
+  }, [chain]);
+
+
+if (!isConnected) {
     return (
       <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
@@ -336,10 +338,7 @@ function TokenBalance({ token, address, tokenPrices }) {
     enabled: !!address,
   });
 
-  const formatted = balance
-    ? Number(formatUnits(balance, token.decimals))
-    : 0;
-
+  const formatted = balance ? Number(formatUnits(balance, token.decimals)) : 0;
   const usdRate = tokenPrices?.[token.address.toLowerCase()]?.usd || 0;
   const usdValue = (formatted * usdRate).toFixed(2);
 
@@ -354,37 +353,3 @@ function TokenBalance({ token, address, tokenPrices }) {
     </div>
   );
 }
-
-
-  useEffect(() => {
-    const fetchAllTokenPrices = async () => {
-      if (!chain?.id || !popularTokens[chain.id]) return;
-
-      const platformMap = {
-        1: "ethereum",
-        137: "polygon-pos",
-        8453: "base",
-        42161: "arbitrum-one",
-        10: "optimistic-ethereum",
-        56: "binance-smart-chain",
-      };
-
-      const platform = platformMap[chain.id];
-      if (!platform) return;
-
-      const tokenList = popularTokens[chain.id];
-      const addresses = tokenList.map(t => t.address.toLowerCase()).join(",");
-
-      const url = `https://api.coingecko.com/api/v3/simple/token_price/${platform}?contract_addresses=${addresses}&vs_currencies=usd`;
-
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        setTokenPrices(data);
-      } catch (err) {
-        console.warn("Failed to fetch token prices:", err);
-      }
-    };
-
-    fetchAllTokenPrices();
-  }, [chain]);
