@@ -360,30 +360,31 @@ export default function TokenTransfer() {
             Select Token
           </label>
           <div className="token-selector">
-{tokens.map((t) => (
-  <button
-    key={t.symbol}
-    type="button"
-    onClick={() => setSelectedToken(t.symbol)}
-	className={`token-option 
-	  ${selectedToken === t.symbol
-		? 'border border-primary-500 bg-transparent'
-		: 'bg-transparent'
-	  }`
-	}
-  >
-    <div className="w-8 h-8 flex items-center justify-center mb-1">
-      <img
-        src={t.logo}
-        alt={t.symbol}
-        className="w-8 h-8 object-contain aspect-square"
-      />
-    </div>
-    <span className="text-xs font-medium text-gray-900 dark:text-white">
-      {t.symbol}
-    </span>
-  </button>
-))}
+			{tokens.map((t) => (
+			  <button
+				key={t.symbol}
+				type="button"
+				onClick={() => setSelectedToken(t.symbol)}
+				className={`token-option 
+				  ${selectedToken === t.symbol
+					? 'border border-primary-500 bg-transparent'
+					: 'bg-transparent'
+				  }`
+				}
+				style={{ boxSizing: 'border-box' }} // ensures 1px border doesn't shift sizing
+			  >
+				<div className="w-8 h-8 flex items-center justify-center mb-1">
+				  <img
+					src={t.logo}
+					alt={t.symbol}
+					className="w-8 h-8 object-contain"
+				  />
+				</div>
+				<span className="text-xs font-medium text-gray-900 dark:text-white">
+				  {t.symbol}
+				</span>
+			  </button>
+			))}
           </div>
         </div>
 
