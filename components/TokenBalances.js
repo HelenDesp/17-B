@@ -112,11 +112,11 @@ const popularTokens = {
 // Simple ERC20 ABI for balanceOf method
 const erc20Abi = [
   {
-    constant: true,
-    inputs: [{ name: "_owner", type: "address" }],
     name: "balanceOf",
-    outputs: [{ name: "balance", type: "uint256" }],
     type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
   },
 ];
 
