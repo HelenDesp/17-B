@@ -345,7 +345,7 @@ export default function TokenTransfer() {
   }
 
   return (
-    <div className="bg-white dark:bg-dark-200 rounded-xl shadow-card dark:shadow-card-dark p-6">
+    <div className="bg-white dark:bg-dark-200 border-b2 shadow-card dark:shadow-card-dark p-6">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
         Transfer Tokens
       </h2>
