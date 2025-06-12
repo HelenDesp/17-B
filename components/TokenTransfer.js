@@ -74,22 +74,12 @@ const tokens =
 const { account } = useAppKit();
 const reownAssets = account?.assets || [];
 
-console.log("Reown Assets:", reownAssets);
 
 const tokenBalances = {};
 for (const t of reownAssets) {
   if (t.balance && t.symbol && t.decimals !== undefined) {
     tokenBalances[t.symbol] = (Number(t.balance) / 10 ** t.decimals).toFixed(5);
   }
-}
-const { account } = useAppKit();
-const reownAssets = account?.assets || [];
-
-console.log("Reown Assets:", reownAssets);
-
-const tokenBalances = {};
-for (const t of reownAssets) {
-  tokenBalances[t.symbol] = (Number(t.balance) / 10 ** t.decimals).toFixed(5);
 }
 
 const { data: ethBalance } = useBalance({
