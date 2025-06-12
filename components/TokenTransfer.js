@@ -64,46 +64,20 @@ export default function TokenTransfer() {
   const [addressError, setAddressError] = useState("");
   const [txStage, setTxStage] = useState(""); // 'preparing', 'pending', 'confirmed', 'reverted'
 
+// Get tokens based on current chain
 const tokens =
   chain && popularTokens[chain.id]
     ? popularTokens[chain.id]
     : popularTokens[1]; // Default to Ethereum mainnet
-  // Check balance of selected token
-  const { account } = useAppKit();
-  const reownAssets = account?.assets || [];
-  const tokenBalances = {};
-  for (const t of reownAssets) {
-    tokenBalances[t.symbol] = (Number(t.balance) / 10 ** t.decimals).toFixed(5);
-  }
-  useEffect(() => {
-    if (!address || !publicClient) return;
-    let ignore = false;
 
-    async function fetchErc20Balances() {
-      const balances = {};
-      const fetches = tokens
-        .filter((t) => t.address)
-        .map(async (t) => {
-          try {
-            const raw = await publicClient.readContract({
-              address: t.address,
-              abi: erc20Abi,
-              functionName: "balanceOf",
-              args: [address],
-            });
-            const rawBalance = typeof raw === "bigint" ? raw : BigInt(raw.toString());
-            balances[t.symbol] = (Number(rawBalance) / 10 ** t.decimals).toFixed(5);
-          } catch (e) {
-            balances[t.symbol] = "0.00000";
-          }
-        });
-      await Promise.all(fetches);
-      if (!ignore) setTokenBalances(balances);
-    }
+// ✅ Reown asset balances (used to replace useEffect + publicClient)
+const { account } = useAppKit();
+const reownAssets = account?.assets || [];
 
-    fetchErc20Balances();
-    return () => { ignore = true; };
-  }, [address, chainId, tokens, publicClient]);
+const tokenBalances = {};
+for (const t of reownAssets) {
+  tokenBalances[t.symbol] = (Number(t.balance) / 10 ** t.decimals).toFixed(5);
+}
 
 const { data: ethBalance } = useBalance({
     address,
