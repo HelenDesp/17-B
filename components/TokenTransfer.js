@@ -63,11 +63,11 @@ export default function TokenTransfer() {
   const [addressError, setAddressError] = useState("");
   const [txStage, setTxStage] = useState(""); // 'preparing', 'pending', 'confirmed', 'reverted'
 
+  const tokens =
   // Check balance of selected token
   const [tokenBalances, setTokenBalances] = useState({});
   const publicClient = usePublicClient();
 
-  const tokens =
   useEffect(() => {
     if (!address || !publicClient) return;
     let ignore = false;
