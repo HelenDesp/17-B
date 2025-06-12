@@ -367,7 +367,7 @@ export default function TokenTransfer() {
 				onClick={() => setSelectedToken(t.symbol)}
 				className={`token-option 
 				  ${selectedToken === t.symbol
-					? 'border border-primary-500 bg-transparent'
+					? 'border border-secondary-500 dark:border-primary-500 bg-transparent'
 					: 'bg-transparent'
 				  }`
 				}
