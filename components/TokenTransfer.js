@@ -87,6 +87,12 @@ export default function TokenTransfer() {
   // Check balance of selected token
   const [tokenBalances, setTokenBalances] = useState({});
   const publicClient = usePublicClient();
+  
+  // Get tokens based on current chain
+  const tokens =
+    chain && popularTokens[chain.id]
+      ? popularTokens[chain.id]
+      : popularTokens[1]; // Default to Ethereum mainnet  
 
   useEffect(() => {
     if (!address || !publicClient) return;
@@ -122,12 +128,6 @@ const { data: ethBalance } = useBalance({
     address,
     enabled: !!address && selectedToken === "ETH",
   });
-
-  // Get tokens based on current chain
-  const tokens =
-    chain && popularTokens[chain.id]
-      ? popularTokens[chain.id]
-      : popularTokens[1]; // Default to Ethereum mainnet
 
   // Find the selected token object
   const token = tokens.find((t) => t.symbol === selectedToken);
