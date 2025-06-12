@@ -368,6 +368,14 @@ function TokenBalance({ token, address, tokenPrices }) {
     enabled: !!address,
   });
 
+  // ✅ Add this block right after useReadContract
+  useEffect(() => {
+    console.log(`🔍 Checking balance for ${token.symbol}`);
+    console.log(`→ Contract: ${token.address}`);
+    console.log(`→ Wallet: ${address}`);
+    console.log(`→ Raw result:`, balance?.toString());
+  }, [balance, token.address, address]);  
+  
   const formatted = balance ? Number(formatUnits(balance, token.decimals)) : 0;
   const usdRate = tokenPrices?.[token.address.toLowerCase()]?.usd || 0;
   const usdValue = (formatted * usdRate).toFixed(2);
