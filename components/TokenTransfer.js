@@ -71,6 +71,9 @@ const tokens =
     : popularTokens[1]; // Default to Ethereum mainnet
 
 // ✅ Reown asset balances (used to replace useEffect + publicClient)
+const { account } = useAppKit();
+const reownAssets = account?.assets || [];
+
 console.log("Reown Assets:", reownAssets);
 
 const tokenBalances = {};
