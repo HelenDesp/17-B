@@ -495,7 +495,7 @@ export default function TokenTransfer() {
           className={`w-full py-3 px-4 rounded-lg text-white font-medium transition-colors ${
             isSubmitting
               ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
-              : "bg-primary-600 hover:bg-primary-700 dark:bg-primary-700 dark:hover:bg-primary-800"
+              : "border-2 border-gray-900 dark:border-white bg-light-100 dark:bg-dark-300 text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50"
           }`}
         >
           {isSubmitting ? (
