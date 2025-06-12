@@ -5,6 +5,7 @@ import {
   useWriteContract,
   useBalance,
   useWaitForTransactionReceipt,
+  usePublicClient,
 } from "wagmi";
 import { parseUnits } from "ethers";
 
@@ -84,7 +85,40 @@ export default function TokenTransfer() {
   const [txStage, setTxStage] = useState(""); // 'preparing', 'pending', 'confirmed', 'reverted'
 
   // Check balance of selected token
-  const { data: ethBalance } = useBalance({
+  const [tokenBalances, setTokenBalances] = useState({});
+  const publicClient = usePublicClient();
+
+  useEffect(() => {
+    if (!address || !publicClient) return;
+    let ignore = false;
+
+    async function fetchErc20Balances() {
+      const balances = {};
+      const fetches = tokens
+        .filter((t) => t.address)
+        .map(async (t) => {
+          try {
+            const raw = await publicClient.readContract({
+              address: t.address,
+              abi: erc20Abi,
+              functionName: "balanceOf",
+              args: [address],
+            });
+            const rawBalance = typeof raw === "bigint" ? raw : BigInt(raw.toString());
+            balances[t.symbol] = (Number(rawBalance) / 10 ** t.decimals).toFixed(5);
+          } catch (e) {
+            balances[t.symbol] = "0.00000";
+          }
+        });
+      await Promise.all(fetches);
+      if (!ignore) setTokenBalances(balances);
+    }
+
+    fetchErc20Balances();
+    return () => { ignore = true; };
+  }, [address, chainId, tokens, publicClient]);
+
+const { data: ethBalance } = useBalance({
     address,
     enabled: !!address && selectedToken === "ETH",
   });
@@ -464,6 +498,16 @@ export default function TokenTransfer() {
             </p>
           )}
           {ethBalance && selectedToken === "ETH" && (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Balance: {parseFloat(ethBalance.formatted).toFixed(5)} ETH
+            </p>
+          )}
+          {selectedToken !== "ETH" && tokenBalances[selectedToken] && (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Balance: {tokenBalances[selectedToken]} {selectedToken}
+            </p>
+          )}
+
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Balance: {parseFloat(ethBalance.formatted).toFixed(5)} ETH
             </p>
