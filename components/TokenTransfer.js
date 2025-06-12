@@ -377,7 +377,7 @@ export default function TokenTransfer() {
 				  <img
 					src={t.logo}
 					alt={t.symbol}
-					className="w-8 h-8 object-contain"
+					className="w-8 h-8"
 				  />
 				</div>
 				<span className="text-xs font-medium text-gray-900 dark:text-white">
