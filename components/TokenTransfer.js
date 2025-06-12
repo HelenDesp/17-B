@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAppKit } from "@reown/appkit/react";
 import {
   useAccount,
   useSendTransaction,
@@ -63,15 +64,14 @@ export default function TokenTransfer() {
   const [addressError, setAddressError] = useState("");
   const [txStage, setTxStage] = useState(""); // 'preparing', 'pending', 'confirmed', 'reverted'
 
-// Get tokens based on current chain
-const tokens =
-  chain && popularTokens[chain.id]
-    ? popularTokens[chain.id]
-    : popularTokens[1]; // Default to Ethereum mainnet
+  const tokens =
   // Check balance of selected token
-  const [tokenBalances, setTokenBalances] = useState({});
-  const publicClient = usePublicClient();
-
+  const { account } = useAppKit();
+  const reownAssets = account?.assets || [];
+  const tokenBalances = {};
+  for (const t of reownAssets) {
+    tokenBalances[t.symbol] = (Number(t.balance) / 10 ** t.decimals).toFixed(5);
+  }
   useEffect(() => {
     if (!address || !publicClient) return;
     let ignore = false;
