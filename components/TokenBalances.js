@@ -77,6 +77,36 @@ const popularTokens = {
       decimals: 18,
     },
   ],
+  8453: [
+    {
+      symbol: "USDC",
+      name: "USD Coin",
+      logo: "usdc.svg",
+      address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      decimals: 6,
+    },
+    {
+      symbol: "USDT",
+      name: "Tether",
+      logo: "usdt.svg",
+      address: "0x4200000000000000000000000000000000000006",
+      decimals: 6,
+    },
+    {
+      symbol: "DAI",
+      name: "Dai Stablecoin",
+      logo: "dai.svg",
+      address: "0x4200000000000000000000000000000000000005",
+      decimals: 18,
+    },
+    {
+      symbol: "WBTC",
+      name: "Wrapped Bitcoin",
+      logo: "wrappedbtc.svg",
+      address: "0x4200000000000000000000000000000000000042",
+      decimals: 8,
+    },
+  ],  
 };
 
 // Simple ERC20 ABI for balanceOf method
