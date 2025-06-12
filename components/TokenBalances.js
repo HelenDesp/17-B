@@ -77,46 +77,16 @@ const popularTokens = {
       decimals: 18,
     },
   ],
-  8453: [
-    {
-      symbol: "USDC",
-      name: "USD Coin",
-      logo: "usdc.svg",
-      address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-      decimals: 6,
-    },
-    {
-      symbol: "USDT",
-      name: "Tether",
-      logo: "usdt.svg",
-      address: "0x4200000000000000000000000000000000000006",
-      decimals: 6,
-    },
-    {
-      symbol: "DAI",
-      name: "Dai Stablecoin",
-      logo: "dai.svg",
-      address: "0x4200000000000000000000000000000000000005",
-      decimals: 18,
-    },
-    {
-      symbol: "WBTC",
-      name: "Wrapped Bitcoin",
-      logo: "wrappedbtc.svg",
-      address: "0x4200000000000000000000000000000000000042",
-      decimals: 8,
-    },
-  ],  
 };
 
 // Simple ERC20 ABI for balanceOf method
 const erc20Abi = [
   {
+    constant: true,
+    inputs: [{ name: "_owner", type: "address" }],
     name: "balanceOf",
+    outputs: [{ name: "balance", type: "uint256" }],
     type: "function",
-    stateMutability: "view",
-    inputs: [{ name: "account", type: "address" }],
-    outputs: [{ name: "", type: "uint256" }],
   },
 ];
 
@@ -359,6 +329,7 @@ if (!isConnected) {
   );
 }
 
+
 function TokenBalance({ token, address, tokenPrices }) {
   const { data: balance } = useReadContract({
     address: token.address,
@@ -368,19 +339,19 @@ function TokenBalance({ token, address, tokenPrices }) {
     enabled: !!address,
   });
 
-  // ✅ Add this block right after useReadContract
   useEffect(() => {
     console.log(`🔍 Checking balance for ${token.symbol}`);
     console.log(`→ Contract: ${token.address}`);
     console.log(`→ Wallet: ${address}`);
     console.log(`→ Raw result:`, balance?.toString());
-  }, [balance, token.address, address]);  
-  
+  }, [balance, token.address, address]);
+
   const formatted = balance ? Number(formatUnits(balance, token.decimals)) : 0;
   const usdRate = tokenPrices?.[token.address.toLowerCase()]?.usd || 0;
   const usdValue = (formatted * usdRate).toFixed(2);
 
   return (
+
     <div>
       <div className="font-medium text-gray-900 dark:text-white">
         {formatted.toFixed(5)} {token.symbol}
