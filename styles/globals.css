@@ -290,7 +290,7 @@ appkit-button wui-image {
 }
 
 .token-option {
-  @apply flex flex-col items-center justify-center p-3 rounded-lg border transition-colors;
+  @apply flex flex-col items-center justify-center p-3 rounded-lg transition-colors;
 }
 
 /* Buttons */
