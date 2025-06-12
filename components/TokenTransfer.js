@@ -373,7 +373,7 @@ export default function TokenTransfer() {
 				}
 				style={{ boxSizing: 'border-box' }} // ensures 1px border doesn't shift sizing
 			  >
-				<div className="w-8 h-8 flex items-center justify-center mb-1">
+				<div className="w-9 h-8 flex items-center justify-center mb-1">
 				  <img
 					src={t.logo}
 					alt={t.symbol}
