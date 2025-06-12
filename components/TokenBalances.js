@@ -93,6 +93,8 @@ const erc20Abi = [
 export default function TokenBalances() {
   const { address, isConnected, chain } = useAccount();
   const [tokens, setTokens] = useState([]);
+  const [tokenPrices, setTokenPrices] = useState({});
+
 
   // Get ETH balance
   const { data: ethBalance } = useBalance({
@@ -189,7 +191,7 @@ useEffect(() => {
 
   //       {/* ERC20 Token Balances */}
   //       {tokens.map((token) => (
-  //         <TokenBalance key={token.address} token={token} address={address} />
+  //         <TokenBalance key={token.address} token={token} address={address} tokenPrices={tokenPrices} />
   //       ))}
   //     </div>
   //   </div>
@@ -293,7 +295,7 @@ useEffect(() => {
   );
 }
 
-function TokenBalance({ token, address }) {
+function TokenBalance({ token, address, tokenPrices }) {
   const { data: balance } = useReadContract({
     address: token.address,
     abi: erc20Abi,
@@ -302,25 +304,55 @@ function TokenBalance({ token, address }) {
     enabled: !!address,
   });
 
-  const formattedBalance = balance
-    ? Number(formatUnits(balance, token.decimals)).toFixed(4)
-    : "0.0000";
+  const formatted = balance
+    ? Number(formatUnits(balance, token.decimals))
+    : 0;
+
+  const usdRate = tokenPrices?.[token.address.toLowerCase()]?.usd || 0;
+  const usdValue = (formatted * usdRate).toFixed(2);
 
   return (
-    <div className="flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-md">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-          <span className="text-gray-600 dark:text-gray-300 font-semibold">
-            {token.symbol}
-          </span>
-        </div>
-        <span className="font-medium text-gray-700 dark:text-gray-300">
-          {token.name}
-        </span>
+    <div>
+      <div className="font-medium text-gray-900 dark:text-white">
+        {formatted.toFixed(5)} {token.symbol}
       </div>
-      <span className="text-gray-900 dark:text-white font-medium">
-        {formattedBalance} {token.symbol}
-      </span>
+      <div className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
+        ${usdValue}
+      </div>
     </div>
   );
 }
+
+
+  useEffect(() => {
+    const fetchAllTokenPrices = async () => {
+      if (!chain?.id || !popularTokens[chain.id]) return;
+
+      const platformMap = {
+        1: "ethereum",
+        137: "polygon-pos",
+        8453: "base",
+        42161: "arbitrum-one",
+        10: "optimistic-ethereum",
+        56: "binance-smart-chain",
+      };
+
+      const platform = platformMap[chain.id];
+      if (!platform) return;
+
+      const tokenList = popularTokens[chain.id];
+      const addresses = tokenList.map(t => t.address.toLowerCase()).join(",");
+
+      const url = `https://api.coingecko.com/api/v3/simple/token_price/${platform}?contract_addresses=${addresses}&vs_currencies=usd`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        setTokenPrices(data);
+      } catch (err) {
+        console.warn("Failed to fetch token prices:", err);
+      }
+    };
+
+    fetchAllTokenPrices();
+  }, [chain]);
