@@ -63,7 +63,11 @@ export default function TokenTransfer() {
   const [addressError, setAddressError] = useState("");
   const [txStage, setTxStage] = useState(""); // 'preparing', 'pending', 'confirmed', 'reverted'
 
-  const tokens =
+// Get tokens based on current chain
+const tokens =
+  chain && popularTokens[chain.id]
+    ? popularTokens[chain.id]
+    : popularTokens[1]; // Default to Ethereum mainnet
   // Check balance of selected token
   const [tokenBalances, setTokenBalances] = useState({});
   const publicClient = usePublicClient();
