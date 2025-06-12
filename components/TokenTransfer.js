@@ -377,7 +377,7 @@ export default function TokenTransfer() {
 				  <img
 					src={t.logo}
 					alt={t.symbol}
-					className="h-8 object-cover aspect-video"
+					className="w-9 h-8 object-cover"
 				  />
 				</div>
 				<span className="text-xs font-medium text-gray-900 dark:text-white">
