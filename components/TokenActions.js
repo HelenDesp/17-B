@@ -5,13 +5,8 @@ export default function TokenActions() {
   const { open } = useAppKit();
 
   const handleBuy = () => open({ view: "OnRampProviders" });
-  const handleSwap = () => open({ view: "Swap" }); // ✅ restore this
-  const handleSendFlow = async () => {
-    await open({ view: "Account" });
-    setTimeout(() => {
-      open({ view: "Send" });
-    }, 1500);
-  };
+  const handleSwap = () => open({ view: "Swap" }); 
+  const handleSendFlow = () => open({ view: "Account" });
 
   return (
     <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
@@ -29,13 +24,13 @@ export default function TokenActions() {
           onClick={handleSwap}
           className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
         >
-          Send Tokens
+          Swap Tokens
         </button>
         <button
           onClick={handleSendFlow}
           className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
         >
-          Swap Tokens
+          Send Tokens
         </button>
       </div>
     </section>
