@@ -35,25 +35,19 @@ export const modal = createAppKit({
     analytics: true,
   },
   themeMode: "auto",
-  themeVariables: {
+themeVariables: {
   "--w3m-accent": "#000000",
   "--w3m-color-mix": "#000000",
   "--w3m-color-mix-strength": 80,
-  "--w3m-border-radius-master": "6px",
   "--w3m-font-family": "'Cygnito Mono', sans-serif",
 
-  // Experimental — affects layout paddings and spacing
-  "--wui-border-radius-small": "6px",
-  "--wui-border-radius-medium": "6px",
-  "--wui-border-radius-large": "6px",
+  // ✅ Text color overrides
+  "--w3m-color-fg-1": "#000000", // main text (light theme)
+  "--w3m-color-bg-1": "#ffffff", // background for light theme
 
-  "--wui-spacing-0": "0px",
-  "--wui-spacing-xs": "4px",
-  "--wui-spacing-s": "8px",
-  "--wui-spacing-m": "12px",
-  "--wui-spacing-l": "16px",
-  "--wui-spacing-2l": "20px", // matches the var in your snippet  
-  },
+  "--w3m-color-fg-1-dark": "#ffffff", // main text (dark theme)
+  "--w3m-color-bg-1-dark": "#000000", // background for dark theme
+}
 });
 
 function ContextProvider({ children, cookies }) {
