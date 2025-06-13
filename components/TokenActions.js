@@ -2,20 +2,19 @@ import React from "react";
 import { useAppKit } from "@reown/appkit/react";
 
 export default function TokenActions() {
-  const { open, session } = useAppKit();
+  const { open } = useAppKit();
 
-  const ensureAndOpen = async (view) => {
+  const chainSafeSend = async () => {
     try {
-      const connected = await session?.isConnected?.();
-      if (!connected) {
-        await open({ view: "Connect" });
-        // Wait a tick to ensure session hydration
-        setTimeout(() => open({ view }), 500);
-      } else {
-        open({ view });
-      }
+      // Force hydration via Account first
+      await open({ view: "Account" });
+
+      // After hydration, wait 500ms and show Send modal
+      setTimeout(() => {
+        open({ view: "Send" });
+      }, 500);
     } catch (err) {
-      console.error("Action failed:", err);
+      console.error("Send failed:", err);
     }
   };
 
@@ -26,21 +25,21 @@ export default function TokenActions() {
       </h2>
       <div className="flex flex-wrap gap-4">
         <button
-          onClick={() => ensureAndOpen("OnRampProviders")}
+          onClick={() => open({ view: "OnRampProviders" })}
           className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
           Buy Tokens
         </button>
 
         <button
-          onClick={() => ensureAndOpen("Send")}
+          onClick={chainSafeSend}
           className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
         >
           Send Tokens
         </button>
 
         <button
-          onClick={() => ensureAndOpen("Swap")}
+          onClick={() => open({ view: "Swap" })}
           className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
         >
           Swap Tokens
