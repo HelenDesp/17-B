@@ -26,13 +26,13 @@ export default function TokenActions() {
           Buy Tokens
         </button>
         <button
-          onClick={handleSend}
+          onClick={handleSwap}
           className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
         >
           Send Tokens
         </button>
         <button
-          onClick={handleSwap}
+          onClick={handleSendFlow}
           className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
         >
           Swap Tokens
