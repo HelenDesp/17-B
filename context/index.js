@@ -36,7 +36,7 @@ export const modal = createAppKit({
   },
   themeMode: "auto",
 themeVariables: {
-  "--w3m-accent": "#000000",
+  "--w3m-accent": "#7F7F7F",
   "--w3m-font-family": "'Cygnito Mono', sans-serif",
 
   // ✅ Fix the accent glass background and text color
