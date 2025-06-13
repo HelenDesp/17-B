@@ -1,6 +1,6 @@
 
 // === COMBINED TokenActions.js ===
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppKit } from '@reown/appkit/react';
 import { createAcrossClient } from '@across-protocol/app-sdk';
 import { mainnet, optimism, arbitrum, base, polygon, bsc } from 'viem/chains';
@@ -170,7 +170,6 @@ export default function TokenActions() {
 
 // === DIVIDER ===
 
-import { useState, useEffect } from "react";
 import {
   useAccount,
   useSendTransaction,
