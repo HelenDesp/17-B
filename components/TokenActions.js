@@ -1,29 +1,184 @@
-import React, { useState, useEffect } from 'react';
+
+// === COMBINED TokenActions.js ===
+import React, { useState } from 'react';
 import { useAppKit } from '@reown/appkit/react';
 import { createAcrossClient } from '@across-protocol/app-sdk';
 import { mainnet, optimism, arbitrum, base, polygon, bsc } from 'viem/chains';
+import { useWalletClient } from 'wagmi';
+import { parseUnits } from 'viem';
+
+const CHAINS = [
+  { label: 'Ethereum', chain: mainnet },
+  { label: 'Base', chain: base },
+  { label: 'Arbitrum', chain: arbitrum },
+  { label: 'Optimism', chain: optimism },
+  { label: 'Polygon', chain: polygon },
+  { label: 'BNB Chain', chain: bsc },
+];
+
+const TOKENS = ['ETH', 'USDC', 'USDT', 'DAI'];
+
+function getTokenAddress(chainId, symbol) {
+  const addresses = {
+    1: {
+      ETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+      USDC: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+    },
+    8453: {
+      ETH: "0x4200000000000000000000000000000000000006",
+      USDC: "0xd9aa60fef2ee563bea6a6c2b3c5fbe9e63f55ae0",
+      USDT: "0x5c7F2be2a7A2877bCea6F0E3fD98f0B48A5473d7",
+      DAI: "0x3e7EF8f50246f725885102e8238CbBa33F276747"
+    },
+    42161: {
+      ETH: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+      USDC: "0xFF970A61A04b1Ca14834A43f5dE4533eBDDB5CC8",
+      USDT: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+      DAI: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
+    },
+    10: {
+      ETH: "0x4200000000000000000000000000000000000006",
+      USDC: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
+      USDT: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+      DAI: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
+    },
+    137: {
+      ETH: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+      USDC: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+      USDT: "0xc2132D05D31c914a87C6611C10748AaCbA2C7dD2",
+      DAI: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063"
+    },
+    56: {
+      ETH: "0x2170Ed0880ac9A755fd29B2688956BD959F933F8", // WETH on BNB
+      USDC: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+      USDT: "0x55d398326f99059ff775485246999027b3197955",
+      DAI: "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3"
+    },
+  };
+  return addresses[chainId]?.[symbol] || null;
+}
+
+export default function TokenActions() {
+  const { open } = useAppKit();
+  const walletClient = useWalletClient();
+
+  const [from, setFrom] = useState(CHAINS[1]);
+  const [to, setTo] = useState(CHAINS[0]);
+  const [token, setToken] = useState('ETH');
+  const [amount, setAmount] = useState('0.1');
+  const [loading, setLoading] = useState(false);
+
+  const handleBuy = () => open({ view: 'OnRampProviders' });
+  const handleSwap = () => open({ view: 'Swap' });
+  const handleSendFlow = () => open({ view: 'Account' });
+
+  const handleBridge = async () => {
+    if (!walletClient.data) return alert('Connect your wallet first.');
+    setLoading(true);
+
+    try {
+      const client = createAcrossClient({
+        integratorId: '0xdead',
+        chains: [from.chain, to.chain],
+      });
+
+      const inputAmount = parseUnits(amount, 18);
+
+      const route = {
+        originChainId: from.chain.id,
+        destinationChainId: to.chain.id,
+        inputToken: getTokenAddress(from.chain.id, token),
+        outputToken: getTokenAddress(to.chain.id, token),
+      };
+
+      const quote = await client.getQuote({ route, inputAmount });
+      await client.executeQuote({
+        walletClient: walletClient.data,
+        deposit: quote.deposit,
+        onProgress: (p) => console.log('progress', p),
+      });
+
+      alert('Bridge successful!');
+    } catch (e) {
+      console.error(e);
+      alert('Bridge failed: ' + (e?.message || e));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
+      <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+        Token Actions
+      </h2>
+      <div className="flex flex-wrap gap-4 mb-6">
+        <button onClick={handleBuy} className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Buy Tokens</button>
+        <button onClick={handleSwap} className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">Swap Tokens</button>
+        <button onClick={handleSendFlow} className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Send Tokens</button>
+      </div>
+      <div className="flex flex-col gap-4">
+	  <div className="text-sm text-red-600">
+		⚠️ Bridge feature is under construction.<br />
+		Please use 
+		<a
+		  href="https://app.across.to/bridge"
+		  target="_blank"
+		  rel="noopener noreferrer"
+		  className="underline text-blue-600 ml-1"
+		>
+		[Across.to]
+		</a>
+		as a temporary solution.
+	  </div>	  
+        <div className="flex flex-wrap gap-4">
+          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
+            From Chain
+            <select value={from.label} onChange={(e) => setFrom(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
+              {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
+            To Chain
+            <select value={to.label} onChange={(e) => setTo(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
+              {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
+            Token
+            <select value={token} onChange={(e) => setToken(e.target.value)} className="px-3 py-1 rounded border">
+              {TOKENS.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
+            Amount
+            <input type="text" value={amount} onChange={(e) => setAmount(e.target.value)} className="px-3 py-1 rounded border" />
+          </label>
+        </div>
+		  <button
+			disabled
+			className="px-5 py-2 bg-yellow-400 text-white rounded opacity-50 cursor-not-allowed"
+		  >
+			Bridge
+		  </button>
+      </div>
+    </section>
+  );
+}
+
+// === DIVIDER ===
+
+import { useState, useEffect } from "react";
 import {
   useAccount,
   useSendTransaction,
   useWriteContract,
   useBalance,
   useWaitForTransactionReceipt,
-  useWalletClient
 } from "wagmi";
-import { parseUnits } from 'viem';
-import { parseUnits as ethersParseUnits } from 'ethers';
-
-export default function TokenActions() {
-
-
-
-// === TRANSFER SECTION ===
-  useAccount,
-  useSendTransaction,
-  useWriteContract,
-  useBalance,
-  useWaitForTransactionReceipt
-} from "wagmi";
+import { parseUnits } from "ethers";
 
 // ERC20 transfer ABI
 const erc20TransferAbi = [
@@ -87,329 +242,7 @@ const popularTokens = {
   // Add other networks here
 };
 
-  const { isConnected, chainId, address, chain } = useAccount();
-  const [recipient, setRecipient] = useState("");
-  const [amount, setAmount] = useState("");
-  const [selectedToken, setSelectedToken] = useState("ETH");
-  const [memo, setMemo] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [txStatus, setTxStatus] = useState(null);
-  const [txHash, setTxHash] = useState(null);
-  const [amountError, setAmountError] = useState("");
-  const [addressError, setAddressError] = useState("");
-  const [txStage, setTxStage] = useState(""); // 'preparing', 'pending', 'confirmed', 'reverted'
-
-  // Check balance of selected token
-  const { data: ethBalance } = useBalance({
-    address,
-    enabled: !!address && selectedToken === "ETH",
-  });
-
-  // Get tokens based on current chain
-  const tokens =
-    chain && popularTokens[chain.id]
-      ? popularTokens[chain.id]
-      : popularTokens[1]; // Default to Ethereum mainnet
-
-  // Find the selected token object
-  const token = tokens.find((t) => t.symbol === selectedToken);
-
-  // For ETH transfers
-  const { sendTransactionAsync } = useSendTransaction();
-
-  // For ERC20 transfers
-  const { writeContractAsync } = useWriteContract();
-
-  // For waiting for transaction receipt
-  const {
-    isLoading: isConfirming,
-    isSuccess: isConfirmed,
-    isError: isFailure,
-    data: receipt,
-  } = useWaitForTransactionReceipt({
-    hash: txHash,
-    enabled: !!txHash,
-  });
-
-  // Update UI based on transaction status
-  useEffect(() => {
-    if (!txHash) return;
-
-    if (isConfirming) {
-      setTxStage("pending");
-      setTxStatus("Transaction is being confirmed...");
-    } else if (isConfirmed) {
-      setTxStage("confirmed");
-      setTxStatus(`Transaction confirmed! Block: ${receipt?.blockNumber}`);
-
-      // Save transaction to history
-      saveTransactionToHistory({
-        id: txHash,
-        type: "send",
-        status: "confirmed",
-        timestamp: new Date().toISOString(),
-        amount: amount,
-        token: selectedToken,
-        from: address,
-        to: recipient,
-        hash: txHash,
-        blockNumber: receipt?.blockNumber
-          ? receipt.blockNumber.toString()
-          : undefined, // Convert BigInt to string
-        memo: memo || undefined,
-      });
-      // Reset form after successful transaction
-      setAmount("");
-      setRecipient("");
-      setMemo("");
-      // Reset the submitting state
-      setIsSubmitting(false);
-      // After a moment, clear the status
-      setTimeout(() => {
-        setTxHash(null);
-        setTxStatus(null);
-        setTxStage("");
-      }, 5000);
-    } else if (isFailure) {
-      setTxStage("reverted");
-      setTxStatus("Transaction failed");
-      // Reset the submitting state on failure too
-      // Save failed transaction to history
-      saveTransactionToHistory({
-        id: txHash,
-        type: "send",
-        status: "failed",
-        timestamp: new Date().toISOString(),
-        amount: amount,
-        token: selectedToken,
-        from: address,
-        to: recipient,
-        hash: txHash,
-        blockNumber: receipt?.blockNumber
-          ? receipt.blockNumber.toString()
-          : undefined, // Convert BigInt to string
-        memo: memo || undefined,
-      });
-      setIsSubmitting(false);
-    }
-  }, [txHash, isConfirming, isConfirmed, isFailure, receipt]);
-  // Validate recipient address
-  const validateAddress = (addr) => {
-    if (!addr) {
-      setAddressError("Recipient address is required");
-      return false;
-    }
-
-    if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
-      setAddressError("Invalid Ethereum address format");
-      return false;
-    }
-
-    setAddressError("");
-    return true;
-  };
-
-  // Validate amount
-  const validateAmount = (amt) => {
-    if (!amt || parseFloat(amt) <= 0) {
-      setAmountError("Amount must be greater than 0");
-      return false;
-    }
-
-    if (
-      selectedToken === "ETH" &&
-      ethBalance &&
-      parseFloat(amt) > parseFloat(ethBalance.formatted)
-    ) {
-      setAmountError("Insufficient balance");
-      return false;
-    }
-
-    setAmountError("");
-    return true;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Validate inputs
-    const isAddressValid = validateAddress(recipient);
-    const isAmountValid = validateAmount(amount);
-
-    if (!isAddressValid || !isAmountValid) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setTxStage("preparing");
-    setTxStatus("Preparing transaction...");
-    setTxHash(null);
-
-    try {
-      let hash;
-
-      // Check if we're transferring the native token (ETH, MATIC, etc.)
-      if (!token.address) {
-        hash = await sendTransactionAsync({
-          to: recipient,
-          value: parseUnits(amount, token.decimals),
-          data: memo
-            ? `0x${Buffer.from(memo, "utf8").toString("hex")}`
-            : undefined,
-        });
-      } else {
-        // ERC20 transfer
-        hash = await writeContractAsync({
-          address: token.address,
-          abi: erc20TransferAbi,
-          functionName: "transfer",
-          args: [recipient, parseUnits(amount, token.decimals)],
-        });
-      }
-
-      setTxHash(hash);
-      setTxStage("sent");
-      setTxStatus(`Transaction sent! Waiting for confirmation...`);
-    } catch (error) {
-      console.error("Transaction error:", error);
-      setTxStage("error");
-      setTxStatus(`Transaction failed: ${error.message}`);
-      setIsSubmitting(false);
-    }
-  };
-
-  const convertBigIntToString = (obj) => {
-    if (obj === null || obj === undefined) {
-      return obj;
-    }
-
-    if (typeof obj === "bigint") {
-      return obj.toString();
-    }
-
-    if (typeof obj === "object") {
-      if (Array.isArray(obj)) {
-        return obj.map(convertBigIntToString);
-      }
-
-      const result = {};
-      for (const key in obj) {
-        result[key] = convertBigIntToString(obj[key]);
-      }
-      return result;
-    }
-
-    return obj;
-  };
-
-  // Function to save transaction to history
-
-  const saveTransactionToHistory = (txData) => {
-    try {
-      // Get existing transactions from localStorage
-      const existingTxsString = localStorage.getItem("transactionHistory");
-      const existingTxs = existingTxsString
-        ? JSON.parse(existingTxsString)
-        : [];
-
-      // Convert BigInt values to strings
-      const safeData = convertBigIntToString(txData);
-
-      // Add new transaction to the beginning of the array
-      const updatedTxs = [safeData, ...existingTxs].slice(0, 20); // Keep only the last 20 transactions
-
-      // Save back to localStorage
-      localStorage.setItem("transactionHistory", JSON.stringify(updatedTxs));
-    } catch (error) {
-      console.error("Failed to save transaction to history:", error);
-    }
-  };
-
-  if (!isConnected) {
-
-    return (
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-          Manage your crypto assets
-        </h2>
-
-        <div className="flex flex-wrap gap-4 mb-6">
-          <button onClick={handleBuy} className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Buy Tokens</button>
-          <button onClick={handleSwap} className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">Swap Tokens</button>
-          <button onClick={handleSendFlow} className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Send Tokens</button>
-        </div>
-
-        <hr className="border-t border-gray-300 dark:border-gray-700" />
-
-  useAccount,
-  useSendTransaction,
-  useWriteContract,
-  useBalance,
-  useWaitForTransactionReceipt,
-} from "wagmi";
-
-// ERC20 transfer ABI
-const erc20TransferAbi = [
-  {
-    constant: false,
-    inputs: [
-      { name: "to", type: "address" },
-      { name: "value", type: "uint256" },
-    ],
-    name: "transfer",
-    outputs: [{ name: "", type: "bool" }],
-    type: "function",
-  },
-];
-
-// List of popular tokens with their addresses, logos, and colors on different networks
-const popularTokens = {
-  // Mainnet
-  1: [
-    {
-      symbol: "ETH",
-      name: "Ethereum",
-      address: null,
-      decimals: 18,
-      logo: "/ethereum.svg",
-      color: "bg-blue-500",
-    },
-    {
-      symbol: "USDT",
-      name: "Tether",
-      address: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-      decimals: 6,
-      logo: "/usdt.svg",
-      color: "bg-green-500",
-    },
-    {
-      symbol: "USDC",
-      name: "USD Coin",
-      address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-      decimals: 6,
-      logo: "/usdc.svg",
-      color: "bg-blue-500",
-    },
-    {
-      symbol: "DAI",
-      name: "Dai Stablecoin",
-      address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-      decimals: 18,
-      logo: "/dai.svg",
-      color: "bg-yellow-500",
-    },
-    {
-      symbol: "WBTC",
-      name: "Wrapped Bitcoin",
-      address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-      decimals: 8,
-      logo: "/wrappedbtc.svg",
-      color: "bg-orange-500",
-    },
-  ],
-  // Add other networks here
-};
-
+function TokenTransferSection() {
   const { isConnected, chainId, address, chain } = useAccount();
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
@@ -986,30 +819,17 @@ const popularTokens = {
 }
 
 
-      <hr className="border-t border-gray-300 dark:border-gray-700 my-6" />
-
-      {/* Bridge Section */}
-      <div className="text-sm text-red-600 mb-2">
-        ⚠️ Bridge feature is under construction.<br />
-        Please use 
-        <a
-          href="https://app.across.to/bridge"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline text-blue-600 ml-1"
-        >
-          Across.to
-        </a>
-        as a temporary solution.
-      </div>
-      <button
-        disabled
-        className="px-5 py-2 bg-yellow-400 text-white rounded opacity-50 cursor-not-allowed"
-      >
-        Bridge
-      </button>
-
-      </div>
-    );
-
+// === FINAL EXPORT ===
+export default function TokenActionsCombined() {
+  return (
+    <div className="space-y-12">
+      <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
+        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Manage your crypto assets</h2>
+        <TokenActions />
+      </section>
+      <div className="border-t border-gray-300 dark:border-gray-700 my-4"></div>
+      <TokenTransferSection />
+      <div className="border-t border-gray-300 dark:border-gray-700 my-4"></div>
+    </div>
+  );
 }
