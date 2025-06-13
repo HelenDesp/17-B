@@ -1,166 +1,746 @@
-import React, { useState } from 'react';
+// Merged TokenActions.js with full TokenTransfer and TokenAction logic
+import React, { useState, useEffect } from "react";
 import { useAppKit } from '@reown/appkit/react';
 import { createAcrossClient } from '@across-protocol/app-sdk';
-import { mainnet, optimism, arbitrum, base, polygon, bsc } from 'viem/chains';
-import { useWalletClient } from 'wagmi';
+import {
+  useAccount,
+  useSendTransaction,
+  useWriteContract,
+  useBalance,
+  useWaitForTransactionReceipt,
+  useWalletClient
+} from "wagmi";
 import { parseUnits } from 'viem';
+import { parseUnits as ethersParseUnits } from "ethers";
 
-const CHAINS = [
-  { label: 'Ethereum', chain: mainnet },
-  { label: 'Base', chain: base },
-  { label: 'Arbitrum', chain: arbitrum },
-  { label: 'Optimism', chain: optimism },
-  { label: 'Polygon', chain: polygon },
-  { label: 'BNB Chain', chain: bsc },
-];
+// Inserted from TokenTransfer.js:
+const { isConnected, chainId, address, chain } = useAccount();
+  const [recipient, setRecipient] = useState("");
+  const [amount, setAmount] = useState("");
+  const [selectedToken, setSelectedToken] = useState("ETH");
+  const [memo, setMemo] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [txStatus, setTxStatus] = useState(null);
+  const [txHash, setTxHash] = useState(null);
+  const [amountError, setAmountError] = useState("");
+  const [addressError, setAddressError] = useState("");
+  const [txStage, setTxStage] = useState(""); // 'preparing', 'pending', 'confirmed', 'reverted'
 
-const TOKENS = ['ETH', 'USDC', 'USDT', 'DAI'];
+  // Check balance of selected token
+  const { data: ethBalance } = useBalance({
+    address,
+    enabled: !!address && selectedToken === "ETH",
+  });
 
-function getTokenAddress(chainId, symbol) {
-  const addresses = {
-    1: {
-      ETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-      USDC: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-      USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-      DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-    },
-    8453: {
-      ETH: "0x4200000000000000000000000000000000000006",
-      USDC: "0xd9aa60fef2ee563bea6a6c2b3c5fbe9e63f55ae0",
-      USDT: "0x5c7F2be2a7A2877bCea6F0E3fD98f0B48A5473d7",
-      DAI: "0x3e7EF8f50246f725885102e8238CbBa33F276747"
-    },
-    42161: {
-      ETH: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
-      USDC: "0xFF970A61A04b1Ca14834A43f5dE4533eBDDB5CC8",
-      USDT: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
-      DAI: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
-    },
-    10: {
-      ETH: "0x4200000000000000000000000000000000000006",
-      USDC: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
-      USDT: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
-      DAI: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
-    },
-    137: {
-      ETH: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
-      USDC: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      USDT: "0xc2132D05D31c914a87C6611C10748AaCbA2C7dD2",
-      DAI: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063"
-    },
-    56: {
-      ETH: "0x2170Ed0880ac9A755fd29B2688956BD959F933F8", // WETH on BNB
-      USDC: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
-      USDT: "0x55d398326f99059ff775485246999027b3197955",
-      DAI: "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3"
-    },
+  // Get tokens based on current chain
+  const tokens =
+    chain && popularTokens[chain.id]
+      ? popularTokens[chain.id]
+      : popularTokens[1]; // Default to Ethereum mainnet
+
+  // Find the selected token object
+  const token = tokens.find((t) => t.symbol === selectedToken);
+
+  // For ETH transfers
+  const { sendTransactionAsync } = useSendTransaction();
+
+  // For ERC20 transfers
+  const { writeContractAsync } = useWriteContract();
+
+  // For waiting for transaction receipt
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    isError: isFailure,
+    data: receipt,
+  } = useWaitForTransactionReceipt({
+    hash: txHash,
+    enabled: !!txHash,
+  });
+
+  // Update UI based on transaction status
+  useEffect(() => {
+    if (!txHash) return;
+
+    if (isConfirming) {
+      setTxStage("pending");
+      setTxStatus("Transaction is being confirmed...");
+    } else if (isConfirmed) {
+      setTxStage("confirmed");
+      setTxStatus(`Transaction confirmed! Block: ${receipt?.blockNumber}`);
+
+      // Save transaction to history
+      saveTransactionToHistory({
+        id: txHash,
+        type: "send",
+        status: "confirmed",
+        timestamp: new Date().toISOString(),
+        amount: amount,
+        token: selectedToken,
+        from: address,
+        to: recipient,
+        hash: txHash,
+        blockNumber: receipt?.blockNumber
+          ? receipt.blockNumber.toString()
+          : undefined, // Convert BigInt to string
+        memo: memo || undefined,
+      });
+      // Reset form after successful transaction
+      setAmount("");
+      setRecipient("");
+      setMemo("");
+      // Reset the submitting state
+      setIsSubmitting(false);
+      // After a moment, clear the status
+      setTimeout(() => {
+        setTxHash(null);
+        setTxStatus(null);
+        setTxStage("");
+      }, 5000);
+    } else if (isFailure) {
+      setTxStage("reverted");
+      setTxStatus("Transaction failed");
+      // Reset the submitting state on failure too
+      // Save failed transaction to history
+      saveTransactionToHistory({
+        id: txHash,
+        type: "send",
+        status: "failed",
+        timestamp: new Date().toISOString(),
+        amount: amount,
+        token: selectedToken,
+        from: address,
+        to: recipient,
+        hash: txHash,
+        blockNumber: receipt?.blockNumber
+          ? receipt.blockNumber.toString()
+          : undefined, // Convert BigInt to string
+        memo: memo || undefined,
+      });
+      setIsSubmitting(false);
+    }
+  }, [txHash, isConfirming, isConfirmed, isFailure, receipt]);
+  // Validate recipient address
+  const validateAddress = (addr) => {
+    if (!addr) {
+      setAddressError("Recipient address is required");
+      return false;
+    }
+
+    if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+      setAddressError("Invalid Ethereum address format");
+      return false;
+    }
+
+    setAddressError("");
+    return true;
   };
-  return addresses[chainId]?.[symbol] || null;
-}
+
+  // Validate amount
+  const validateAmount = (amt) => {
+    if (!amt || parseFloat(amt) <= 0) {
+      setAmountError("Amount must be greater than 0");
+      return false;
+    }
+
+    if (
+      selectedToken === "ETH" &&
+      ethBalance &&
+      parseFloat(amt) > parseFloat(ethBalance.formatted)
+    ) {
+      setAmountError("Insufficient balance");
+      return false;
+    }
+
+    setAmountError("");
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate inputs
+    const isAddressValid = validateAddress(recipient);
+    const isAmountValid = validateAmount(amount);
+
+    if (!isAddressValid || !isAmountValid) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setTxStage("preparing");
+    setTxStatus("Preparing transaction...");
+    setTxHash(null);
+
+    try {
+      let hash;
+
+      // Check if we're transferring the native token (ETH, MATIC, etc.)
+      if (!token.address) {
+        hash = await sendTransactionAsync({
+          to: recipient,
+          value: parseUnits(amount, token.decimals),
+          data: memo
+            ? `0x${Buffer.from(memo, "utf8").toString("hex")}`
+            : undefined,
+        });
+      } else {
+        // ERC20 transfer
+        hash = await writeContractAsync({
+          address: token.address,
+          abi: erc20TransferAbi,
+          functionName: "transfer",
+          args: [recipient, parseUnits(amount, token.decimals)],
+        });
+      }
+
+      setTxHash(hash);
+      setTxStage("sent");
+      setTxStatus(`Transaction sent! Waiting for confirmation...`);
+    } catch (error) {
+      console.error("Transaction error:", error);
+      setTxStage("error");
+      setTxStatus(`Transaction failed: ${error.message}`);
+      setIsSubmitting(false);
+    }
+  };
+
+  const convertBigIntToString = (obj) => {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (typeof obj === "bigint") {
+      return obj.toString();
+    }
+
+    if (typeof obj === "object") {
+      if (Array.isArray(obj)) {
+        return obj.map(convertBigIntToString);
+      }
+
+      const result = {};
+      for (const key in obj) {
+        result[key] = convertBigIntToString(obj[key]);
+      }
+      return result;
+    }
+
+    return obj;
+  };
+
+  // Function to save transaction to history
+
+  const saveTransactionToHistory = (txData) => {
+    try {
+      // Get existing transactions from localStorage
+      const existingTxsString = localStorage.getItem("transactionHistory");
+      const existingTxs = existingTxsString
+        ? JSON.parse(existingTxsString)
+        : [];
+
+      // Convert BigInt values to strings
+      const safeData = convertBigIntToString(txData);
+
+      // Add new transaction to the beginning of the array
+      const updatedTxs = [safeData, ...existingTxs].slice(0, 20); // Keep only the last 20 transactions
+
+      // Save back to localStorage
+      localStorage.setItem("transactionHistory", JSON.stringify(updatedTxs));
+    } catch (error) {
+      console.error("Failed to save transaction to history:", error);
+    }
+  };
+
+  if (!isConnected) {
+    return (
+      <div className="bg-white dark:bg-dark-200 shadow-card dark:shadow-card-dark p-6">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          Transfer Tokens
+        </h2>
+        <div className="flex flex-col items-center justify-center py-8">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-12 w-12 text-gray-400 dark:text-gray-600 mb-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+            />
+          </svg>
+          <p className="text-gray-500 dark:text-gray-400 mb-2">
+            Connect your wallet to transfer tokens
+          </p>
+          <button
+            onClick={() => {}}
+            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+          >
+            Connect Wallet
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-dark-200 border-b2 shadow-card dark:shadow-card-dark p-6">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+        Transfer Tokens
+      </h2>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Token Selection */}
+        <div>
+          <label
+            htmlFor="token"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Select Token
+          </label>
+          <div className="token-selector">
+			{tokens.map((t) => (
+			  <button
+				key={t.symbol}
+				type="button"
+				onClick={() => setSelectedToken(t.symbol)}
+				className={`token-option 
+				  ${selectedToken === t.symbol
+					? 'border border-secondary-500 dark:border-primary-500 bg-transparent'
+					: 'bg-transparent'
+				  }`
+				}
+				style={{ boxSizing: 'border-box' }} // ensures 1px border doesn't shift sizing
+			  >
+<div
+  className={`flex items-center justify-center mb-1 ${
+    t.symbol === 'USDT' ? 'w-9 h-8' : 'w-8 h-8'
+  }`}
+>
+  <img
+    src={t.logo}
+    alt={t.symbol}
+    className={`object-cover ${t.symbol === 'USDT' ? 'w-9 h-8' : 'w-8 h-8'}`}
+  />
+</div>
+				<span className="text-xs font-medium text-gray-900 dark:text-white">
+				  {t.symbol}
+				</span>
+			  </button>
+			))}
+          </div>
+        </div>
+
+        {/* Recipient Address */}
+        <div>
+          <label
+            htmlFor="recipient"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Recipient Address
+          </label>
+          <input
+            id="recipient"
+            type="text"
+            value={recipient}
+            onChange={(e) => {
+              setRecipient(e.target.value);
+              if (e.target.value) validateAddress(e.target.value);
+            }}
+            placeholder="0x..."
+            className={`w-full p-3 border ${
+              addressError
+                ? "border-red-500 dark:border-red-500"
+                : "border-gray-300 dark:border-gray-600"
+            } bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:outline-none focus:ring-0 focus:ring-offset-0 rounded-none rvg-darkfocus`}
+            required
+            disabled={isSubmitting}
+          />
+          {addressError && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {addressError}
+            </p>
+          )}
+        </div>
+
+        {/* Amount */}
+        <div>
+          <label
+            htmlFor="amount"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Amount
+          </label>
+          <div className="relative">
+            <input
+              id="amount"
+              type="number"
+              value={amount}
+              onChange={(e) => {
+                setAmount(e.target.value);
+                if (e.target.value) validateAmount(e.target.value);
+              }}
+              step="any"
+              min="0"
+              placeholder="0.0"
+              className={`w-full p-3 border ${
+                amountError
+                  ? "border-red-500 dark:border-red-500"
+                  : "border-gray-300 dark:border-gray-600"
+              } bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:outline-none focus:ring-0 focus:ring-offset-0 rounded-none rvg-darkfocus`}
+              required
+              disabled={isSubmitting}
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center">
+              <span className="px-3 text-gray-500 dark:text-gray-400 font-medium">
+                {selectedToken}
+              </span>
+            </div>
+          </div>
+          {amountError && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {amountError}
+            </p>
+          )}
+          {ethBalance && selectedToken === "ETH" && (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Balance: {parseFloat(ethBalance.formatted).toFixed(5)} ETH
+            </p>
+          )}
+        </div>
+
+        {/* Memo (optional) */}
+        <div>
+          <label
+            htmlFor="memo"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+          >
+            Memo (optional)
+          </label>
+          <textarea
+            id="memo"
+            value={memo}
+            onChange={(e) => setMemo(e.target.value)}
+            placeholder="Add a memo to your transaction..."
+            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark-300 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 h-20 resize-none"
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={`w-full py-3 px-4 text-black dark:text-white font-medium transition-colors ${
+            isSubmitting
+              ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
+              : "border-2 border-gray-900 dark:border-white bg-light-100 dark:bg-dark-300 text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50"
+          }`}
+        >
+          {isSubmitting ? (
+            <span className="flex items-center justify-center">
+              <svg
+                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              {txStage === "preparing"
+                ? "Preparing..."
+                : txStage === "pending"
+                ? "Confirming..."
+                : "Processing..."}
+            </span>
+          ) : (
+            `Send ${selectedToken}`
+          )}
+        </button>
+      </form>
+
+      {/* Transaction Status */}
+      {txStatus && (
+        <div
+          className={`mt-5 p-4 rounded-lg ${
+            txStage === "error" || txStage === "reverted"
+              ? "bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800"
+              : txStage === "confirmed"
+              ? "bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800"
+              : "bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800"
+          }`}
+        >
+          <div className="flex">
+            {txStage === "error" || txStage === "reverted" ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-red-500 dark:text-red-400 mr-2 flex-shrink-0"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            ) : txStage === "confirmed" ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-green-500 dark:text-green-400 mr-2 flex-shrink-0"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-blue-500 dark:text-blue-400 mr-2 flex-shrink-0 animate-spin"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
+            <p
+              className={`text-sm ${
+                txStage === "error" || txStage === "reverted"
+                  ? "text-red-700 dark:text-red-300"
+                  : txStage === "confirmed"
+                  ? "text-green-700 dark:text-green-300"
+                  : "text-blue-700 dark:text-blue-300"
+              }`}
+            >
+              {txStatus}
+            </p>
+          </div>
+
+          {txHash && (
+            <div className="mt-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                Transaction Hash:
+              </p>
+              <div className="flex items-center">
+                <code className="text-xs bg-gray-100 dark:bg-dark-100 px-2 py-1 rounded-md mr-2 flex-1 overflow-x-auto">
+                  {txHash}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(txHash)}
+                  className="p-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                    <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                  </svg>
+                </button>
+                <a
+                  href={`https://etherscan.io/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 ml-1 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                    <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+// Original TokenActions content follows:
+import React, { useState, useEffect } from "react";
+import { useAppKit } from '@reown/appkit/react';
+import { createAcrossClient } from '@across-protocol/app-sdk';
+import {
+  useAccount,
+  useSendTransaction,
+  useWriteContract,
+  useBalance,
+  useWaitForTransactionReceipt,
+  useWalletClient
+} from "wagmi";
+import { parseUnits } from 'viem';
+import { parseUnits as ethersParseUnits } from "ethers";
 
 export default function TokenActions() {
   const { open } = useAppKit();
   const walletClient = useWalletClient();
+  const { isConnected, chainId, address, chain } = useAccount();
 
-  const [from, setFrom] = useState(CHAINS[1]);
-  const [to, setTo] = useState(CHAINS[0]);
-  const [token, setToken] = useState('ETH');
-  const [amount, setAmount] = useState('0.1');
+  const [from, setFrom] = useState("Base");
+  const [to, setTo] = useState("Ethereum");
+  const [token, setToken] = useState("ETH");
+  const [amount, setAmount] = useState("0.1");
   const [loading, setLoading] = useState(false);
 
-  const handleBuy = () => open({ view: 'OnRampProviders' });
-  const handleSwap = () => open({ view: 'Swap' });
-  const handleSendFlow = () => open({ view: 'Account' });
+  const [recipient, setRecipient] = useState("");
+  const [selectedToken, setSelectedToken] = useState("ETH");
+  const [memo, setMemo] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [txStatus, setTxStatus] = useState(null);
+  const [txHash, setTxHash] = useState(null);
+  const [amountError, setAmountError] = useState("");
+  const [addressError, setAddressError] = useState("");
+  const [txStage, setTxStage] = useState("");
 
-  const handleBridge = async () => {
-    if (!walletClient.data) return alert('Connect your wallet first.');
-    setLoading(true);
+  const { data: ethBalance } = useBalance({
+    address,
+    enabled: !!address && selectedToken === "ETH",
+  });
 
-    try {
-      const client = createAcrossClient({
-        integratorId: '0xdead',
-        chains: [from.chain, to.chain],
-      });
+  const chains = [
+    "Ethereum", "Base", "Arbitrum", "Optimism", "Polygon", "BNB Chain"
+  ];
+  const tokens = ["ETH", "USDC", "USDT", "DAI"];
 
-      const inputAmount = parseUnits(amount, 18);
+  const handleBuy = () => open({ view: "OnRampProviders" });
+  const handleSwap = () => open({ view: "Swap" });
+  const handleSendFlow = () => open({ view: "Account" });
 
-      const route = {
-        originChainId: from.chain.id,
-        destinationChainId: to.chain.id,
-        inputToken: getTokenAddress(from.chain.id, token),
-        outputToken: getTokenAddress(to.chain.id, token),
-      };
-
-      const quote = await client.getQuote({ route, inputAmount });
-      await client.executeQuote({
-        walletClient: walletClient.data,
-        deposit: quote.deposit,
-        onProgress: (p) => console.log('progress', p),
-      });
-
-      alert('Bridge successful!');
-    } catch (e) {
-      console.error(e);
-      alert('Bridge failed: ' + (e?.message || e));
-    } finally {
-      setLoading(false);
+  const validateAddress = (addr) => {
+    if (!addr) {
+      setAddressError("Recipient address is required");
+      return false;
     }
+    if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+      setAddressError("Invalid Ethereum address format");
+      return false;
+    }
+    setAddressError("");
+    return true;
+  };
+
+  const validateAmount = (amt) => {
+    if (!amt || parseFloat(amt) <= 0) {
+      setAmountError("Amount must be greater than 0");
+      return false;
+    }
+    if (selectedToken === "ETH" && ethBalance && parseFloat(amt) > parseFloat(ethBalance.formatted)) {
+      setAmountError("Insufficient balance");
+      return false;
+    }
+    setAmountError("");
+    return true;
   };
 
   return (
     <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-        Token Actions
+        Manage your crypto assets
       </h2>
+
+      {/* Action Buttons */}
       <div className="flex flex-wrap gap-4 mb-6">
         <button onClick={handleBuy} className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Buy Tokens</button>
         <button onClick={handleSwap} className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">Swap Tokens</button>
         <button onClick={handleSendFlow} className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Send Tokens</button>
       </div>
-      <div className="flex flex-col gap-4">
-  <div className="text-sm text-red-600">
-    Bridge under construction.<br />
-    You may temporarily use 
-    <a
-      href="https://app.across.to/bridge"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="underline text-blue-600 ml-1"
-    >
-      across.to solution
-    </a>
-    for that needs.
-  </div>	  
-        <div className="flex flex-wrap gap-4">
-          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-            From Chain
-            <select value={from.label} onChange={(e) => setFrom(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
-              {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-            To Chain
-            <select value={to.label} onChange={(e) => setTo(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
-              {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-            Token
-            <select value={token} onChange={(e) => setToken(e.target.value)} className="px-3 py-1 rounded border">
-              {TOKENS.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-            Amount
-            <input type="text" value={amount} onChange={(e) => setAmount(e.target.value)} className="px-3 py-1 rounded border" />
-          </label>
+
+      {/* Divider */}
+      <hr className="border-t border-gray-300 dark:border-gray-700 my-6" />
+
+      {/* Transfer Tokens Section */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Transfer Tokens</h3>
+        <div className="mb-2">
+          <label className="block text-sm text-gray-700 dark:text-white mb-1">Recipient</label>
+          <input
+            type="text"
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            className="w-full border rounded p-2"
+            placeholder="0x..."
+          />
         </div>
-		  <button
-			disabled
-			className="px-5 py-2 bg-yellow-400 text-white rounded opacity-50 cursor-not-allowed"
-		  >
-			Bridge Temporarily Disabled
-		  </button>
+        <div className="mb-2">
+          <label className="block text-sm text-gray-700 dark:text-white mb-1">Token</label>
+          <select value={selectedToken} onChange={(e) => setSelectedToken(e.target.value)} className="w-full border rounded p-2">
+            {tokens.map(t => <option key={t}>{t}</option>)}
+          </select>
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm text-gray-700 dark:text-white mb-1">Amount</label>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            className="w-full border rounded p-2"
+            placeholder="0.00"
+          />
+        </div>
+        <button
+          disabled
+          className="w-full py-2 px-4 bg-gray-400 text-white rounded opacity-50 cursor-not-allowed"
+        >
+          Send Token (Temporarily Disabled)
+        </button>
+      </div>
+
+      {/* Divider */}
+      <hr className="border-t border-gray-300 dark:border-gray-700 my-6" />
+
+      {/* Bridge UI Section */}
+      <div className="flex flex-col gap-4">
+        <div className="text-sm text-red-600">
+          ⚠️ Bridge feature is under construction.<br />
+          Please use 
+          <a
+            href="https://app.across.to/bridge"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-blue-600 ml-1"
+          >
+            Across.to
+          </a>
+          as a temporary solution.
+        </div>
+        <button
+          disabled
+          className="px-5 py-2 bg-yellow-400 text-white rounded opacity-50 cursor-not-allowed"
+        >
+          Bridge Temporarily Disabled
+        </button>
       </div>
     </section>
   );
