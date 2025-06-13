@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAccount, useBalance } from "wagmi";
-import { useAppKit } from "@reown/appkit/react";
 import TokenBalances from "./TokenBalances";
 import TokenTransfer from "./TokenTransfer";
 import WalletCard from "./WalletCard";
@@ -29,7 +28,6 @@ const erc721Abi = [
 export default function Dashboard() {
   const [mounted, setMounted] = useState(false);
   const { address, isConnected, chain } = useAccount();
-  const { open, session } = useAppKit();
   const { data: ethBalance } = useBalance({ address, enabled: !!address });
   const [nfts, setNfts] = useState([]);
   const [gasPriceGwei, setGasPriceGwei] = useState(null);
@@ -158,17 +156,6 @@ export default function Dashboard() {
   useEffect(() => {
     setMounted(true);
   }, []);
-  
-useEffect(() => {
-  const ensureSmartWalletSession = async () => {
-    const connected = await session?.isConnected?.();
-    if (!connected) {
-      await open({ view: "Account" });
-    }
-  };
-
-  ensureSmartWalletSession();
-}, []);  
 
   if (!mounted) return null;
 
