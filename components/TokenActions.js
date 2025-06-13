@@ -1,19 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAppKit } from "@reown/appkit/react";
 import { encodeFunctionData } from "viem";
-
-const erc20Abi = [
-  {
-    name: "transfer",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "to", type: "address" },
-      { name: "amount", type: "uint256" }
-    ],
-    outputs: []
-  }
-];
+import { erc20Abi } from "viem/abis";
 
 export default function TokenActions() {
   const { open, session } = useAppKit();
@@ -34,31 +22,9 @@ export default function TokenActions() {
   const handleBuy = () => open({ view: "OnRampProviders" });
   const handleSwap = () => open({ view: "Swap" });
 
-  const handleSend = async () => {
-    try {
-      if (!supportsSendCalls) {
-        alert("Smart Wallet does not support sendCalls. Please use the wallet UI.");
-        return;
-      }
-
-      const recipient = prompt("Enter recipient address:");
-      if (!recipient) return;
-
-      const amountInput = prompt("Enter amount to send (e.g., 10):");
-      if (!amountInput) return;
-      const amount = BigInt(Number(amountInput) * 10 ** 6); // for 6 decimals like USDC
-
-      const tokenAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; // replace with correct token address
-
-      const call = {
-        to: tokenAddress,
-        data: encodeFunctionData({
-          abi: erc20Abi,
-          functionName: "transfer",
-          args: [recipient, amount],
-        }),
-        chainId: 8453, // Base chain ID
-      };
+  const handleSend = () => {
+  open({ view: "Send" });
+};
 
       const id = await session.sendCalls([call]);
       console.log("Send call submitted, ID:", id);
