@@ -34,6 +34,14 @@ export const modal = createAppKit({
   features: {
     analytics: true,
   },
+  themeMode: "auto",
+  themeVariables: {
+    "--w3m-accent": "#000000",
+    "--w3m-color-mix": "#000000",
+    "--w3m-color-mix-strength": 80,
+    "--w3m-border-radius-master": "10px",
+    "--w3m-font-family": "'Cygnito Mono', sans-serif",  
+  },
 });
 
 function ContextProvider({ children, cookies }) {
