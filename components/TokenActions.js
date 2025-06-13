@@ -1,40 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useAppKit } from "@reown/appkit/react";
 
 export default function TokenActions() {
   const { open, session } = useAppKit();
-  const [reownReady, setReownReady] = useState(false);
 
-  // Make sure Reown is connected and Smart Wallet is hydrated
-  useEffect(() => {
-    const check = async () => {
-      const ready = await session.isConnected();
-      setReownReady(ready);
-    };
-    check();
-  }, [session]);
-
-  const ensureConnected = async () => {
-    const connected = await session.isConnected();
-    if (!connected) {
-      await open({ view: "Connect" });
+  const ensureAndOpen = async (view) => {
+    try {
+      const connected = await session?.isConnected?.();
+      if (!connected) {
+        await open({ view: "Connect" });
+        // Wait a tick to ensure session hydration
+        setTimeout(() => open({ view }), 500);
+      } else {
+        open({ view });
+      }
+    } catch (err) {
+      console.error("Action failed:", err);
     }
-    return true;
-  };
-
-  const handleSend = async () => {
-    await ensureConnected();
-    open({ view: "Send" });
-  };
-
-  const handleBuy = async () => {
-    await ensureConnected();
-    open({ view: "OnRampProviders" });
-  };
-
-  const handleSwap = async () => {
-    await ensureConnected();
-    open({ view: "Swap" });
   };
 
   return (
@@ -44,19 +26,21 @@ export default function TokenActions() {
       </h2>
       <div className="flex flex-wrap gap-4">
         <button
-          onClick={handleBuy}
+          onClick={() => ensureAndOpen("OnRampProviders")}
           className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
           Buy Tokens
         </button>
+
         <button
-          onClick={handleSend}
+          onClick={() => ensureAndOpen("Send")}
           className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
         >
           Send Tokens
         </button>
+
         <button
-          onClick={handleSwap}
+          onClick={() => ensureAndOpen("Swap")}
           className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
         >
           Swap Tokens
