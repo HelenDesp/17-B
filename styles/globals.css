@@ -529,3 +529,9 @@ input, textarea, select {
 .dark .token-option img {
   filter: invert(1);
 }
+[data-theme] .w3m-button {
+  border-radius: 4px !important;
+}
+[data-theme] .w3m-modal {
+  border-radius: 4px !important;
+}
