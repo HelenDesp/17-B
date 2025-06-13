@@ -16,6 +16,43 @@ const CHAINS = [
 
 const TOKENS = ['ETH', 'USDC', 'USDT', 'DAI'];
 
+// Token address mapping by chain
+function getTokenAddress(chainId, symbol) {
+  const addresses = {
+    1: { // Ethereum
+      USDC: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+      DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+    },
+    8453: { // Base
+      USDC: "0xd9aa60fef2ee563bea6a6c2b3c5fbe9e63f55ae0",
+      USDT: "0x5c7F2be2a7A2877bCea6F0E3fD98f0B48A5473d7",
+      DAI: "0x3e7EF8f50246f725885102e8238CbBa33F276747"
+    },
+    42161: { // Arbitrum
+      USDC: "0xFF970A61A04b1Ca14834A43f5dE4533eBDDB5CC8",
+      USDT: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+      DAI: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
+    },
+    10: { // Optimism
+      USDC: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
+      USDT: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+      DAI: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
+    },
+    137: { // Polygon
+      USDC: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+      USDT: "0xc2132D05D31c914a87C6611C10748AaCbA2C7dD2",
+      DAI: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063"
+    },
+    56: { // BNB Chain
+      USDC: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+      USDT: "0x55d398326f99059ff775485246999027b3197955",
+      DAI: "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3"
+    },
+  };
+  return addresses[chainId]?.[symbol] || null;
+}
+
 export default function TokenActions() {
   const { open } = useAppKit();
   const walletClient = useWalletClient();
@@ -35,6 +72,8 @@ export default function TokenActions() {
 
     setLoading(true);
     try {
+      const isNative = token === 'ETH';
+
       const client = createAcrossClient({
         integratorId: '0xdead',
         chains: [from.chain, to.chain],
@@ -43,8 +82,8 @@ export default function TokenActions() {
       const route = {
         originChainId: from.chain.id,
         destinationChainId: to.chain.id,
-        inputToken: token,
-        outputToken: token,
+        inputToken: isNative ? null : getTokenAddress(from.chain.id, token),
+        outputToken: isNative ? null : getTokenAddress(to.chain.id, token),
       };
 
       const inputAmount = parseUnits(amount, 18);
