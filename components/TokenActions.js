@@ -1,37 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useAppKit } from "@reown/appkit/react";
-import { encodeFunctionData } from "viem";
-import { erc20Abi } from "viem/abis";
 
 export default function TokenActions() {
-  const { open, session } = useAppKit();
-  const [supportsSendCalls, setSupportsSendCalls] = useState(false);
-
-  useEffect(() => {
-    const checkCapabilities = async () => {
-      try {
-        const caps = await session.getCapabilities();
-        setSupportsSendCalls(caps.includes("sendCalls"));
-      } catch (err) {
-        console.error("Failed to get capabilities:", err);
-      }
-    };
-    checkCapabilities();
-  }, [session]);
+  const { open } = useAppKit();
 
   const handleBuy = () => open({ view: "OnRampProviders" });
+  const handleSend = () => open({ view: "Send" });
   const handleSwap = () => open({ view: "Swap" });
-
-  const handleSend = () => {
-  open({ view: "Send" });
-};
-
-      const id = await session.sendCalls([call]);
-      console.log("Send call submitted, ID:", id);
-    } catch (err) {
-      console.error("Send transaction failed:", err);
-    }
-  };
 
   return (
     <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
