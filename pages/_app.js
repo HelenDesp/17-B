@@ -23,21 +23,35 @@
 import { useEffect, useState } from "react";
 import ContextProvider from "../context";
 import { ThemeProvider } from "../context/ThemeContext";
+import { useAppKitTheme } from "@reown/appkit/react"; // ✅ Reown hook
 import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }) {
   const [cookieString, setCookieString] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const { setThemeMode } = useAppKitTheme(); // ✅ Get Reown theme control
 
   useEffect(() => {
     setCookieString(document.cookie);
     setMounted(true);
   }, []);
 
-  // Prevent flash of unstyled content
-  if (!mounted) {
-    return null;
-  }
+  // ✅ Sync Reown modal theme with app theme
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setThemeMode(isDark ? "dark" : "light");
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, [setThemeMode]);
+
+  if (!mounted) return null;
 
   return (
     <ThemeProvider>
