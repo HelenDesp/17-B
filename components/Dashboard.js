@@ -3,6 +3,7 @@ import { useAccount, useBalance } from "wagmi";
 import TokenBalances from "./TokenBalances";
 import TokenTransfer from "./TokenTransfer";
 import WalletCard from "./WalletCard";
+import TokenActions from "./TokenActions";
 import ActivityCard from "./ActivityCard";
 import NFTViewer from "./NFTViewer";
 import NFTTransfer from "./nftTransfer";
@@ -248,6 +249,7 @@ export default function Dashboard() {
           <TokenBalances />
         </div>
         <div className="space-y-6">
+		  <TokenActions />
           <TokenTransfer />
           <ActivityCard />
         </div>
