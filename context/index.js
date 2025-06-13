@@ -37,16 +37,14 @@ export const modal = createAppKit({
   themeMode: "auto",
 themeVariables: {
   "--w3m-accent": "#000000",
-  "--w3m-color-mix": "#000000",
-  "--w3m-color-mix-strength": 80,
   "--w3m-font-family": "'Cygnito Mono', sans-serif",
 
-  // ✅ Text color overrides
-  "--w3m-color-fg-1": "#000000", // main text (light theme)
-  "--w3m-color-bg-1": "#ffffff", // background for light theme
+  // ✅ Fix the accent glass background and text color
+  "--wui-color-accent-glass-010": "#ffffff", // light background for light theme
+  "--wui-color-accent-100": "#000000",       // text color for light theme
 
-  "--w3m-color-fg-1-dark": "#ffffff", // main text (dark theme)
-  "--w3m-color-bg-1-dark": "#000000", // background for dark theme
+  "--wui-color-accent-glass-010-dark": "#000000", // dark background for dark theme
+  "--wui-color-accent-100-dark": "#ffffff",       // text color for dark theme
 }
 });
 
