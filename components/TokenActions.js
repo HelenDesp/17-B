@@ -84,7 +84,7 @@ export default function TokenActions() {
         chains: [from.chain, to.chain],
       });
 
-      const inputAmount = parseUnits(amount, 18);
+      const inputAmount = ethersParseUnits(amount, 18);
 
       const route = {
         originChainId: from.chain.id,
@@ -177,7 +177,7 @@ import {
   useBalance,
   useWaitForTransactionReceipt,
 } from "wagmi";
-import { parseUnits } from "ethers";
+import { parseUnits as ethersParseUnits } from "ethers";
 
 // ERC20 transfer ABI
 const erc20TransferAbi = [
