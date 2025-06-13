@@ -22,7 +22,7 @@ export default function TokenActions() {
   useSendTransaction,
   useWriteContract,
   useBalance,
-  useWaitForTransactionReceipt,
+  useWaitForTransactionReceipt
 } from "wagmi";
 
 // ERC20 transfer ABI
