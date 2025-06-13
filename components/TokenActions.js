@@ -6,7 +6,15 @@ export default function TokenActions() {
 
   const handleBuy = () => open({ view: "OnRampProviders" });
   const handleSend = () => open({ view: "Send" });
-  const handleSwap = () => open({ view: "Swap" });
+  const handleSendFlow = async () => {
+    // Step 1: Force Smart Wallet hydration
+    await open({ view: "Account" });
+
+    // Step 2: Delay to ensure session is hydrated, then open Send modal
+    setTimeout(() => {
+      open({ view: "Send" });
+    }, 1500);
+  };
 
   return (
     <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
