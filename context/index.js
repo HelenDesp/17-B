@@ -36,14 +36,23 @@ export const modal = createAppKit({
   },
   themeMode: "auto",
   themeVariables: {
-    "--w3m-accent": "#000000",
-    "--w3m-color-mix": "#000000",
-    "--w3m-color-mix-strength": 80,
-    "--w3m-border-radius-master": "4px",
-    "--w3m-border-radius-button": "4px",
-    "--w3m-border-radius-input": "4px",
-    "--w3m-border-radius-modal": "4px",
-    "--w3m-font-family": "'Cygnito Mono', sans-serif",  
+  "--w3m-accent": "#000000",
+  "--w3m-color-mix": "#000000",
+  "--w3m-color-mix-strength": 80,
+  "--w3m-border-radius-master": "6px",
+  "--w3m-font-family": "'Cygnito Mono', sans-serif",
+
+  // Experimental — affects layout paddings and spacing
+  "--wui-border-radius-small": "6px",
+  "--wui-border-radius-medium": "6px",
+  "--wui-border-radius-large": "6px",
+
+  "--wui-spacing-0": "0px",
+  "--wui-spacing-xs": "4px",
+  "--wui-spacing-s": "8px",
+  "--wui-spacing-m": "12px",
+  "--wui-spacing-l": "16px",
+  "--wui-spacing-2l": "20px", // matches the var in your snippet  
   },
 });
 
