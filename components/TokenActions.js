@@ -9,7 +9,7 @@ import {
   useBalance,
   useWaitForTransactionReceipt,
   useWalletClient
-} from 'wagmi';
+} from "wagmi";
 import { parseUnits } from 'viem';
 import { parseUnits as ethersParseUnits } from 'ethers';
 
