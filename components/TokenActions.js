@@ -16,35 +16,34 @@ const CHAINS = [
 
 const TOKENS = ['ETH', 'USDC', 'USDT', 'DAI'];
 
-// Token address mapping by chain
 function getTokenAddress(chainId, symbol) {
   const addresses = {
-    1: { // Ethereum
+    1: {
       USDC: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
       USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
       DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F"
     },
-    8453: { // Base
+    8453: {
       USDC: "0xd9aa60fef2ee563bea6a6c2b3c5fbe9e63f55ae0",
       USDT: "0x5c7F2be2a7A2877bCea6F0E3fD98f0B48A5473d7",
       DAI: "0x3e7EF8f50246f725885102e8238CbBa33F276747"
     },
-    42161: { // Arbitrum
+    42161: {
       USDC: "0xFF970A61A04b1Ca14834A43f5dE4533eBDDB5CC8",
       USDT: "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
       DAI: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
     },
-    10: { // Optimism
+    10: {
       USDC: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
       USDT: "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
       DAI: "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
     },
-    137: { // Polygon
+    137: {
       USDC: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
       USDT: "0xc2132D05D31c914a87C6611C10748AaCbA2C7dD2",
       DAI: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063"
     },
-    56: { // BNB Chain
+    56: {
       USDC: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
       USDT: "0x55d398326f99059ff775485246999027b3197955",
       DAI: "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3"
@@ -69,8 +68,8 @@ export default function TokenActions() {
 
   const handleBridge = async () => {
     if (!walletClient.data) return alert('Connect your wallet first.');
-
     setLoading(true);
+
     try {
       const isNative = token === 'ETH';
 
@@ -79,12 +78,12 @@ export default function TokenActions() {
         chains: [from.chain, to.chain],
       });
 
-const route = {
-  originChainId: from.chain.id,
-  destinationChainId: to.chain.id,
-  inputToken: isNative ? "ETH" : getTokenAddress(from.chain.id, token),
-  outputToken: isNative ? "ETH" : getTokenAddress(to.chain.id, token),
-};
+      const route = {
+        originChainId: from.chain.id,
+        destinationChainId: to.chain.id,
+        inputToken: isNative ? null : getTokenAddress(from.chain.id, token),
+        outputToken: isNative ? null : getTokenAddress(to.chain.id, token),
+      };
 
       const inputAmount = parseUnits(amount, 18);
 
@@ -98,7 +97,7 @@ const route = {
       alert('Bridge successful!');
     } catch (e) {
       console.error(e);
-      alert('Bridge failed: ' + e.message);
+      alert('Bridge failed: ' + (e?.message || e));
     } finally {
       setLoading(false);
     }
@@ -111,95 +110,38 @@ const route = {
       </h2>
 
       <div className="flex flex-wrap gap-4 mb-6">
-        <button
-          onClick={handleBuy}
-          className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-        >
-          Buy Tokens
-        </button>
-        <button
-          onClick={handleSwap}
-          className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-        >
-          Swap Tokens
-        </button>
-        <button
-          onClick={handleSendFlow}
-          className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-        >
-          Send Tokens
-        </button>
+        <button onClick={handleBuy} className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Buy Tokens</button>
+        <button onClick={handleSwap} className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">Swap Tokens</button>
+        <button onClick={handleSendFlow} className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Send Tokens</button>
       </div>
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-4">
           <label className="flex flex-col text-sm text-gray-800 dark:text-white">
             From Chain
-            <select
-              value={from.label}
-              onChange={(e) =>
-                setFrom(CHAINS.find((c) => c.label === e.target.value))
-              }
-              className="px-3 py-1 rounded border"
-            >
-              {CHAINS.map((c) => (
-                <option key={c.chain.id} value={c.label}>
-                  {c.label}
-                </option>
-              ))}
+            <select value={from.label} onChange={(e) => setFrom(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
+              {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
             </select>
           </label>
-
           <label className="flex flex-col text-sm text-gray-800 dark:text-white">
             To Chain
-            <select
-              value={to.label}
-              onChange={(e) =>
-                setTo(CHAINS.find((c) => c.label === e.target.value))
-              }
-              className="px-3 py-1 rounded border"
-            >
-              {CHAINS.map((c) => (
-                <option key={c.chain.id} value={c.label}>
-                  {c.label}
-                </option>
-              ))}
+            <select value={to.label} onChange={(e) => setTo(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
+              {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
             </select>
           </label>
-
           <label className="flex flex-col text-sm text-gray-800 dark:text-white">
             Token
-            <select
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              className="px-3 py-1 rounded border"
-            >
-              {TOKENS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
+            <select value={token} onChange={(e) => setToken(e.target.value)} className="px-3 py-1 rounded border">
+              {TOKENS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </label>
-
           <label className="flex flex-col text-sm text-gray-800 dark:text-white">
             Amount
-            <input
-              type="text"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="px-3 py-1 rounded border"
-            />
+            <input type="text" value={amount} onChange={(e) => setAmount(e.target.value)} className="px-3 py-1 rounded border" />
           </label>
         </div>
 
-        <button
-          onClick={handleBridge}
-          disabled={loading}
-          className={`px-5 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors ${
-            loading ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
+        <button onClick={handleBridge} disabled={loading} className={`px-5 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}>
           {loading ? 'Bridging...' : 'Bridge Tokens'}
         </button>
       </div>
