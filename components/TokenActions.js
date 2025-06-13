@@ -5,8 +5,12 @@ export default function TokenActions() {
   const { open } = useAppKit();
 
   const handleBuy = () => open({ view: "OnRampProviders" });
-  const handleSwap = () => open({ view: "Swap" }); 
+  const handleSwap = () => open({ view: "Swap" });
   const handleSendFlow = () => open({ view: "Account" });
+
+  const handleBridge = () => {
+    window.open("https://across.to?fromChain=ethereum&toChain=base", "_blank");
+  };
 
   return (
     <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
@@ -31,6 +35,12 @@ export default function TokenActions() {
           className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
         >
           Send Tokens
+        </button>
+        <button
+          onClick={handleBridge}
+          className="px-5 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
+        >
+          Bridge Tokens
         </button>
       </div>
     </section>

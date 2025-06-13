@@ -54,9 +54,9 @@ export default function NFTViewer({
           View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.
         </p>
         {loading ? (
-          <p className="text-gray-500">Loading NFTs...</p>
+          <p className="text-gray-500 dark:text-white">Loading NFTs...</p>
         ) : nfts.length === 0 ? (
-          <p className="text-gray-500">No NFTs found for this wallet.</p>
+          <p className="text-gray-500 dark:text-white">No NFTs found for this wallet.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {nfts.map((nft, i) => (
