@@ -79,12 +79,12 @@ export default function TokenActions() {
         chains: [from.chain, to.chain],
       });
 
-      const route = {
-        originChainId: from.chain.id,
-        destinationChainId: to.chain.id,
-        inputToken: isNative ? null : getTokenAddress(from.chain.id, token),
-        outputToken: isNative ? null : getTokenAddress(to.chain.id, token),
-      };
+const route = {
+  originChainId: from.chain.id,
+  destinationChainId: to.chain.id,
+  inputToken: isNative ? "ETH" : getTokenAddress(from.chain.id, token),
+  outputToken: isNative ? "ETH" : getTokenAddress(to.chain.id, token),
+};
 
       const inputAmount = parseUnits(amount, 18);
 
