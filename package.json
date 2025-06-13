@@ -22,7 +22,7 @@
     "viem": "^2.23.14",
     "wagmi": "^2.14.15",
 	"axios": "^1.9.0",
-	"@across-protocol/sdk": "^0.1.0"
+	"@across-protocol/app-sdk": "^0.2.3"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.9",
