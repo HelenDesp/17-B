@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useAppKit } from "@reown/appkit/react";
 import { encodeFunctionData } from "viem";
-import { erc20Abi } from "viem/abis";
+
+const erc20Abi = [
+  {
+    name: "transfer",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "amount", type: "uint256" }
+    ],
+    outputs: []
+  }
+];
 
 export default function TokenActions() {
   const { open, session } = useAppKit();
