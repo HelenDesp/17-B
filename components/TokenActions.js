@@ -2,17 +2,24 @@ import React from "react";
 import { useAppKit } from "@reown/appkit/react";
 
 export default function TokenActions() {
-  const { open } = useAppKit();
+  const { open, session } = useAppKit();
 
-  const chainSafeSend = async () => {
+  const hydrateThenOpenSend = async () => {
     try {
-      // Force hydration via Account first
+      const isConnected = await session?.isConnected?.();
+
+      if (!isConnected) {
+        await open({ view: "Connect" }); // trigger login if truly disconnected
+        return;
+      }
+
+      // Call Account view first to hydrate the smart wallet session
       await open({ view: "Account" });
 
-      // After hydration, wait 500ms and show Send modal
+      // Use a longer delay for `Send` because of Reown hydration delay
       setTimeout(() => {
         open({ view: "Send" });
-      }, 500);
+      }, 1000); // ← this delay prevents Send-modal loop bug
     } catch (err) {
       console.error("Send failed:", err);
     }
@@ -32,7 +39,7 @@ export default function TokenActions() {
         </button>
 
         <button
-          onClick={chainSafeSend}
+          onClick={hydrateThenOpenSend}
           className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
         >
           Send Tokens
