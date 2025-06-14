@@ -92,7 +92,7 @@ export default function TokenActions() {
 className={`flex flex-col items-center justify-center border rounded text-base h-20 
   max-w-40 grow min-w-[80px]
   max-[1150px]:w-[48%]
-  max-[1023px]:w-auto
+  min-[1023px]:w-[48%]
   max-[439px]:w-[48%]
   ${activeAction === btn ? 'border-gray-900 dark:border-white' : 'border-transparent'}`}
           >
