@@ -42,7 +42,7 @@ export default function TokenTransfer() {
   const { isConnected, chainId, address, chain } = useAccount();
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
-  const [selectedToken, setSelectedToken] = useState("ETH");
+  const selectedToken = "ETH";
   const [memo, setMemo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txStatus, setTxStatus] = useState(null);
@@ -63,8 +63,12 @@ export default function TokenTransfer() {
       ? popularTokens[chain.id]
       : popularTokens[1]; // Default to Ethereum mainnet
 
-  // Find the selected token object
-  const token = tokens.find((t) => t.symbol === selectedToken);
+const token = {
+  symbol: "ETH",
+  name: "Ethereum",
+  address: null,
+  decimals: 18,
+};
 
   // For ETH transfers
   const { sendTransactionAsync } = useSendTransaction();
@@ -108,7 +112,6 @@ export default function TokenTransfer() {
         blockNumber: receipt?.blockNumber
           ? receipt.blockNumber.toString()
           : undefined, // Convert BigInt to string
-        memo: memo || undefined,
       });
       // Reset form after successful transaction
       setAmount("");
@@ -205,9 +208,6 @@ export default function TokenTransfer() {
         hash = await sendTransactionAsync({
           to: recipient,
           value: parseUnits(amount, token.decimals),
-          data: memo
-            ? `0x${Buffer.from(memo, "utf8").toString("hex")}`
-            : undefined,
         });
       } else {
         // ERC20 transfer
@@ -320,45 +320,6 @@ export default function TokenTransfer() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Token Selection */}
-        <div>
-          <label
-            htmlFor="token"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            Select Token
-          </label>
-          <div className="token-selector">
-			{tokens.map((t) => (
-			  <button
-				key={t.symbol}
-				type="button"
-				onClick={() => setSelectedToken(t.symbol)}
-				className={`token-option 
-				  ${selectedToken === t.symbol
-					? 'border border-secondary-500 dark:border-primary-500 bg-transparent'
-					: 'bg-transparent'
-				  }`
-				}
-				style={{ boxSizing: 'border-box' }} // ensures 1px border doesn't shift sizing
-			  >
-<div
-  className={`flex items-center justify-center mb-1 ${
-    t.symbol === 'USDT' ? 'w-9 h-8' : 'w-8 h-8'
-  }`}
->
-  <img
-    src={t.logo}
-    alt={t.symbol}
-    className={`object-cover ${t.symbol === 'USDT' ? 'w-9 h-8' : 'w-8 h-8'}`}
-  />
-</div>
-				<span className="text-xs font-medium text-gray-900 dark:text-white">
-				  {t.symbol}
-				</span>
-			  </button>
-			))}
-          </div>
-        </div>
 
         {/* Recipient Address */}
         <div>
