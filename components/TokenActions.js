@@ -84,7 +84,7 @@ export default function TokenActions() {
   return (
     <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Token Actions</h2>
-      <div className="flex flex-wrap justify-between gap-4 mb-6 max-w-full">
+      <div className="flex flex-wrap gap-4 mb-6 sm:flex-nowrap">
         {["Buy", "Swap", "Send", "Bridge"].map((btn) => (
           <button
             key={btn}
