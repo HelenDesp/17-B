@@ -70,9 +70,9 @@ export default function TokenActions() {
   const [loading, setLoading] = useState(false);
   const [showBridge, setShowBridge] = useState(false);
 
-  const handleBuy = () => open({ view: 'OnRampProviders' });
-  const handleSwap = () => open({ view: 'Swap' });
-  const handleSendFlow = () => open({ view: 'Account' });
+  const handleBuy = () => { setShowBridge(false); open({ view: 'OnRampProviders' }); };
+  const handleSwap = () => { setShowBridge(false); open({ view: 'Swap' }); };
+  const handleSendFlow = () => { setShowBridge(false); open({ view: 'Account' }); };
 
   return (
     <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
