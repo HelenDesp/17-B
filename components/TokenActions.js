@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppKit } from '@reown/appkit/react';
 import { createAcrossClient } from '@across-protocol/app-sdk';
@@ -49,7 +50,7 @@ function getTokenAddress(chainId, symbol) {
       DAI: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063"
     },
     56: {
-      ETH: "0x2170Ed0880ac9A755fd29B2688956BD959F933F8", // WETH on BNB
+      ETH: "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
       USDC: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
       USDT: "0x55d398326f99059ff775485246999027b3197955",
       DAI: "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3"
@@ -73,142 +74,65 @@ export default function TokenActions() {
   const handleSwap = () => open({ view: 'Swap' });
   const handleSendFlow = () => open({ view: 'Account' });
 
-  const handleBridge = async () => {
-    if (!walletClient.data) return alert('Connect your wallet first.');
-    setLoading(true);
-
-    try {
-      const client = createAcrossClient({
-        integratorId: '0xdead',
-        chains: [from.chain, to.chain],
-      });
-
-      const inputAmount = parseUnits(amount, 18);
-
-      const route = {
-        originChainId: from.chain.id,
-        destinationChainId: to.chain.id,
-        inputToken: getTokenAddress(from.chain.id, token),
-        outputToken: getTokenAddress(to.chain.id, token),
-      };
-
-      const quote = await client.getQuote({ route, inputAmount });
-      await client.executeQuote({
-        walletClient: walletClient.data,
-        deposit: quote.deposit,
-        onProgress: (p) => console.log('progress', p),
-      });
-
-      alert('Bridge successful!');
-    } catch (e) {
-      console.error(e);
-      alert('Bridge failed: ' + (e?.message || e));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
         Token Actions
       </h2>
       <div className="flex flex-wrap gap-4 mb-6">
-        <button onClick={() => setShowBridge(!showBridge)} className="px-5 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
-          Bridge
-        </button>
         <button onClick={handleBuy} className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Buy Tokens</button>
         <button onClick={handleSwap} className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">Swap Tokens</button>
         <button onClick={handleSendFlow} className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Send Tokens</button>
+        <button onClick={() => setShowBridge(!showBridge)} className="px-5 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Bridge</button>
       </div>
-      {showBridge && (<div className="flex flex-col gap-4">
-    <div className="text-sm text-red-600">
-      ⚠️ Bridge feature is under construction.<br />
-      Please use 
-      <a
-        href="https://app.across.to/bridge"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline text-blue-600 ml-1"
-      >
-      [Across.to]
-      </a>
-      as a temporary solution.
-    </div>	  
-    <div className="flex flex-wrap gap-4">
-      <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-        From Chain
-        <select value={from.label} onChange={(e) => setFrom(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
-          {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
-        </select>
-      </label>
-      <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-        To Chain
-        <select value={to.label} onChange={(e) => setTo(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
-          {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
-        </select>
-      </label>
-      <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-        Token
-        <select value={token} onChange={(e) => setToken(e.target.value)} className="px-3 py-1 rounded border">
-          {TOKENS.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
-      </label>
-      <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-        Amount
-        <input type="text" value={amount} onChange={(e) => setAmount(e.target.value)} className="px-3 py-1 rounded border" />
-      </label>
-    </div>
-    <button
-      disabled
-      className="px-5 py-2 bg-yellow-400 text-white rounded opacity-50 cursor-not-allowed"
-    >
-      Bridge
-    </button>
-  </div>)}
-		⚠️ Bridge feature is under construction.<br />
-		Please use 
-		<a
-		  href="https://app.across.to/bridge"
-		  target="_blank"
-		  rel="noopener noreferrer"
-		  className="underline text-blue-600 ml-1"
-		>
-		[Across.to]
-		</a>
-		as a temporary solution.
-	  </div>	  
-        <div className="flex flex-wrap gap-4">
-          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-            From Chain
-            <select value={from.label} onChange={(e) => setFrom(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
-              {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-            To Chain
-            <select value={to.label} onChange={(e) => setTo(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
-              {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-            Token
-            <select value={token} onChange={(e) => setToken(e.target.value)} className="px-3 py-1 rounded border">
-              {TOKENS.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </label>
-          <label className="flex flex-col text-sm text-gray-800 dark:text-white">
-            Amount
-            <input type="text" value={amount} onChange={(e) => setAmount(e.target.value)} className="px-3 py-1 rounded border" />
-          </label>
+
+      {showBridge && (
+        <div className="flex flex-col gap-4">
+          <div className="text-sm text-red-600">
+            ⚠️ Bridge feature is under construction.<br />
+            Please use 
+            <a
+              href="https://app.across.to/bridge"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-blue-600 ml-1"
+            >
+              [Across.to]
+            </a>
+            as a temporary solution.
+          </div>	  
+          <div className="flex flex-wrap gap-4">
+            <label className="flex flex-col text-sm text-gray-800 dark:text-white">
+              From Chain
+              <select value={from.label} onChange={(e) => setFrom(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
+                {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
+              </select>
+            </label>
+            <label className="flex flex-col text-sm text-gray-800 dark:text-white">
+              To Chain
+              <select value={to.label} onChange={(e) => setTo(CHAINS.find(c => c.label === e.target.value))} className="px-3 py-1 rounded border">
+                {CHAINS.map(c => <option key={c.chain.id} value={c.label}>{c.label}</option>)}
+              </select>
+            </label>
+            <label className="flex flex-col text-sm text-gray-800 dark:text-white">
+              Token
+              <select value={token} onChange={(e) => setToken(e.target.value)} className="px-3 py-1 rounded border">
+                {TOKENS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </label>
+            <label className="flex flex-col text-sm text-gray-800 dark:text-white">
+              Amount
+              <input type="text" value={amount} onChange={(e) => setAmount(e.target.value)} className="px-3 py-1 rounded border" />
+            </label>
+          </div>
+          <button
+            disabled
+            className="px-5 py-2 bg-yellow-400 text-white rounded opacity-50 cursor-not-allowed"
+          >
+            Bridge
+          </button>
         </div>
-		  <button
-			disabled
-			className="px-5 py-2 bg-yellow-400 text-white rounded opacity-50 cursor-not-allowed"
-		  >
-			Bridge
-		  </button>
-      </div>
+      )}
     </section>
   );
 }
