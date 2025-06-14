@@ -89,21 +89,24 @@ export default function TokenActions() {
           <button
             key={btn}
             onClick={() => handleAction(btn)}
-className={`flex flex-col items-center justify-center border rounded text-base h-20
-  min-w-[80px] max-w-40 grow
-  max-[1150px]:min-w-[47%] max-[1023px]:min-w-[22%] max-[480px]:min-w-[47%]
-  ${activeAction === btn ? 'border-gray-900 dark:border-white' : 'border-transparent'}`}
+			className={`flex flex-col items-center justify-center border rounded text-base h-20
+			  min-w-[80px] max-w-40 grow
+			  max-[1150px]:min-w-[47%] max-[1023px]:min-w-[22%] max-[480px]:min-w-[47%]
+			  ${activeAction === btn ? 'border-gray-900 dark:border-white' : 'border-transparent'}`}
           >
-            <img
-              src={
-                btn === "Buy" ? "/ethereum.svg" :
-                btn === "Swap" ? "/usdc.svg" :
-                btn === "Send" ? "/dai.svg" :
-                "/wrappedbtc.svg"
-              }
-              alt={btn}
-              className="w-8 h-8 mb-1"
-            />
+			<img
+			  src={
+				btn === "Buy"
+				  ? "/ethereum.svg"
+				  : btn === "Swap"
+				  ? "/usdc.svg"
+				  : btn === "Send"
+				  ? "/dai.svg"
+				  : "/wrappedbtc.svg"
+			  }
+			  alt={btn}
+			  className={`w-8 h-8 mb-1 ${btn === "Buy" ? 'dark:invert' : ''}`}
+			/>
             <span className="text-gray-900 dark:text-white uppercase">{btn}</span>
           </button>
         ))}
@@ -111,19 +114,19 @@ className={`flex flex-col items-center justify-center border rounded text-base h
 
       {showBridge && (
         <div className="flex flex-col gap-4">
-          <div className="text-sm text-red-600">
-            ⚠️ Bridge feature is under construction.<br />
-            Please use 
-            <a
-              href="https://app.across.to/bridge"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-blue-600 ml-1"
-            >
-              [Across.to]
-            </a>
-            as a temporary solution.
-          </div>
+			<div className="text-sm text-black dark:text-white">
+			  <span className="text-red-600">⚠️</span> Bridge feature is under construction.<br />
+			  Please use 
+			  <a
+				href="https://app.across.to/bridge"
+				target="_blank"
+				rel="noopener noreferrer"
+				className="underline text-blue-600 ml-1"
+			  >
+				[Across.to]
+			  </a>
+			  as a temporary solution.
+			</div>
           <div className="flex flex-wrap gap-4">
             <label className="flex flex-col text-sm text-gray-800 dark:text-white">
               From Chain
@@ -148,12 +151,14 @@ className={`flex flex-col items-center justify-center border rounded text-base h
               <input type="text" value={amount} onChange={(e) => setAmount(e.target.value)} className="px-3 py-1 rounded border" />
             </label>
           </div>
-          <button
-            disabled
-            className="px-5 py-2 bg-yellow-400 text-white rounded opacity-50 cursor-not-allowed"
-          >
-            Bridge
-          </button>
+			<button
+			  disabled
+			  className="px-4 py-2 rounded opacity-50 cursor-not-allowed
+				bg-black text-white
+				dark:bg-white dark:text-black"
+			>
+			  Bridge
+			</button>
         </div>
       )}
     </section>
