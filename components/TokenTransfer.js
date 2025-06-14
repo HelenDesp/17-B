@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import { useAppKit } from "@reown/appkit/react";
 import {
   useAccount,
   useSendTransaction,
   useWriteContract,
   useBalance,
   useWaitForTransactionReceipt,
-  usePublicClient,
 } from "wagmi";
 import { parseUnits } from "ethers";
 
@@ -25,31 +23,20 @@ const erc20TransferAbi = [
 ];
 
 // List of popular tokens with their addresses, logos, and colors on different networks
-
 const popularTokens = {
+  // Mainnet
   1: [
-    { symbol: "ETH", name: "Ethereum", address: null, decimals: 18, logo: "/ethereum.svg", color: "bg-blue-500" },
-    { symbol: "USDT", name: "Tether", address: "0xdAC17F958D2ee523a2206206994597C13D831ec7", decimals: 6, logo: "/usdt.svg", color: "bg-green-500" },
-    { symbol: "USDC", name: "USD Coin", address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", decimals: 6, logo: "/usdc.svg", color: "bg-blue-500" },
-    { symbol: "DAI", name: "Dai Stablecoin", address: "0x6B175474E89094C44Da98b954EedeAC495271d0F", decimals: 18, logo: "/dai.svg", color: "bg-yellow-500" },
-    { symbol: "WBTC", name: "Wrapped Bitcoin", address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", decimals: 8, logo: "/wrappedbtc.svg", color: "bg-orange-500" }
+    {
+      symbol: "ETH",
+      name: "Ethereum",
+      address: null,
+      decimals: 18,
+      logo: "/ethereum.svg",
+      color: "bg-blue-500",
+    },
   ],
-  137: [
-    { symbol: "ETH", name: "Ethereum", address: null, decimals: 18, logo: "/ethereum.svg", color: "bg-blue-500" },
-    { symbol: "USDT", name: "Tether", address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6, logo: "/usdt.svg", color: "bg-green-500" },
-    { symbol: "USDC", name: "USD Coin", address: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", decimals: 6, logo: "/usdc.svg", color: "bg-blue-500" },
-    { symbol: "DAI", name: "Dai Stablecoin", address: "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063", decimals: 18, logo: "/dai.svg", color: "bg-yellow-500" },
-    { symbol: "WBTC", name: "Wrapped Bitcoin", address: "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6", decimals: 8, logo: "/wrappedbtc.svg", color: "bg-orange-500" }
-  ],
-  8453: [
-    { symbol: "ETH", name: "Ethereum", address: null, decimals: 18, logo: "/ethereum.svg", color: "bg-blue-500" },
-    { symbol: "USDT", name: "Tether", address: "0x2b89184578b2c2b3f736dfc6f13b2d204b114123", decimals: 6, logo: "/usdt.svg", color: "bg-green-500" },
-    { symbol: "USDC", name: "USD Coin", address: "0xd9fcd98c322942075a5c3860693e9f4f03aae07b", decimals: 6, logo: "/usdc.svg", color: "bg-blue-500" },
-    { symbol: "DAI", name: "Dai Stablecoin", address: "0x7d6a162d6d9db308e6a7f235a768e9ac640d6a4e", decimals: 18, logo: "/dai.svg", color: "bg-yellow-500" },
-    { symbol: "WBTC", name: "Wrapped Bitcoin", address: "0xdc4c35f760a6214516c2063be82a0c8ce63d49aa", decimals: 8, logo: "/wrappedbtc.svg", color: "bg-orange-500" }
-  ]
+  // Add other networks here
 };
-
 
 export default function TokenTransfer() {
   const { isConnected, chainId, address, chain } = useAccount();
@@ -64,30 +51,14 @@ export default function TokenTransfer() {
   const [addressError, setAddressError] = useState("");
   const [txStage, setTxStage] = useState(""); // 'preparing', 'pending', 'confirmed', 'reverted'
 
-// Get tokens based on current chain
-const tokens =
-  chain && popularTokens[chain.id]
-    ? popularTokens[chain.id]
-    : popularTokens[1]; // Default to Ethereum mainnet
-
-// ✅ Reown asset balances (used to replace useEffect + publicClient)
-const { account } = useAppKit();
-const reownAssets = account?.assets || [];
-
-
-const tokenBalances = {};
-for (const t of reownAssets) {
-  if (t.balance && t.symbol && t.decimals !== undefined) {
-    tokenBalances[t.symbol] = (Number(t.balance) / 10 ** t.decimals).toFixed(5);
-  }
-}
-
-const { data: ethBalance } = useBalance({
+  // Check balance of selected token
+  const { data: ethBalance } = useBalance({
     address,
     enabled: !!address && selectedToken === "ETH",
   });
 
   // Get tokens based on current chain
+  const tokens =
     chain && popularTokens[chain.id]
       ? popularTokens[chain.id]
       : popularTokens[1]; // Default to Ethereum mainnet
@@ -310,7 +281,7 @@ const { data: ethBalance } = useBalance({
     return (
       <div className="bg-white dark:bg-dark-200 shadow-card dark:shadow-card-dark p-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Transfer Tokens
+          Transfer ETH
         </h2>
         <div className="flex flex-col items-center justify-center py-8">
           <svg
@@ -344,7 +315,7 @@ const { data: ethBalance } = useBalance({
   return (
     <div className="bg-white dark:bg-dark-200 border-b2 shadow-card dark:shadow-card-dark p-6">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-        Transfer Tokens
+        Transfer ETH
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -465,29 +436,6 @@ const { data: ethBalance } = useBalance({
               Balance: {parseFloat(ethBalance.formatted).toFixed(5)} ETH
             </p>
           )}
-          {selectedToken !== "ETH" && tokenBalances[selectedToken] && (
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Balance: {tokenBalances[selectedToken]} {selectedToken}
-            </p>
-          )}
-        </div>
-
-        {/* Memo (optional) */}
-        <div>
-          <label
-            htmlFor="memo"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            Memo (optional)
-          </label>
-          <textarea
-            id="memo"
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-            placeholder="Add a memo to your transaction..."
-            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-dark-300 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500 h-20 resize-none"
-            disabled={isSubmitting}
-          />
         </div>
 
         {/* Submit Button */}
