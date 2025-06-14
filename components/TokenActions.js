@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import { useAppKit } from '@reown/appkit/react';
 import { createAcrossClient } from '@across-protocol/app-sdk';
 import { mainnet, optimism, arbitrum, base, polygon, bsc } from 'viem/chains';
 import { useWalletClient } from 'wagmi';
-import { parseUnits } from 'viem';
 
 const CHAINS = [
   { label: 'Ethereum', chain: mainnet },
@@ -88,20 +86,20 @@ export default function TokenActions() {
       <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
         Token Actions
       </h2>
-      
-      
-      
-      
-      
-      <div className="flex flex-wrap gap-4 mb-6 justify-between">
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap justify-between gap-4 mb-6 sm:justify-center max-[1159px]:justify-between max-[1023px]:justify-start">
         {["Buy", "Swap", "Send", "Bridge"].map((btn) => (
           <button
             key={btn}
             onClick={() => handleAction(btn)}
-            className={`token-option flex flex-col items-center justify-center h-20 rounded text-base border
-              min-w-[80px] max-w-40 grow max-[1159px]:w-[48%] max-[443px]:w-[48%]
+            className={`flex flex-col items-center justify-center border rounded text-base h-20
+              max-w-40 grow min-w-[80px]
+              max-[1159px]:w-[48%]
+              max-[1023px]:w-[48%]
+              max-[443px]:w-full
               ${activeAction === btn
-                ? 'border border-gray-900 dark:border-white'
+                ? 'border-gray-900 dark:border-white'
                 : 'border-transparent'}`}
           >
             <img
@@ -122,6 +120,7 @@ export default function TokenActions() {
         ))}
       </div>
 
+      {/* Bridge UI */}
       {showBridge && (
         <div className="flex flex-col gap-4">
           <div className="text-sm text-red-600">
@@ -136,7 +135,7 @@ export default function TokenActions() {
               [Across.to]
             </a>
             as a temporary solution.
-          </div>	  
+          </div>
           <div className="flex flex-wrap gap-4">
             <label className="flex flex-col text-sm text-gray-800 dark:text-white">
               From Chain
