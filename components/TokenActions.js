@@ -95,7 +95,7 @@ export default function TokenActions() {
           <button
             key={btn}
             onClick={() => handleAction(btn)}
-            className={`token-option flex flex-col items-center justify-center w-20 h-20 rounded text-sm font-semibold border
+            className={`token-option flex flex-col items-center justify-center w-40 h-20 rounded text-base border
               ${activeAction === btn
                 ? 'border border-gray-900 dark:border-white'
                 : 'border-transparent'}`}
@@ -111,7 +111,7 @@ export default function TokenActions() {
                   : "/wrappedbtc.svg"
               }
               alt={btn}
-              className="w-8 h-8 mb-2"
+              className="w-8 h-8 mb-1"
             />
             <span className="text-gray-900 dark:text-white">{btn}</span>
           </button>
