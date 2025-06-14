@@ -56,6 +56,8 @@ export default function TokenTransfer() {
     address,
     enabled: !!address && selectedToken === "ETH",
   });
+  
+  const [ethUsd, setEthUsd] = useState(null);
 
   // Get tokens based on current chain
   const tokens =
@@ -63,12 +65,12 @@ export default function TokenTransfer() {
       ? popularTokens[chain.id]
       : popularTokens[1]; // Default to Ethereum mainnet
 
-const token = {
-  symbol: "ETH",
-  name: "Ethereum",
-  address: null,
-  decimals: 18,
-};
+	const token = {
+	  symbol: "ETH",
+	  name: "Ethereum",
+	  address: null,
+	  decimals: 18,
+	};
 
   // For ETH transfers
   const { sendTransactionAsync } = useSendTransaction();
@@ -86,6 +88,36 @@ const token = {
     hash: txHash,
     enabled: !!txHash,
   });
+  
+	useEffect(() => {
+	  const fetchEthPrice = async () => {
+		const nativeIdMap = {
+		  1: 'ethereum',
+		  8453: 'ethereum',
+		  42161: 'ethereum',
+		  10: 'ethereum',
+		  137: 'matic-network',
+		  56: 'binancecoin',
+		  11155111: 'ethereum',
+		};
+
+		const coinId = nativeIdMap[chain?.id];
+		if (!coinId) return;
+
+		try {
+		  const res = await fetch(
+			`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`
+		  );
+		  const data = await res.json();
+		  const price = data[coinId]?.usd;
+		  if (price) setEthUsd(price);
+		} catch (err) {
+		  console.error("Error fetching ETH price:", err);
+		}
+	  };
+
+	  fetchEthPrice();
+	}, [chain]);  
 
   // Update UI based on transaction status
   useEffect(() => {
@@ -392,11 +424,17 @@ const token = {
               {amountError}
             </p>
           )}
-          {ethBalance && selectedToken === "ETH" && (
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Balance: {parseFloat(ethBalance.formatted).toFixed(5)} ETH
-            </p>
-          )}
+		{ethBalance && (
+		  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+			Balance: {parseFloat(ethBalance.formatted).toFixed(5)} ETH
+			{ethUsd && (
+			  <>
+				{" "}
+				/ ${ (parseFloat(ethBalance.formatted) * ethUsd).toFixed(2) }
+			  </>
+			)}
+		  </p>
+		)}
         </div>
 
         {/* Submit Button */}
