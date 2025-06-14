@@ -91,12 +91,14 @@ export default function TokenActions() {
       
       
       
+      
       <div className="flex flex-wrap gap-4 mb-6 justify-between">
         {["Buy", "Swap", "Send", "Bridge"].map((btn) => (
           <button
             key={btn}
             onClick={() => handleAction(btn)}
-            className={`token-option flex flex-col items-center justify-center min-w-[80px] max-w-40 grow h-20 rounded text-base border
+            className={`token-option flex flex-col items-center justify-center h-20 rounded text-base border
+              max-w-40 grow min-w-[80px] max-[443px]:w-[48%]
               ${activeAction === btn
                 ? 'border border-gray-900 dark:border-white'
                 : 'border-transparent'}`}
@@ -118,8 +120,6 @@ export default function TokenActions() {
           </button>
         ))}
       </div>
-
-
 
 
       {showBridge && (
