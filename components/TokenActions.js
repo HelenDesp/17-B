@@ -121,8 +121,7 @@ export default function TokenActions() {
         <button onClick={handleSwap} className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">Swap Tokens</button>
         <button onClick={handleSendFlow} className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Send Tokens</button>
       </div>
-      {showBridge && (
-  <div className="flex flex-col gap-4">
+      {showBridge && (<div className="flex flex-col gap-4">
     <div className="text-sm text-red-600">
       ⚠️ Bridge feature is under construction.<br />
       Please use 
