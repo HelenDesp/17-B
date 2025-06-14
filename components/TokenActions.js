@@ -69,6 +69,15 @@ export default function TokenActions() {
   const [amount, setAmount] = useState('0.1');
   const [loading, setLoading] = useState(false);
   const [showBridge, setShowBridge] = useState(false);
+  const [activeAction, setActiveAction] = useState(null);
+
+  const handleAction = (action) => {
+    setActiveAction(action);
+    if (action === 'Buy') handleBuy();
+    else if (action === 'Swap') handleSwap();
+    else if (action === 'Send') handleSendFlow();
+    else if (action === 'Bridge') setShowBridge(prev => !prev);
+  };
 
   const handleBuy = () => { setShowBridge(false); open({ view: 'OnRampProviders' }); };
   const handleSwap = () => { setShowBridge(false); open({ view: 'Swap' }); };
@@ -79,12 +88,35 @@ export default function TokenActions() {
       <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
         Token Actions
       </h2>
-      <div className="flex flex-wrap gap-4 mb-6">
-        <button onClick={handleBuy} className="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Buy Tokens</button>
-        <button onClick={handleSwap} className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700">Swap Tokens</button>
-        <button onClick={handleSendFlow} className="px-5 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Send Tokens</button>
-        <button onClick={() => setShowBridge(!showBridge)} className="px-5 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Bridge</button>
+      
+      <div className="flex flex-wrap gap-2 mb-6">
+        {["Buy", "Swap", "Send", "Bridge"].map((btn) => (
+          <button
+            key={btn}
+            onClick={() => handleAction(btn)}
+            className={`token-option flex flex-col items-center p-2 rounded text-xs font-medium border
+              ${activeAction === btn
+                ? 'border border-gray-900 dark:border-white'
+                : 'border-transparent'}`}
+          >
+            <img
+              src={
+                btn === "Buy"
+                  ? "/ethereum.svg"
+                  : btn === "Swap"
+                  ? "/usdc.svg"
+                  : btn === "Send"
+                  ? "/dai.svg"
+                  : "/wrappedbtc.svg"
+              }
+              alt={btn}
+              className="w-8 h-8 mb-1"
+            />
+            {btn}
+          </button>
+        ))}
       </div>
+
 
       {showBridge && (
         <div className="flex flex-col gap-4">
