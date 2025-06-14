@@ -82,7 +82,7 @@ export default function TokenActions() {
   const handleSendFlow = () => { setShowBridge(false); open({ view: 'Account' }); };
 
   return (
-    <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
+    <section className="p-4 bg-white border-b2 dark:bg-dark-200 rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Token Actions</h2>
       <div className="flex flex-wrap gap-4 mb-6 justify-between max-w-full">
         {["Buy", "Swap", "Send", "Bridge"].map((btn) => (
@@ -114,19 +114,21 @@ export default function TokenActions() {
 
       {showBridge && (
         <div className="flex flex-col gap-4">
-			<div className="text-sm text-black dark:text-white">
-			  <span className="text-red-600">⚠️</span> Bridge feature is under construction.<br />
-			  Please use 
-			  <a
-				href="https://app.across.to/bridge"
-				target="_blank"
-				rel="noopener noreferrer"
-				className="underline text-blue-600 ml-1"
-			  >
-				[Across.to]
-			  </a>
-			  as a temporary solution.
-			</div>
+<div className="text-sm text-black dark:text-white">
+  <span className="text-red-600">!</span> Bridge feature is under construction.<br />
+  Please use
+  <a
+    href="https://app.across.to/bridge"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="ml-1 px-1 py-0.5 rounded underline
+      text-black dark:text-white
+      hover:bg-gray-200 dark:hover:bg-gray-700"
+  >
+    [Across.to]
+  </a>
+  as a temporary solution.
+</div>
           <div className="flex flex-wrap gap-4">
             <label className="flex flex-col text-sm text-gray-800 dark:text-white">
               From Chain
@@ -153,7 +155,7 @@ export default function TokenActions() {
           </div>
 			<button
 			  disabled
-			  className="px-4 py-2 rounded opacity-50 cursor-not-allowed
+			  className="px-4 py-2 opacity-60 cursor-not-allowed
 				bg-black text-white
 				dark:bg-white dark:text-black"
 			>
