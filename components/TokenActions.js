@@ -83,34 +83,22 @@ export default function TokenActions() {
 
   return (
     <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-        Token Actions
-      </h2>
-
-      {/* Action Buttons */}
-      <div className="flex flex-wrap justify-between gap-4 mb-6 sm:justify-center max-[1159px]:justify-between max-[1023px]:justify-start">
+      <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Token Actions</h2>
+      <div className="flex flex-wrap gap-4 mb-6 sm:flex-nowrap sm:overflow-x-auto">
         {["Buy", "Swap", "Send", "Bridge"].map((btn) => (
           <button
             key={btn}
             onClick={() => handleAction(btn)}
-            className={`flex flex-col items-center justify-center border rounded text-base h-20
+            className={\`flex flex-col items-center justify-center border rounded text-base h-20
               max-w-40 grow min-w-[80px]
-              max-[1159px]:w-[48%]
-              max-[1023px]:w-[48%]
-              max-[443px]:w-full
-              ${activeAction === btn
-                ? 'border-gray-900 dark:border-white'
-                : 'border-transparent'}`}
+              \${activeAction === btn ? 'border-gray-900 dark:border-white' : 'border-transparent'}\`}
           >
             <img
               src={
-                btn === "Buy"
-                  ? "/ethereum.svg"
-                  : btn === "Swap"
-                  ? "/usdc.svg"
-                  : btn === "Send"
-                  ? "/dai.svg"
-                  : "/wrappedbtc.svg"
+                btn === "Buy" ? "/ethereum.svg" :
+                btn === "Swap" ? "/usdc.svg" :
+                btn === "Send" ? "/dai.svg" :
+                "/wrappedbtc.svg"
               }
               alt={btn}
               className="w-8 h-8 mb-1"
@@ -120,7 +108,6 @@ export default function TokenActions() {
         ))}
       </div>
 
-      {/* Bridge UI */}
       {showBridge && (
         <div className="flex flex-col gap-4">
           <div className="text-sm text-red-600">
