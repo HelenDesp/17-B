@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
 
 const ALCHEMY_BASE_URL = "https://base-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr";
 
@@ -23,10 +22,11 @@ export default function TokenTxHistory({ address, chainId }) {
             params: [{
               fromBlock: "0x0",
               toAddress: address,
+              fromAddress: address,
               category: ["external", "erc20"],
               withMetadata: true,
               excludeZeroValue: true,
-              maxCount: "0x32"  // 50 entries
+              maxCount: "0x32"
             }]
           })
         });
@@ -51,6 +51,7 @@ export default function TokenTxHistory({ address, chainId }) {
             <div><strong>Token:</strong> {tx.asset || "ETH"}</div>
             <div><strong>Amount:</strong> {tx.value}</div>
             <div><strong>From:</strong> {tx.from}</div>
+            <div><strong>To:</strong> {tx.to}</div>
             <div><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
             <div><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
           </div>
