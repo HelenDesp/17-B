@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 const ALCHEMY_BASE_URL = "https://base-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr";
 
 const knownBridgeAddresses = [
-  "0x28d744dab5804ef913df1bf361e06ef87ee7fa47", // Across Base Bridge (example)
-  // Add more known bridge vaults
+  "0x28d744dab5804ef913df1bf361e06ef87ee7fa47" // Example Across bridge
 ];
 
 export default function TokenTxHistory({ address, chainId }) {
@@ -60,7 +59,7 @@ export default function TokenTxHistory({ address, chainId }) {
         const received = await receivedRes.json();
         const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
 
-        // Filter only non-NFT, non-minting ERC20
+        // Filter only non-NFT, non-REVERSE, non-minting
         const filtered = all.filter(tx =>
           tx.asset !== "REVERSE" &&
           tx.from !== zeroAddress &&
@@ -88,11 +87,17 @@ export default function TokenTxHistory({ address, chainId }) {
 
           const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
           const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
+          const allTokens = txGroup.map(t => t.asset).filter(Boolean);
           const isBridge = sentTx && knownBridgeAddresses.includes(sentTx.to?.toLowerCase());
 
           let type = "Unknown";
+
           if (sentTx && receivedTx) {
-            type = "Swapped";
+            const swapToken = receivedTx.asset || sentTx.asset;
+            type = `Swapped (${swapToken})`;
+			else if (sentTx && txGroup.some(t => t.from === zeroAddress)) {
+			  type = "Sent (Minted)";
+			}
           } else if (isBridge) {
             type = "Bridged";
           } else if (sentTx) {
