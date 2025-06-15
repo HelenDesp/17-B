@@ -2,23 +2,17 @@ import React, { useEffect, useState } from "react";
 
 const ALCHEMY_BASE_URL = "https://base-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr";
 
-function getTxType(tx, userAddress) {
-  const from = tx.from?.toLowerCase();
-  const to = tx.to?.toLowerCase();
-  const zeroAddress = "0x0000000000000000000000000000000000000000";
-  const user = userAddress?.toLowerCase();
-
-  if (from === zeroAddress) return "Minted";
-  if (from === user && to === user) return "Self Transfer";
-  if (from === user) return "Sent";
-  if (to === user) return "Received";
-  return "Other";
-}
+const knownBridgeAddresses = [
+  "0x28d744dab5804ef913df1bf361e06ef87ee7fa47", // Across Base Bridge (example)
+  // Add more known bridge vaults
+];
 
 export default function TokenTxHistory({ address, chainId }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 10;
+
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
 
   useEffect(() => {
     if (!address || !chainId) return;
@@ -36,7 +30,7 @@ export default function TokenTxHistory({ address, chainId }) {
               params: [{
                 fromBlock: "0x0",
                 fromAddress: address,
-                category: ["external", "erc20", "erc721"],
+                category: ["external", "erc20"],
                 withMetadata: true,
                 excludeZeroValue: true,
                 maxCount: "0x32"
@@ -53,7 +47,7 @@ export default function TokenTxHistory({ address, chainId }) {
               params: [{
                 fromBlock: "0x0",
                 toAddress: address,
-                category: ["external", "erc20", "erc721"],
+                category: ["external", "erc20"],
                 withMetadata: true,
                 excludeZeroValue: true,
                 maxCount: "0x32"
@@ -64,13 +58,56 @@ export default function TokenTxHistory({ address, chainId }) {
 
         const sent = await sentRes.json();
         const received = await receivedRes.json();
-        const combined = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
+        const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
 
-        const sorted = combined
-          .filter(tx => tx.metadata?.blockTimestamp)
-          .sort((a, b) => new Date(b.metadata.blockTimestamp) - new Date(a.metadata.blockTimestamp));
+        // Filter only non-NFT, non-minting ERC20
+        const filtered = all.filter(tx =>
+          tx.asset !== "REVERSE" &&
+          tx.from !== zeroAddress &&
+          tx.category !== "erc721"
+        );
 
-        setTxs(sorted);
+        const grouped = [];
+        const seenHashes = new Set();
+
+        const hashMap = new Map();
+        for (const tx of filtered) {
+          if (!hashMap.has(tx.hash)) {
+            hashMap.set(tx.hash, []);
+          }
+          hashMap.get(tx.hash).push(tx);
+        }
+
+        const txList = Array.from(hashMap.entries()).sort((a, b) =>
+          new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp)
+        );
+
+        for (const [hash, txGroup] of txList) {
+          if (seenHashes.has(hash)) continue;
+          seenHashes.add(hash);
+
+          const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
+          const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
+          const isBridge = sentTx && knownBridgeAddresses.includes(sentTx.to?.toLowerCase());
+
+          let type = "Unknown";
+          if (sentTx && receivedTx) {
+            type = "Swapped";
+          } else if (isBridge) {
+            type = "Bridged";
+          } else if (sentTx) {
+            type = "Sent";
+          } else if (receivedTx) {
+            type = "Received";
+          }
+
+          grouped.push({
+            ...(sentTx || receivedTx || txGroup[0]),
+            _type: type
+          });
+        }
+
+        setTxs(grouped);
       } catch (err) {
         console.error("Error fetching token tx history:", err);
       }
@@ -88,20 +125,17 @@ export default function TokenTxHistory({ address, chainId }) {
         {paginated.length === 0 ? (
           <p className="text-gray-600 dark:text-gray-400 text-sm">No recent transactions.</p>
         ) : (
-          paginated.map((tx, i) => {
-            const txType = getTxType(tx, address);
-            return (
-              <div key={i} className="text-sm text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
-                <div><strong>Type:</strong> {txType}</div>
-                <div><strong>Token:</strong> {tx.asset || "ETH"}</div>
-                <div><strong>Amount:</strong> {tx.value}</div>
-                <div><strong>From:</strong> {tx.from}</div>
-                <div><strong>To:</strong> {tx.to}</div>
-                <div><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
-                <div><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
-              </div>
-            );
-          })
+          paginated.map((tx, i) => (
+            <div key={i} className="text-sm text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
+              <div><strong>Type:</strong> {tx._type}</div>
+              <div><strong>Token:</strong> {tx.asset || "ETH"}</div>
+              <div><strong>Amount:</strong> {tx.value}</div>
+              <div><strong>From:</strong> {tx.from}</div>
+              <div><strong>To:</strong> {tx.to}</div>
+              <div><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
+              <div><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
+            </div>
+          ))
         )}
       </div>
       {txs.length > perPage && (
