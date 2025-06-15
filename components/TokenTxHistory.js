@@ -90,8 +90,16 @@ export default function TokenTxHistory({ address, chainId }) {
           if (sentTx && receivedTx) {
             const swapToken = receivedTx.asset || sentTx.asset;
             type = `Swapped (${swapToken})`;
-			} else if (sentTx && txGroup.some(t => t.from === zeroAddress)) {
-			  type = "Sent (Minted)";
+} else if (
+  sentTx &&
+  txGroup.some(
+    t =>
+      t.from === zeroAddress &&
+      t.to?.toLowerCase() === address.toLowerCase() &&
+      t.asset !== "ETH"
+  )
+) {
+  type = "Sent (Minted)";
           } else if (sentTx) {
             type = "Sent";
           } else if (receivedTx) {
