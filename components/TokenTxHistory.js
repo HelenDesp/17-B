@@ -2,6 +2,19 @@ import React, { useEffect, useState } from "react";
 
 const ALCHEMY_BASE_URL = "https://base-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr";
 
+function getTxType(tx, userAddress) {
+  const from = tx.from?.toLowerCase();
+  const to = tx.to?.toLowerCase();
+  const zeroAddress = "0x0000000000000000000000000000000000000000";
+  const user = userAddress?.toLowerCase();
+
+  if (from === zeroAddress) return "Minted";
+  if (from === user && to === user) return "Self Transfer";
+  if (from === user) return "Sent";
+  if (to === user) return "Received";
+  return "Other";
+}
+
 export default function TokenTxHistory({ address, chainId }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
@@ -21,8 +34,9 @@ export default function TokenTxHistory({ address, chainId }) {
             method: "alchemy_getAssetTransfers",
             params: [{
               fromBlock: "0x0",
+              toAddress: address,
               fromAddress: address,
-              category: ["external", "erc20"],
+              category: ["external", "internal", "erc20", "erc721"],
               withMetadata: true,
               excludeZeroValue: true,
               maxCount: "0x32"
@@ -31,8 +45,14 @@ export default function TokenTxHistory({ address, chainId }) {
         });
         const data = await res.json();
         const raw = data.result?.transfers || [];
-        const filtered = raw.filter(tx => tx.from?.toLowerCase() !== tx.to?.toLowerCase());
-        setTxs(filtered);
+
+        const sorted = raw
+          .filter(tx => tx.metadata?.blockTimestamp)
+          .sort((a, b) =>
+            new Date(b.metadata.blockTimestamp) - new Date(a.metadata.blockTimestamp)
+          );
+
+        setTxs(sorted);
       } catch (err) {
         console.error("Error fetching token tx history:", err);
       }
@@ -50,16 +70,20 @@ export default function TokenTxHistory({ address, chainId }) {
         {paginated.length === 0 ? (
           <p className="text-gray-600 dark:text-gray-400 text-sm">No recent transactions.</p>
         ) : (
-          paginated.map((tx, i) => (
-            <div key={i} className="text-sm text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
-              <div><strong>Token:</strong> {tx.asset || "ETH"}</div>
-              <div><strong>Amount:</strong> {tx.value}</div>
-              <div><strong>From:</strong> {tx.from}</div>
-              <div><strong>To:</strong> {tx.to}</div>
-              <div><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
-              <div><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
-            </div>
-          ))
+          paginated.map((tx, i) => {
+            const txType = getTxType(tx, address);
+            return (
+              <div key={i} className="text-sm text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <div><strong>Type:</strong> {txType}</div>
+                <div><strong>Token:</strong> {tx.asset || "ETH"}</div>
+                <div><strong>Amount:</strong> {tx.value}</div>
+                <div><strong>From:</strong> {tx.from}</div>
+                <div><strong>To:</strong> {tx.to}</div>
+                <div><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
+                <div><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
+              </div>
+            );
+          })
         )}
       </div>
       {txs.length > perPage && (
