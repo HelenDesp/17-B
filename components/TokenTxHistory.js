@@ -25,32 +25,50 @@ export default function TokenTxHistory({ address, chainId }) {
 
     const fetchTxs = async () => {
       try {
-        const res = await fetch(ALCHEMY_BASE_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "alchemy_getAssetTransfers",
-            params: [{
-              fromBlock: "0x0",
-              toAddress: address,
-              fromAddress: address,
-              category: ["external", "internal", "erc20", "erc721"],
-              withMetadata: true,
-              excludeZeroValue: true,
-              maxCount: "0x32"
-            }]
+        const [sentRes, receivedRes] = await Promise.all([
+          fetch(ALCHEMY_BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "alchemy_getAssetTransfers",
+              params: [{
+                fromBlock: "0x0",
+                fromAddress: address,
+                category: ["external", "erc20", "erc721"],
+                withMetadata: true,
+                excludeZeroValue: true,
+                maxCount: "0x32"
+              }]
+            })
+          }),
+          fetch(ALCHEMY_BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 2,
+              method: "alchemy_getAssetTransfers",
+              params: [{
+                fromBlock: "0x0",
+                toAddress: address,
+                category: ["external", "erc20", "erc721"],
+                withMetadata: true,
+                excludeZeroValue: true,
+                maxCount: "0x32"
+              }]
+            })
           })
-        });
-        const data = await res.json();
-        const raw = data.result?.transfers || [];
+        ]);
 
-        const sorted = raw
+        const sent = await sentRes.json();
+        const received = await receivedRes.json();
+        const combined = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
+
+        const sorted = combined
           .filter(tx => tx.metadata?.blockTimestamp)
-          .sort((a, b) =>
-            new Date(b.metadata.blockTimestamp) - new Date(a.metadata.blockTimestamp)
-          );
+          .sort((a, b) => new Date(b.metadata.blockTimestamp) - new Date(a.metadata.blockTimestamp));
 
         setTxs(sorted);
       } catch (err) {
