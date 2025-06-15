@@ -84,12 +84,13 @@ export default function TokenTxHistory({ address, chainId }) {
           const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
           const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
           const allTokens = txGroup.map(t => t.asset).filter(Boolean);
-			const isBridge = (
-			  sentTx &&
-			  !receivedTx &&
-			  !txGroup.some(t => t.from === zeroAddress || t.to === zeroAddress) &&
-			  txGroup.every(t => t.category !== "erc721")
-			);
+const isBridge =
+  sentTx &&
+  !receivedTx &&
+  txGroup.length === 1 &&
+  sentTx.asset === "ETH" &&
+  sentTx.to?.toLowerCase() !== address.toLowerCase() &&
+  !txGroup.some(t => t.from === zeroAddress || t.to === zeroAddress);
 
           let type = "Unknown";
 
