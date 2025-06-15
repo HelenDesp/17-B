@@ -7,7 +7,7 @@ export default function TokenTxHistory({ address, chainId }) {
   const [page, setPage] = useState(1);
   const perPage = 10;
 
-  const zeroAddress = "0x0000000000000000000000000000000000000000";
+  const zeroAddress = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
   useEffect(() => {
     if (!address || !chainId) return;
@@ -85,6 +85,22 @@ export default function TokenTxHistory({ address, chainId }) {
           const allTokens = txGroup.map(t => t.asset).filter(Boolean);
 
           let type = "Unknown";
+
+if (sentTx && receivedTx) {
+  const swapToken = receivedTx.asset || sentTx.asset;
+  type = `Swapped (${swapToken})`;
+} else if (
+  txGroup.some(t =>
+    t.from === zeroAddress &&
+    t.to?.toLowerCase() === address.toLowerCase()
+  )
+) {
+  type = "Sent (Minted)";
+} else if (sentTx) {
+  type = "Sent";
+} else if (receivedTx) {
+  type = "Received";
+}
 
 if (sentTx && receivedTx) {
   const swapToken = receivedTx.asset || sentTx.asset;
