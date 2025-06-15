@@ -91,9 +91,11 @@ if (sentTx && receivedTx) {
   type = `Swapped (${swapToken})`;
 } else if (
   sentTx &&
-  txGroup.some(t =>
-    t.to?.toLowerCase() === address.toLowerCase() &&
-    t.asset !== sentTx.asset
+  txGroup.some(
+    t =>
+      t.to?.toLowerCase() === address.toLowerCase() &&
+      t.from?.toLowerCase() !== address.toLowerCase() &&
+      t.asset !== sentTx.asset
   )
 ) {
   type = "Sent (Minted)";
