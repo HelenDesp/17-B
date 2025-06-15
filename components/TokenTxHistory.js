@@ -88,11 +88,12 @@ export default function TokenTxHistory({ address, chainId }) {
 
 if (
   sentTx &&
-  txGroup.some(
-    t =>
-      t.to?.toLowerCase() === address.toLowerCase() &&
-      t.from?.toLowerCase() !== address.toLowerCase() &&
-      t.asset !== sentTx.asset
+  txGroup.some(t =>
+    t.to?.toLowerCase() === address.toLowerCase() &&         // user received
+    t.from?.toLowerCase() !== address.toLowerCase() &&       // not self-sent
+    t.asset !== sentTx.asset &&                              // different asset
+    t.from !== null &&                                       // avoid nulls
+    !t.from?.startsWith("0x000000000000000000000000000000000000") // not zero or null
   )
 ) {
   type = "Sent (Minted)";
