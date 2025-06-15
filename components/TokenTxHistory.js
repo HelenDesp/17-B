@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 
 const ALCHEMY_BASE_URL = "https://base-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr";
@@ -15,38 +14,57 @@ export default function TokenTxHistory({ address, chainId }) {
 
     const fetchTxs = async () => {
       try {
-        const res = await fetch(ALCHEMY_BASE_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "alchemy_getAssetTransfers",
-            params: [{
-              fromBlock: "0x0",
-              category: ["external", "erc20"],
-              withMetadata: true,
-              excludeZeroValue: true,
-              maxCount: "0x64",
-              toAddress: address,
-              fromAddress: address
-            }]
+        const [sentRes, receivedRes] = await Promise.all([
+          fetch(ALCHEMY_BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "alchemy_getAssetTransfers",
+              params: [{
+                fromBlock: "0x0",
+                fromAddress: address,
+                category: ["external", "erc20"],
+                withMetadata: true,
+                excludeZeroValue: true,
+                maxCount: "0x32"
+              }]
+            })
+          }),
+          fetch(ALCHEMY_BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 2,
+              method: "alchemy_getAssetTransfers",
+              params: [{
+                fromBlock: "0x0",
+                toAddress: address,
+                category: ["external", "erc20"],
+                withMetadata: true,
+                excludeZeroValue: true,
+                maxCount: "0x32"
+              }]
+            })
           })
-        });
+        ]);
 
-        const json = await res.json();
-        const all = json.result?.transfers || [];
+        const sent = await sentRes.json();
+        const received = await receivedRes.json();
+        const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
 
-        const filtered = all.filter(tx =>
-          tx.asset !== "REVERSE" &&
-          tx.from !== zeroAddress &&
-          tx.category !== "erc721"
-        );
+        // Exclude all NFTs (ERC-721 & ERC-1155)
+		const filtered = all.filter(tx =>
+		  tx.category !== "erc721" &&
+		  tx.category !== "erc1155"
+		);
 
         const grouped = [];
         const seenHashes = new Set();
-        const hashMap = new Map();
 
+        const hashMap = new Map();
         for (const tx of filtered) {
           if (!hashMap.has(tx.hash)) {
             hashMap.set(tx.hash, []);
@@ -71,16 +89,14 @@ export default function TokenTxHistory({ address, chainId }) {
           if (sentTx && receivedTx) {
             const swapToken = receivedTx.asset || sentTx.asset;
             type = `Swapped (${swapToken})`;
-          } else if (
-            sentTx &&
-            txGroup.some(
-              t =>
-                t.from === zeroAddress &&
-                t.to?.toLowerCase() === address.toLowerCase() &&
-                t.asset !== "ETH"
-            )
-          ) {
-            type = "Sent (Minted)";
+else if (
+  txGroup.some(t =>
+    t.from === zeroAddress &&
+    t.to?.toLowerCase() === address.toLowerCase()
+  )
+) {
+  type = "Sent (Minted)";
+}
           } else if (sentTx) {
             type = "Sent";
           } else if (receivedTx) {
