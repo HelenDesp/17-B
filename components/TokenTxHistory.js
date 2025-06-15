@@ -84,13 +84,6 @@ export default function TokenTxHistory({ address, chainId }) {
           const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
           const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
           const allTokens = txGroup.map(t => t.asset).filter(Boolean);
-const isBridge =
-  sentTx &&
-  !receivedTx &&
-  txGroup.length === 1 &&
-  sentTx.asset === "ETH" &&
-  sentTx.to?.toLowerCase() !== address.toLowerCase() &&
-  !txGroup.some(t => t.from === zeroAddress || t.to === zeroAddress);
 
           let type = "Unknown";
 
@@ -99,8 +92,6 @@ const isBridge =
             type = `Swapped (${swapToken})`;
 			} else if (sentTx && txGroup.some(t => t.from === zeroAddress)) {
 			  type = "Sent (Minted)";
-          } else if (isBridge) {
-            type = "Bridged";
           } else if (sentTx) {
             type = "Sent";
           } else if (receivedTx) {
