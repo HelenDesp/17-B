@@ -8,6 +8,7 @@ import ActivityCard from "./ActivityCard";
 import NFTViewer from "./NFTViewer";
 import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
+import TokenTxHistory from "./TokenTxHistory";
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
 import { readContract } from "viem/actions"; // <-- ADD THIS
@@ -246,6 +247,7 @@ export default function Dashboard() {
       <div className="dashboard-columns">
         <div className="space-y-6">
           <WalletCard />
+		  <TokenTxHistory address={address} chainId={chain?.id} />
           <TokenBalances />
         </div>
         <div className="space-y-6">

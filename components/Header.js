@@ -22,10 +22,49 @@ export default function Header({ toggleSidebar }) {
     address,
     enabled: !!address,
   });
+  const [ethUsd, setEthUsd] = useState(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+  
+useEffect(() => {
+  const fetchEthPrice = async () => {
+    if (!chain?.id) return;
+
+    const nativeIdMap = {
+      1: 'ethereum',           // Ethereum Mainnet
+      8453: 'base',        // Base chain (uses ETH)
+      42161: 'arbitrum-one',       // Arbitrum
+      10: 'optimistic-ethereum',          // Optimism
+      137: 'polygon-pos',    // Polygon = MATIC
+      56: 'binance-smart-chain',       // BNB
+      11155111: 'ethereum',    // Sepolia (testnet)
+    };
+
+    const coinId = nativeIdMap[chain.id];
+    if (!coinId) {
+      console.warn('Unsupported chain for native token price:', chain.id);
+      return;
+    }
+
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`;
+    console.log("Fetching native token price from:", url);
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      console.log("Coingecko response:", data);
+
+      const price = data[coinId]?.usd;
+      if (price) setEthUsd(price);
+    } catch (err) {
+      console.error('Error fetching price:', err);
+    }
+  };
+
+  fetchEthPrice();
+}, [chain]);  
 
   const handleConnect = () => {
     modal.open();
@@ -126,14 +165,16 @@ export default function Header({ toggleSidebar }) {
 
 
           {/* Balance Info for Connected Users */}
-          {isConnected && ethBalance && (
-            <div className="hidden sm:flex items-center bg-gray-100 dark:bg-dark-100 px-3 py-1.5 rounded-lg">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {parseFloat(ethBalance.formatted).toFixed(5)}{" "}
-                {ethBalance.symbol}
-              </span>
-            </div>
-          )}
+			{isConnected && ethBalance && (
+			  <div className="hidden sm:flex items-center bg-gray-100 dark:bg-dark-100 px-3 py-1.5 rounded-lg">
+				<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+				  {parseFloat(ethBalance.formatted).toFixed(5)} {ethBalance.symbol}
+				  {ethUsd && (
+					<> / ${ (parseFloat(ethBalance.formatted) * ethUsd).toFixed(2) }</>
+				  )}
+				</span>
+			  </div>
+			)}
 
           {/* Wallet Connection */}
           {/* {isConnected ? (
