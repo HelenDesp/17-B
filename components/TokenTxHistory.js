@@ -19,14 +19,14 @@ export default function TokenTxHistory({ address, chainId }) {
             jsonrpc: "2.0",
             id: 1,
             method: "alchemy_getAssetTransfers",
-            params: [{
-              fromBlock: "latest",
-              address: address,
-              category: ["external", "erc20"],
-              withMetadata: true,
-              excludeZeroValue: true,
-              maxCount: "0x32"
-            }]
+params: [{
+  fromBlock: "latest",
+  fromAddress: address, // ✅ Only outgoing transactions
+  category: ["external", "erc20"],
+  withMetadata: true,
+  excludeZeroValue: true,
+  maxCount: "0x32"
+}]
           })
         });
         const data = await res.json();
