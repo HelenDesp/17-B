@@ -426,7 +426,7 @@ export default function TokenTransfer() {
           )}
 		{ethBalance && (
 		  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-			Balance: {parseFloat(ethBalance.formatted).toFixed(5)} ETH
+			Balance: {parseFloat(ethBalance.formatted).toFixed(5)} {ethBalance?.symbol || "ETH"}
 			{ethUsd && (
 			  <>
 				{" "}
