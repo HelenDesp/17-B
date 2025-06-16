@@ -19,8 +19,11 @@ export default function TokenTxHistory({ address, chainId }) {
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
-  useEffect(() => {
-    if (!address || !chainId || !ALCHEMY_BASE_URL) return;
+useEffect(() => {
+  if (!address || !chainId) return;
+
+  const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
+  if (!ALCHEMY_BASE_URL) return;
 
     const fetchTxs = async () => {
       try {
