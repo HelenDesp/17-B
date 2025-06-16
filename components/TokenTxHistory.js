@@ -138,7 +138,7 @@ export default function TokenTxHistory({ address, chainId }) {
   const paginated = txs.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="p-4 bg-white border b2 dark:bg-dark-200 shadow">
+    <div className="p-4 bg-white border-b2 dark:bg-dark-200 shadow">
       <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Token Transactions</h3>
       <div className="space-y-2">
         {paginated.length === 0 ? (
