@@ -145,9 +145,9 @@ export default function TokenTxHistory({ address, chainId }) {
           <p className="text-gray-600 dark:text-white text-sm">No recent transactions.</p>
         ) : (
           paginated.map((tx, i) => (
-            <div key={i} className="text-sm text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
+            <div key={i} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
               <div className="flex justify-between items-center">
-                <div><strong>{tx._type}</strong></div>
+                <div className="text-black dark:text-white"><strong>{tx._type}</strong></div>
                 <button
                   onClick={() => setExpandedIndexes(prev => ({ ...prev, [i]: !prev[i] }))}
                   className="text-xs underline text-black dark:text-white"
