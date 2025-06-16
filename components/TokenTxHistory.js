@@ -18,6 +18,21 @@ export default function TokenTxHistory({ address, chainId }) {
   const maxTxs = txs.slice(0, 60); // keep only last 60
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
+  
+const { chain } = useAccount();
+
+const getChainLabel = (chainId) => {
+  switch (chainId) {
+    case 1: return "Ethereum";
+    case 8453: return "Base";
+    case 137: return "Polygon";
+    case 42161: return "Arbitrum";
+    case 10: return "Optimism";
+    case 11155111: return "Sepolia";
+    case 56: return "BNB";
+    default: return "Base";
+  }
+};  
 
 useEffect(() => {
   if (!address || !chainId) return;
@@ -151,7 +166,10 @@ useEffect(() => {
 
   return (
     <div className="p-4 bg-white border-b2 dark:bg-dark-200 shadow">
-      <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Token Transactions</h3>
+	<div className="flex justify-between items-center mb-2">
+	  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Token Transactions</h3>
+	  <span className="text-sm text-gray-500 dark:text-gray-400 uppercase">{getChainLabel(chain?.id)}</span>
+	</div>
       <div className="space-y-2">
         {paginated.length === 0 ? (
           <p className="text-gray-600 dark:text-white text-sm">No recent transactions.</p>
