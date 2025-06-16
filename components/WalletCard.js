@@ -89,6 +89,8 @@
 
 import React from "react";
 import { useAccount, useBalance } from "wagmi";
+import { QRCodeSVG } from "qrcode.react";
+import { useState } from "react";
 
 export default function WalletCard() {
   const { address, isConnected, chain } = useAccount();
@@ -96,13 +98,15 @@ export default function WalletCard() {
     address,
     enabled: !!address,
   });
+  
+  const [showReceive, setShowReceive] = useState(false);  
 
   if (!isConnected) return null;
 
   // Format address for display
   const formatAddress = (addr) => {
     if (!addr) return "";
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 6)}`;
   };
   
 const getExplorerUrl = (chainId) => {
@@ -203,12 +207,37 @@ const getExplorerUrl = (chainId) => {
           >
             View on Explorer
           </button>
-          <button className="bg-white hover:bg-white/90 transition-colors py-2 px-4 rounded-lg text-sm font-medium text-secondary-600">
-            Receive
-          </button>
+			<button
+			  className="bg-white hover:bg-white/90 transition-colors py-2 px-4 rounded-lg text-sm font-medium text-secondary-600"
+			  onClick={() => setShowReceive(true)}
+			>
+			  Receive
+			</button>
         </div>
       </div>
 
+		{showReceive && (
+		  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+			<div className="bg-white dark:bg-dark-200 p-6 rounded-lg text-center shadow-lg max-w-xs w-full">
+			  <h2 className="text-lg font-semibold text-black dark:text-white mb-4">Your Wallet</h2>
+			  <QRCodeSVG value={address} size={128} />
+			  <p className="text-xs mt-4 text-gray-700 dark:text-gray-300 break-all">{address}</p>
+			  <button
+				onClick={() => navigator.clipboard.writeText(address)}
+				className="mt-2 text-sm text-primary-600 hover:underline"
+			  >
+				Copy address
+			  </button>
+			  <button
+				onClick={() => setShowReceive(false)}
+				className="mt-4 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-white"
+			  >
+				Close
+			  </button>
+			</div>
+		  </div>
+		)}	  
+	  
       {/* Decorative elements */}
       <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 bg-white opacity-10 rounded-full"></div>
       <div className="absolute bottom-0 left-0 -mb-8 -ml-8 w-40 h-40 bg-white opacity-10 rounded-full"></div>
