@@ -86,24 +86,24 @@ export default function TokenTxHistory({ address, chainId }) {
 
           let type = "Unknown";
 
-if (sentTx && receivedTx) {
-  const swapToken = receivedTx.asset || sentTx.asset;
-  type = `Swapped (${swapToken})`;
-} else if (
-  sentTx &&
-  txGroup.some(
-    t =>
-      t.to?.toLowerCase() === address.toLowerCase() &&
-      t.from?.toLowerCase() !== address.toLowerCase() &&
-      t.asset !== sentTx.asset
-  )
-) {
-  type = "Sent (Minted)";
-} else if (sentTx) {
-  type = "Sent";
-} else if (receivedTx) {
-  type = "Received";
-}
+			if (sentTx && receivedTx) {
+			  const swapToken = receivedTx.asset || sentTx.asset;
+			  type = `Swapped (${swapToken})`;
+			} else if (
+			  sentTx &&
+			  txGroup.some(
+				t =>
+				  t.to?.toLowerCase() === address.toLowerCase() &&
+				  t.from?.toLowerCase() !== address.toLowerCase() &&
+				  t.asset !== sentTx.asset
+			  )
+			) {
+			  type = "Sent (Minted)";
+			} else if (sentTx) {
+			  type = "Sent";
+			} else if (receivedTx) {
+			  type = "Received";
+			}
 
           grouped.push({
             ...(sentTx || receivedTx || txGroup[0]),
@@ -120,6 +120,10 @@ if (sentTx && receivedTx) {
     fetchTxs();
   }, [address, chainId]);
 
+	const shortenAddress = (addr) => {
+	  if (!addr) return "";
+	  return addr.slice(0, 8) + "..." + addr.slice(-6);
+	};  
   const paginated = txs.slice((page - 1) * perPage, page * perPage);
 
   return (
@@ -134,10 +138,40 @@ if (sentTx && receivedTx) {
               <div><strong>Type:</strong> {tx._type}</div>
               <div><strong>Token:</strong> {tx.asset || "ETH"}</div>
               <div><strong>Amount:</strong> {tx.value}</div>
-              <div><strong>From:</strong> {tx.from}</div>
-              <div><strong>To:</strong> {tx.to}</div>
+				<div>
+				  <strong>From:</strong>{" "}
+				  <a
+					href={`https://basescan.org/address/${tx.from}`}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="underline text-black dark:text-white"
+				  >
+					{shortenAddress(tx.from)}
+				  </a>
+				</div>
+				<div>
+				  <strong>To:</strong>{" "}
+				  <a
+					href={`https://basescan.org/address/${tx.to}`}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="underline text-black dark:text-white"
+				  >
+					{shortenAddress(tx.to)}
+				  </a>
+				</div>
               <div><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
               <div><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
+				<div>
+				  <a
+					href={`https://basescan.org/tx/${tx.hash}`}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="underline text-black dark:text-white"
+				  >
+					View on Explorer
+				  </a>
+				</div>			  
             </div>
           ))
         )}
