@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 
-const ALCHEMY_BASE_URL = "https://base-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr";
+const ALCHEMY_URLS = {
+  1: "https://eth-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
+  8453: "https://base-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
+  42161: "https://arb-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
+  10: "https://opt-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
+  137: "https://polygon-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
+  56: "https://bnb-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
+  11155111: "https://eth-sepolia.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr", 
+};
 
 export default function TokenTxHistory({ address, chainId }) {
   const [txs, setTxs] = useState([]);
@@ -11,7 +20,7 @@ export default function TokenTxHistory({ address, chainId }) {
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
   useEffect(() => {
-    if (!address || !chainId) return;
+    if (!address || !chainId || !ALCHEMY_BASE_URL) return;
 
     const fetchTxs = async () => {
       try {
