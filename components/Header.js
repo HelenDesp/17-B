@@ -32,15 +32,15 @@ useEffect(() => {
   const fetchEthPrice = async () => {
     if (!chain?.id) return;
 
-    const nativeIdMap = {
-      1: 'ethereum',           // Ethereum Mainnet
-      8453: 'base',        // Base chain (uses ETH)
-      42161: 'arbitrum-one',       // Arbitrum
-      10: 'optimistic-ethereum',          // Optimism
-      137: 'polygon-pos',    // Polygon = MATIC
-      56: 'binance-smart-chain',       // BNB
-      11155111: 'ethereum',    // Sepolia (testnet)
-    };
+		const nativeIdMap = {
+		  1: 'ethereum',
+		  8453: 'ethereum',
+		  42161: 'ethereum',
+		  10: 'ethereum',
+		  137: 'matic-network',
+		  56: 'binancecoin',
+		  11155111: 'ethereum',
+		};
 
     const coinId = nativeIdMap[chain.id];
     if (!coinId) {
