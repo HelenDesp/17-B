@@ -224,3 +224,4 @@ export default function TokenTxHistory({ address, chainId }) {
       )}
     </div>
   );
+  }
