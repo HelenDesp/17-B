@@ -137,69 +137,72 @@ export default function TokenTxHistory({ address, chainId }) {
   return (
     <div className="p-4 bg-white dark:bg-dark-200 rounded shadow">
       <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Token Transactions</h3>
-      <div className="space-y-2">
+      <div className="space-y-4">
         {paginated.length === 0 ? (
           <p className="text-gray-600 dark:text-gray-400 text-sm">No recent transactions.</p>
         ) : (
-{paginated.map((tx, i) => {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <div key={i} className="border-b border-gray-200 dark:border-gray-700 pb-2">
-      <div className="flex justify-between items-center">
-        <div><strong>{tx._type}</strong></div>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="text-xs underline text-blue-500"
-        >
-          {expanded ? "Hide" : "Details"}
-        </button>
+          paginated.map((tx, i) => {
+            const [expanded, setExpanded] = useState(false);
+            return (
+              <div key={i} className="text-sm text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <div className="flex justify-between items-center">
+                  <div><strong>{tx._type}</strong></div>
+                  <button
+                    onClick={() => setExpanded(!expanded)}
+                    className="text-xs underline text-blue-500"
+                  >
+                    {expanded ? "Hide" : "Details"}
+                  </button>
+                </div>
+
+                <div className="flex justify-between text-sm mt-1">
+                  <div>{tx.asset || "ETH"} – {tx.value}</div>
+                  <div>{formatShortDate(tx.metadata.blockTimestamp)}</div>
+                </div>
+
+                <div>
+                  <a
+                    href={`https://basescan.org/tx/${tx.hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-black dark:text-white text-xs"
+                  >
+                    View on Explorer
+                  </a>
+                </div>
+
+                {expanded && (
+                  <div className="mt-2 space-y-1 text-xs">
+                    <div><strong>From:</strong>{" "}
+                      <a
+                        href={`https://basescan.org/address/${tx.from}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-black dark:text-white"
+                      >
+                        {shortenAddress(tx.from)}
+                      </a>
+                    </div>
+                    <div><strong>To:</strong>{" "}
+                      <a
+                        href={`https://basescan.org/address/${tx.to}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-black dark:text-white"
+                      >
+                        {shortenAddress(tx.to)}
+                      </a>
+                    </div>
+                    <div><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
+                    <div><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
 
-      <div className="flex justify-between text-sm mt-1">
-        <div>{tx.asset || "ETH"} – {tx.value}</div>
-        <div>{formatShortDate(tx.metadata.blockTimestamp)}</div>
-      </div>
-
-      <div>
-        <a
-          href={`https://basescan.org/tx/${tx.hash}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline text-black dark:text-white text-xs"
-        >
-          View on Explorer
-        </a>
-      </div>
-
-      {expanded && (
-        <div className="mt-2 space-y-1 text-xs">
-          <div><strong>From:</strong>{" "}
-            <a
-              href={`https://basescan.org/address/${tx.from}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-black dark:text-white"
-            >
-              {shortenAddress(tx.from)}
-            </a>
-          </div>
-          <div><strong>To:</strong>{" "}
-            <a
-              href={`https://basescan.org/address/${tx.to}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-black dark:text-white"
-            >
-              {shortenAddress(tx.to)}
-            </a>
-          </div>
-          <div><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
-          <div><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
-        </div>
-      )}
-    </div>
-  );
-})}
       {txs.length > perPage && (
         <div className="flex justify-between items-center mt-4 text-sm">
           <button
@@ -221,4 +224,3 @@ export default function TokenTxHistory({ address, chainId }) {
       )}
     </div>
   );
-}
