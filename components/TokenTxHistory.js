@@ -10,37 +10,57 @@ export default function TokenTxHistory({ address, chainId }) {
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
-useEffect(() => {
-  if (!address || !chainId) return;
+  useEffect(() => {
+    if (!address || !chainId) return;
 
-  const fetchTxs = async () => {
-    try {
-      const res = await fetch(ALCHEMY_BASE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "alchemy_getAssetTransfers",
-          params: [{
-            fromBlock: "0x0",
-            toAddress: address,
-            fromAddress: address,
-            category: ["external", "erc20"],
-            withMetadata: true,
-            excludeZeroValue: true,
-            maxCount: "0x3C"
-          }]
-        })
-      });
+    const fetchTxs = async () => {
+      try {
+        const [sentRes, receivedRes] = await Promise.all([
+          fetch(ALCHEMY_BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "alchemy_getAssetTransfers",
+              params: [{
+                fromBlock: "0x0",
+                fromAddress: address,
+                category: ["external", "erc20"],
+                withMetadata: true,
+                excludeZeroValue: true,
+                maxCount: "0x32"
+              }]
+            })
+          }),
+          fetch(ALCHEMY_BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 2,
+              method: "alchemy_getAssetTransfers",
+              params: [{
+                fromBlock: "0x0",
+                toAddress: address,
+                category: ["external", "erc20"],
+                withMetadata: true,
+                excludeZeroValue: true,
+                maxCount: "0x32"
+              }]
+            })
+          })
+        ]);
 
-      const { result } = await res.json();
-      const transfers = result?.transfers || [];
+        const sent = await sentRes.json();
+        const received = await receivedRes.json();
+        const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
 
-      const filtered = transfers.filter(tx =>
-        tx.category !== "erc721" && tx.category !== "erc1155"
-      );
-
+        // Exclude all NFTs (ERC-721 & ERC-1155)
+		const filtered = all.filter(tx =>
+		  tx.category !== "erc721" &&
+		  tx.category !== "erc1155"
+		);
 
         const grouped = [];
         const seenHashes = new Set();
