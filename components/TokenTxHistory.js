@@ -10,36 +10,37 @@ export default function TokenTxHistory({ address, chainId }) {
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
-  useEffect(() => {
-    if (!address || !chainId) return;
+useEffect(() => {
+  if (!address || !chainId) return;
 
-const res = await fetch(ALCHEMY_BASE_URL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    jsonrpc: "2.0",
-    id: 1,
-    method: "alchemy_getAssetTransfers",
-    params: [{
-      fromBlock: "0x0",
-      toAddress: address,
-      fromAddress: address, // ✅ both directions in one call
-      category: ["external", "erc20"],
-      withMetadata: true,
-      excludeZeroValue: true,
-      maxCount: "0x3C" // max 60 txs
-    }]
-  })
-});
+  const fetchTxs = async () => {
+    try {
+      const res = await fetch(ALCHEMY_BASE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "alchemy_getAssetTransfers",
+          params: [{
+            fromBlock: "0x0",
+            toAddress: address,
+            fromAddress: address,
+            category: ["external", "erc20"],
+            withMetadata: true,
+            excludeZeroValue: true,
+            maxCount: "0x3C"
+          }]
+        })
+      });
 
-const { result } = await res.json();
-const transfers = result?.transfers || [];
+      const { result } = await res.json();
+      const transfers = result?.transfers || [];
 
-        // Exclude all NFTs (ERC-721 & ERC-1155)
-		const filtered = all.filter(tx =>
-		  tx.category !== "erc721" &&
-		  tx.category !== "erc1155"
-		);
+      const filtered = transfers.filter(tx =>
+        tx.category !== "erc721" && tx.category !== "erc1155"
+      );
+
 
         const grouped = [];
         const seenHashes = new Set();
