@@ -5,7 +5,8 @@ const ALCHEMY_BASE_URL = "https://base-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI
 export default function TokenTxHistory({ address, chainId }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
-  const perPage = 10;
+  const perPage = 4;
+  const maxTxs = txs.slice(0, 60); // keep only last 60
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
@@ -180,25 +181,47 @@ export default function TokenTxHistory({ address, chainId }) {
           ))
         )}
       </div>
-      {txs.length > perPage && (
-        <div className="flex justify-between items-center mt-4 text-sm">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="text-gray-700 dark:text-gray-300">Page {page}</span>
-          <button
-            onClick={() => setPage((p) => (p * perPage < txs.length ? p + 1 : p))}
-            disabled={page * perPage >= txs.length}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+		{txs.length > perPage && (
+		  <div className="flex justify-between items-center mt-4 text-sm">
+			<div className="flex gap-2">
+			  <button
+				onClick={() => setPage(1)}
+				disabled={page === 1}
+				className="px-2 py-1 border rounded disabled:opacity-50"
+			  >
+				First
+			  </button>
+			  <button
+				onClick={() => setPage((p) => Math.max(1, p - 1))}
+				disabled={page === 1}
+				className="px-2 py-1 border rounded disabled:opacity-50"
+			  >
+				&lt;
+			  </button>
+			</div>
+
+			<div className="text-gray-700 dark:text-gray-300">
+			  Page {page} / {Math.min(15, Math.ceil(txs.length / 4))}
+			</div>
+
+			<div className="flex gap-2">
+			  <button
+				onClick={() => setPage((p) => Math.min(Math.ceil(txs.length / 4), p + 1))}
+				disabled={page * 4 >= Math.min(txs.length, 60)}
+				className="px-2 py-1 border rounded disabled:opacity-50"
+			  >
+				&gt;
+			  </button>
+			  <button
+				onClick={() => setPage(Math.min(15, Math.ceil(txs.length / 4)))}
+				disabled={page === Math.min(15, Math.ceil(txs.length / 4))}
+				className="px-2 py-1 border rounded disabled:opacity-50"
+			  >
+				Last
+			  </button>
+			</div>
+		  </div>
+		)}
     </div>
   );
 }
