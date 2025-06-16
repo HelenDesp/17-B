@@ -22,7 +22,8 @@
     "viem": "^2.23.14",
     "wagmi": "^2.14.15",
 	"axios": "^1.9.0",
-	"@across-protocol/app-sdk": "^0.2.3"
+	"@across-protocol/app-sdk": "^0.2.3",
+	"qrcode.react": "^4.2.0"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.9",
