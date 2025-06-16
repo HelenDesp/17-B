@@ -42,7 +42,6 @@ export default function TokenTransfer() {
   const { isConnected, chainId, address, chain } = useAccount();
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
-  const selectedToken = ethBalance?.symbol || "ETH";
   const [memo, setMemo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txStatus, setTxStatus] = useState(null);
@@ -56,6 +55,8 @@ export default function TokenTransfer() {
 	  address,
 	  enabled: !!address,
 	});
+	
+  const selectedToken = ethBalance?.symbol || "ETH";	
   
   const [ethUsd, setEthUsd] = useState(null);
 
