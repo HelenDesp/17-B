@@ -258,7 +258,7 @@ const getChainLogo = (chainId) => {
       <div className="flex items-center justify-center mt-2 space-x-1">
         <button
           onClick={() => navigator.clipboard.writeText(address)}
-          className="flex items-center text-sm text-primary-600 hover:underline"
+          className="flex items-center text-black dark:text-primary-600 hover:underline"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-8-4h8m-2-4h-4a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2z" />
