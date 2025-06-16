@@ -42,7 +42,7 @@ export default function TokenTransfer() {
   const { isConnected, chainId, address, chain } = useAccount();
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
-  const selectedToken = "ETH";
+  const selectedToken = ethBalance?.symbol || "ETH";
   const [memo, setMemo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [txStatus, setTxStatus] = useState(null);
@@ -52,10 +52,10 @@ export default function TokenTransfer() {
   const [txStage, setTxStage] = useState(""); // 'preparing', 'pending', 'confirmed', 'reverted'
 
   // Check balance of selected token
-  const { data: ethBalance } = useBalance({
-    address,
-    enabled: !!address && selectedToken === "ETH",
-  });
+	const { data: ethBalance } = useBalance({
+	  address,
+	  enabled: !!address,
+	});
   
   const [ethUsd, setEthUsd] = useState(null);
 
@@ -312,9 +312,9 @@ export default function TokenTransfer() {
   if (!isConnected) {
     return (
       <div className="bg-white dark:bg-dark-200 shadow-card dark:shadow-card-dark p-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Transfer ETH
-        </h2>
+		<h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+		  Transfer {selectedToken}
+		</h2>
         <div className="flex flex-col items-center justify-center py-8">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -346,9 +346,9 @@ export default function TokenTransfer() {
 
   return (
     <div className="bg-white dark:bg-dark-200 border-b2 shadow-card dark:shadow-card-dark p-6">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-        Transfer ETH
-      </h2>
+	<h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+	  Transfer {selectedToken}
+	</h2>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Token Selection */}
