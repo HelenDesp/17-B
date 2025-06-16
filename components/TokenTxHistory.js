@@ -138,11 +138,11 @@ export default function TokenTxHistory({ address, chainId }) {
   const paginated = txs.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="p-4 bg-white dark:bg-dark-200 rounded shadow">
+    <div className="p-4 bg-white border b2 dark:bg-dark-200 shadow">
       <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Token Transactions</h3>
       <div className="space-y-2">
         {paginated.length === 0 ? (
-          <p className="text-gray-600 dark:text-gray-400 text-sm">No recent transactions.</p>
+          <p className="text-gray-600 dark:text-white text-sm">No recent transactions.</p>
         ) : (
           paginated.map((tx, i) => (
             <div key={i} className="text-sm text-gray-800 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700 pb-2">
@@ -150,14 +150,14 @@ export default function TokenTxHistory({ address, chainId }) {
                 <div><strong>{tx._type}</strong></div>
                 <button
                   onClick={() => setExpandedIndexes(prev => ({ ...prev, [i]: !prev[i] }))}
-                  className="text-xs underline text-blue-500"
+                  className="text-xs underline text-black dark:text-white"
                 >
                   {expandedIndexes[i] ? "Hide" : "Details"}
                 </button>
               </div>
               <div className="flex justify-between text-sm mt-1">
-                <div>{tx.asset || "ETH"} – {tx.value}</div>
-                <div>{formatShortDate(tx.metadata.blockTimestamp)}</div>
+                <div className="text-black dark:text-white">{tx.asset || "ETH"} – {tx.value}</div>
+                <div className="text-black dark:text-white">{formatShortDate(tx.metadata.blockTimestamp)}</div>
               </div>
               <div>
                 <a
@@ -171,10 +171,14 @@ export default function TokenTxHistory({ address, chainId }) {
               </div>
               {expandedIndexes[i] && (
                 <div className="mt-2 space-y-1 text-xs">
-                  <div><strong>From:</strong> <a href={`https://basescan.org/address/${tx.from}`} target="_blank" rel="noopener noreferrer" className="underline text-black dark:text-white">{shortenAddress(tx.from)}</a></div>
-                  <div><strong>To:</strong> <a href={`https://basescan.org/address/${tx.to}`} target="_blank" rel="noopener noreferrer" className="underline text-black dark:text-white">{shortenAddress(tx.to)}</a></div>
-                  <div><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
-                  <div><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
+                  <div className="text-black dark:text-white"><strong>From:</strong> <a href={`https://basescan.org/address/${tx.from}`} target="_blank" rel="noopener noreferrer" className="underline text-black dark:text-white">{shortenAddress(tx.from)}</a></div>
+                  <div className="text-black dark:text-white"><strong>To:</strong> <a href={`https://basescan.org/address/${tx.to}`} target="_blank" rel="noopener noreferrer" className="underline text-black dark:text-white">{shortenAddress(tx.to)}</a></div>
+					<div className="text-black dark:text-white">
+					  <strong>Block:</strong> {parseInt(tx.blockNum, 16)}
+					</div>
+					<div className="text-black dark:text-white">
+					  <strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}
+					</div>
                 </div>
               )}
             </div>
