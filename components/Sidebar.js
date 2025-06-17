@@ -99,7 +99,7 @@ export default function Sidebar() {
       {/* User info */}
       <div className="p-4 border-b border-black dark:border-white">
         <div className="flex justify-between items-center w-full">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-1">
             <div className="w-10 h-10 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-black dark:text-white rotate-180" viewBox="0 0 4160 4160" fill="currentColor">
                 <path d="M0 2080 l0 -2080 2080 0 2080 0 0 2080 0 2080 -2080 0 -2080 0 0 -2080z m3840 0 l0 -1760 -1760 0 -1760 0 0 1760 0 1760 1760 0 1760 0 0 -1760z"/>
@@ -123,7 +123,7 @@ export default function Sidebar() {
               style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
             >
               {formatChainName(chain.name)}
-              <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+              <svg xmlns="http://www.w3.org/2000/svg" className="ml-0.5 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
               </svg>
             </button>
