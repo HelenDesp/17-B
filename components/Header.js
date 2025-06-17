@@ -90,7 +90,7 @@ useEffect(() => {
           {isConnected && (
             <button
               onClick={toggleSidebar}
-              className="mr-2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-100 transition-colors md:hidden"
+              className="mr-1 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-100 transition-colors md:hidden"
               aria-label="Toggle sidebar"
             >
               <svg
