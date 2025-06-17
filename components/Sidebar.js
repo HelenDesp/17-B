@@ -97,7 +97,7 @@ export default function Sidebar() {
   return (
     <div className="h-full flex flex-col bg-white border-r-2 border-dark-200 dark:bg-dark-200 dark:border-light-200 shadow-lg">
       {/* User info */}
-      <div className="pl-1 pr-4 py-4 border-b border-black dark:border-white">
+      <div className="pl-2 pr-4 py-4 border-b border-black dark:border-white">
         <div className="flex justify-between items-center w-full">
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 flex items-center justify-center">
@@ -117,7 +117,7 @@ export default function Sidebar() {
             </div>
           </div>
           {isConnected && chain && (
-		  <div className="ml-4">
+		  <div className="ml-3">
             <button
               onClick={() => open({ view: 'Networks' })}
               className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
