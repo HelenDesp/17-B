@@ -2,11 +2,29 @@ import React, { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useAppKit } from "@reown/appkit/react";
 
 export default function Sidebar() {
   const router = useRouter();
-  const { isConnected, address } = useAccount();
+  const { isConnected, address, chain } = useAccount();
+  const { open } = useAppKit();
   const [mounted, setMounted] = useState(false);
+  
+
+	const formatChainName = (name) => {
+	  if (!name) return "";
+	  const lower = name.toLowerCase();
+
+	  if (lower.includes("arbitrum")) return "Arbitrum";
+	  if (lower.includes("bnb")) return "BNB";
+	  if (lower.includes("polygon")) return "Polygon";
+	  if (lower.includes("optimism") || lower.includes("op ")) return "Optimism";
+	  if (lower.includes("base")) return "Base";
+	  if (lower.includes("sepolia")) return "Sepolia";
+	  if (lower.includes("ethereum")) return "Ethereum";
+
+	  return name;
+	};  
 
   useEffect(() => {
     setMounted(true);
@@ -145,9 +163,30 @@ export default function Sidebar() {
 			  </svg>
 			</div>
           <div>
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-200">
-              WELCOME
-            </div>
+<div className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+  <span>WELCOME</span>
+  {isConnected && chain && (
+    <button
+      onClick={() => open({ view: "Networks" })}
+      className="inline-flex items-center px-2 py-0.5 rounded-none text-sm font-medium uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border border-black dark:border-white"
+      style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
+    >
+      {formatChainName(chain.name)}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="ml-1 h-4 w-4 sm:h-5 sm:w-5"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path
+          fillRule="evenodd"
+          d="M5.23 7.21a.75.75 0 011.06.02L10 11.084l3.71-3.853a.75.75 0 111.08 1.04l-4.25 4.41a.75.75 0 01-1.08 0l-4.25-4.41a.75.75 0 01.02-1.06z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </button>
+  )}
+</div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
               {formatAddress(address)}
             </div>
