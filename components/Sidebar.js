@@ -149,8 +149,8 @@ export default function Sidebar() {
     <div className="h-full flex flex-col bg-white border-r-2 border-dark-200 dark:bg-dark-200 dark:border-light-200 shadow-lg">
       {/* User info */}
       <div className="p-4 border-b border-black dark:border-white">
-<div className="flex items-center justify-between w-full">
-  {/* Avatar on left */}
+<div className="flex items-center justify-between w-full px-2">
+  {/* Avatar */}
   <div className="w-10 h-10 flex items-center justify-center">
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -164,25 +164,24 @@ export default function Sidebar() {
     </svg>
   </div>
 
-  {/* WELCOME left + BASE right */}
-  <div className="flex justify-between items-center flex-grow px-1">
-    <span className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
-      WELCOME
-    </span>
-
-    {isConnected && chain && (
-      <button
-        onClick={() => open({ view: 'Networks' })}
-        className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
-        style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
-      >
-        {formatChainName(chain.name)}
-        <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
-        </svg>
-      </button>
-    )}
+  {/* WELCOME */}
+  <div className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
+    WELCOME
   </div>
+
+  {/* BASE + icon aligned right */}
+  {isConnected && chain && (
+    <button
+      onClick={() => open({ view: 'Networks' })}
+      className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
+      style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
+    >
+      {formatChainName(chain.name)}
+      <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
+      </svg>
+    </button>
+  )}
 </div>
 
             <div className="text-xs text-gray-500 dark:text-gray-400">
