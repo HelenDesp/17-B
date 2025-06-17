@@ -179,7 +179,7 @@ const formatChainName = (name) => {
 		>
 		  {isHomePage && (
 			<span
-			  className="text-sm uppercase text-dark-200 [font-family:'Cygnito_Mono',sans-serif] dark:text-light-200 [@media(min-width:540px)]:hidden"
+			  className="text-sm uppercase text-dark-200 [font-family:'Cygnito_Mono',sans-serif] dark:text-light-200 [@media(max-width:540px)]:hidden"
 			>
 			  THEME
 			</span>
