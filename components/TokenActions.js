@@ -102,7 +102,7 @@ export default function TokenActions() {
 				  ? "/usdc.svg"
 				  : btn === "Send"
 				  ? "/dai.svg"
-				  : "/rvg-logo.svg"
+				  : "/wrappedbtc.svg"
 			  }
 			  alt={btn}
 			  className={`w-8 h-8 mb-1 ${btn === "Buy" ? 'dark:invert' : ''}`}
