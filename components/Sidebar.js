@@ -170,11 +170,11 @@ export default function Sidebar() {
   {isConnected && chain && (
     <button
       onClick={() => open({ view: "Networks" })}
-      className="flex items-center text-sm text-gray-800 dark:text-gray-200 pr-1"
-      style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
+      className="flex items-center text-sm text-gray-800 dark:text-gray-200"
+      style={{ fontFamily: "'Cygnito Mono', sans-serif", paddingRight: '0.25rem' }} // match left icon padding
     >
       {formatChainName(chain.name)}
-      <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+      <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
         <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
       </svg>
     </button>
