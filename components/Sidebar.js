@@ -163,26 +163,24 @@ export default function Sidebar() {
 			  </svg>
 			</div>
           <div>
-<div className="flex items-center w-full">
-  {/* LEFT SIDE: WELCOME */}
-  <div className="w-1/2 text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
+<div className="flex items-center justify-between w-full px-1">
+  {/* LEFT: WELCOME */}
+  <div className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
     WELCOME
   </div>
 
-  {/* RIGHT SIDE: BASE + ICON aligned to right */}
+  {/* RIGHT: CHAIN + ICON */}
   {isConnected && chain && (
-    <div className="w-1/2 flex justify-end pr-2">
-      <button
-        onClick={() => open({ view: 'Networks' })}
-        className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
-        style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
-      >
-        {formatChainName(chain.name)}
-        <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
-        </svg>
-      </button>
-    </div>
+    <button
+      onClick={() => open({ view: 'Networks' })}
+      className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
+      style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
+    >
+      {formatChainName(chain.name)}
+      <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
+      </svg>
+    </button>
   )}
 </div>
 
