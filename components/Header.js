@@ -87,7 +87,7 @@ const formatChainName = (name) => {
   if (lower.includes("arbitrum")) return "Arbitrum";
   if (lower.includes("bnb")) return "BNB";
   if (lower.includes("polygon")) return "Polygon";
-  if (lower.includes("optimism")) return "Optimism";
+  if (lower.includes("optimism") || lower.includes("op ")) return "Optimism";
   if (lower.includes("base")) return "Base";
   if (lower.includes("sepolia")) return "Sepolia";
   if (lower.includes("ethereum")) return "Ethereum";
@@ -159,12 +159,23 @@ const formatChainName = (name) => {
 <h1 className="flex items-center text-xl font-bold text-gray-900 dark:text-white">
   {isConnected && chain && (
     <button
-      onClick={() => open({ view: "Chains" })}
+      onClick={() => open({ view: "Chain" })}
       className="ml-2 inline-flex items-center px-3 py-1 rounded-none text-base font-normal uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border border-black dark:border-white"
       style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
     >
       {formatChainName(chain.name)}
-      <span className="ml-2">?</span>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="ml-2 h-4 w-4"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
+        <path
+          fillRule="evenodd"
+          d="M5.23 7.21a.75.75 0 011.06.02L10 11.084l3.71-3.853a.75.75 0 111.08 1.04l-4.25 4.41a.75.75 0 01-1.08 0l-4.25-4.41a.75.75 0 01.02-1.06z"
+          clipRule="evenodd"
+        />
+      </svg>
     </button>
   )}
 </h1>
