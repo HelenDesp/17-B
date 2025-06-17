@@ -117,9 +117,10 @@ export default function Sidebar() {
             </div>
           </div>
           {isConnected && chain && (
+		  <div className="pr-1">
             <button
               onClick={() => open({ view: 'Networks' })}
-              className="flex items-center text-sm uppercase text-green-800 dark:text-green-200 pr-1"
+              className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
               style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
             >
               {formatChainName(chain.name)}
@@ -127,6 +128,7 @@ export default function Sidebar() {
                 <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
               </svg>
             </button>
+		  </div>	
           )}
         </div>
       </div>
