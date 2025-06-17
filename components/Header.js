@@ -159,7 +159,7 @@ const formatChainName = (name) => {
 <h1 className="flex items-center text-xl font-bold text-gray-900 dark:text-white">
   {isConnected && chain && (
     <button
-      onClick={() => open({ view: "Chain" })}
+      onClick={() => open({ view: "Networks" })}
       className="ml-2 inline-flex items-center px-3 py-1 rounded-none text-base font-normal uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border border-black dark:border-white"
       style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
     >
