@@ -110,7 +110,7 @@ useEffect(() => {
             </button>
           )}
 
-<div className="w-[104px] aspect-[484/165] text-black dark:text-white">
+<div className="w-[104px] aspect-[484/165] text-black dark:text-white dark:invert">
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 484 165"
@@ -124,10 +124,10 @@ useEffect(() => {
   </svg>
 </div>  
 		  
-<h1 className="hidden md:block lg:block text-xl font-bold text-gray-900 dark:text-white flex items-center">
+<h1 className="hidden md:flex lg:flex items-center text-xl font-bold text-gray-900 dark:text-white">
   {isConnected && chain && (
     <span
-      className="ml-2 inline-flex items-center px-3 py-1 rounded-none text-base font-normal uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 relative -top-[6px]"
+      className="ml-2 inline-flex items-center px-3 py-1 rounded-none text-base font-normal uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
       style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
     >
       {chain.name}
