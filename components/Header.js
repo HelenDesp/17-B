@@ -114,7 +114,7 @@ useEffect(() => {
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 484 165"
   preserveAspectRatio="xMidYMid meet"
-  className="h-10 w-auto mr-3 text-black dark:text-white"
+  className="w-[100px] sm:w-[120px] md:w-[140px] h-auto mr-3 text-black dark:text-white"
 >
   <g
     transform="translate(0.000000,165.000000) scale(0.100000,-0.100000)"
