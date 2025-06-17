@@ -108,7 +108,7 @@ export default function WalletCard() {
   // Format address for display
   const formatAddress = (addr) => {
     if (!addr) return "";
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 6)}`;
+    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
   
 const getExplorerUrl = (chainId) => {

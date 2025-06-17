@@ -163,7 +163,7 @@ useEffect(() => {
 
 	const shortenAddress = (addr) => {
 	  if (!addr) return "";
-	  return addr.slice(0, 8) + "..." + addr.slice(-6);
+	  return addr.slice(0, 6) + "..." + addr.slice(-4);
 	}; 
 
 	const formatShortDate = (dateStr) => {

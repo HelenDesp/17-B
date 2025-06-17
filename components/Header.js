@@ -79,6 +79,21 @@ useEffect(() => {
     if (!addr) return "";
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
+  
+const formatChainName = (name) => {
+  if (!name) return "";
+  const lower = name.toLowerCase();
+
+  if (lower.includes("arbitrum")) return "Arbitrum";
+  if (lower.includes("bnb")) return "BNB";
+  if (lower.includes("polygon")) return "Polygon";
+  if (lower.includes("optimism")) return "Optimism";
+  if (lower.includes("base")) return "Base";
+  if (lower.includes("sepolia")) return "Sepolia";
+  if (lower.includes("ethereum")) return "Ethereum";
+
+  return name;
+};  
 
   if (!mounted) return null;
 
@@ -126,7 +141,7 @@ useEffect(() => {
 </div>
 ) : ( 
 
-<div className="w-[128px] aspect-[484/165] hidden [@media(min-width:540px)]:block text-black dark:text-white dark:invert">
+<div className="w-[104px] aspect-[484/165] hidden [@media(min-width:540px)]:block text-black dark:text-white dark:invert">
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 484 165"
@@ -141,14 +156,16 @@ useEffect(() => {
 </div>
 )}
 		  
-<h1 className="hidden md:flex lg:flex items-center text-xl font-bold text-gray-900 dark:text-white">
+<h1 className="flex items-center text-xl font-bold text-gray-900 dark:text-white">
   {isConnected && chain && (
-    <span
-      className="ml-2 inline-flex items-center px-3 py-1 rounded-none text-base font-normal uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+    <button
+      onClick={() => open({ view: "Chains" })}
+      className="ml-2 inline-flex items-center px-3 py-1 rounded-none text-base font-normal uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border border-black dark:border-white"
       style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
     >
-      {chain.name}
-    </span>
+      {formatChainName(chain.name)}
+      <span className="ml-2">?</span>
+    </button>
   )}
 </h1>
         </div>
@@ -162,7 +179,7 @@ useEffect(() => {
 		>
 		  {isHomePage && (
 			<span
-			  className="text-sm uppercase text-dark-200 [font-family:'Cygnito_Mono',sans-serif] dark:text-light-200"
+			  className="text-sm uppercase text-dark-200 [font-family:'Cygnito_Mono',sans-serif] dark:text-light-200 [@media(min-width:540px)]:hidden"
 			>
 			  THEME
 			</span>
