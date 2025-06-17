@@ -97,7 +97,7 @@ export default function Sidebar() {
   return (
     <div className="h-full flex flex-col bg-white border-r-2 border-dark-200 dark:bg-dark-200 dark:border-light-200 shadow-lg">
       {/* User info */}
-      <div className="pl-2 pr-4 py-4 border-b border-black dark:border-white">
+      <div className="pl-1 pr-4 py-4 border-b border-black dark:border-white">
         <div className="flex justify-between items-center w-full">
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 flex items-center justify-center">
@@ -119,11 +119,11 @@ export default function Sidebar() {
           {isConnected && chain && (
             <button
               onClick={() => open({ view: 'Networks' })}
-              className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
+              className="flex items-center text-sm uppercase text-green-800 dark:text-green-200 pr-1"
               style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
             >
               {formatChainName(chain.name)}
-              <svg xmlns="http://www.w3.org/2000/svg" className="ml-8.5 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+              <svg xmlns="http://www.w3.org/2000/svg" className="ml-0.5 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
               </svg>
             </button>
