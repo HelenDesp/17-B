@@ -163,13 +163,13 @@ export default function Sidebar() {
 			  </svg>
 			</div>
           <div>
-<div className="flex items-center justify-between w-full px-1">
+<div className="flex justify-between items-center w-full px-1">
   {/* LEFT: WELCOME */}
-  <div className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
+  <span className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
     WELCOME
-  </div>
+  </span>
 
-  {/* RIGHT: CHAIN + ICON */}
+  {/* RIGHT: BASE + ICON */}
   {isConnected && chain && (
     <button
       onClick={() => open({ view: 'Networks' })}
