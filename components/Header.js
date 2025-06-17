@@ -110,6 +110,12 @@ useEffect(() => {
             </button>
           )}
 
+		  <img
+			src="/rvg-logo.svg"
+			alt="Logo"
+			className="h-8 w-auto mr-3"
+		  />		  
+		  
           <h1 className="hidden md:block lg:block text-xl font-bold text-gray-900 dark:text-white flex items-center">
             <span>Web3 Wallet App</span>
 
