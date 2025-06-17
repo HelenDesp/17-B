@@ -117,7 +117,7 @@ export default function Sidebar() {
             </div>
           </div>
           {isConnected && chain && (
-		  <div className="pr-1">
+		  <div className="ml-auto">
             <button
               onClick={() => open({ view: 'Networks' })}
               className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
