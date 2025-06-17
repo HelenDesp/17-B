@@ -110,7 +110,7 @@ useEffect(() => {
             </button>
           )}
 
-<div className="w-[116px] aspect-[484/165] text-black dark:text-white">
+<div className="w-[120px] aspect-[484/165] text-black dark:text-white">
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 484 165"
