@@ -126,7 +126,8 @@ useEffect(() => {
 		</div>
 		) : ( 
 
-		<div className="w-[104px] aspect-[484/165] hidden [@media(min-width:300px)]:block text-black dark:text-white dark:invert pl-4">
+		<div className="w-[104px] aspect-[484/165] hidden [@media(min-width:300px)]:block text-black dark:text-white dark:invert">
+		style={{ marginLeft: "-4px" }}
 		  <svg
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 484 165"
