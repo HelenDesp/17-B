@@ -163,30 +163,24 @@ export default function Sidebar() {
 			  </svg>
 			</div>
           <div>
-<div className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-  <span>WELCOME</span>
+<div className="flex items-center justify-between w-full">
+  <span className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
+    WELCOME
+  </span>
   {isConnected && chain && (
     <button
       onClick={() => open({ view: "Networks" })}
-      className="inline-flex items-center px-2 py-0.5 rounded-none text-sm font-medium uppercase bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border border-black dark:border-white"
+      className="flex items-center text-sm text-gray-800 dark:text-gray-200 pr-1"
       style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
     >
       {formatChainName(chain.name)}
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="ml-1 h-4 w-4 sm:h-5 sm:w-5"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-      >
-        <path
-          fillRule="evenodd"
-          d="M5.23 7.21a.75.75 0 011.06.02L10 11.084l3.71-3.853a.75.75 0 111.08 1.04l-4.25 4.41a.75.75 0 01-1.08 0l-4.25-4.41a.75.75 0 01.02-1.06z"
-          clipRule="evenodd"
-        />
+      <svg xmlns="http://www.w3.org/2000/svg" className="ml-1 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
       </svg>
     </button>
   )}
 </div>
+
             <div className="text-xs text-gray-500 dark:text-gray-400">
               {formatAddress(address)}
             </div>
