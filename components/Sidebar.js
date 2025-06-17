@@ -117,7 +117,7 @@ export default function Sidebar() {
             </div>
           </div>
           {isConnected && chain && (
-		  <div className="pl-10 ml-6">
+		  <div className="pl-10">
             <button
               onClick={() => open({ view: 'Networks' })}
               className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
