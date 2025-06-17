@@ -97,9 +97,9 @@ export default function Sidebar() {
   return (
     <div className="h-full flex flex-col bg-white border-r-2 border-dark-200 dark:bg-dark-200 dark:border-light-200 shadow-lg">
       {/* User info */}
-      <div className="p-4 border-b border-black dark:border-white">
+      <div className="pl-2 pr-4 py-4 border-b border-black dark:border-white">
         <div className="flex justify-between items-center w-full">
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-2">
             <div className="w-10 h-10 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-black dark:text-white rotate-180" viewBox="0 0 4160 4160" fill="currentColor">
                 <path d="M0 2080 l0 -2080 2080 0 2080 0 0 2080 0 2080 -2080 0 -2080 0 0 -2080z m3840 0 l0 -1760 -1760 0 -1760 0 0 1760 0 1760 1760 0 1760 0 0 -1760z"/>
