@@ -90,7 +90,7 @@ useEffect(() => {
           {isConnected && (
             <button
               onClick={toggleSidebar}
-              className="-ml-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-100 transition-colors md:hidden"
+              className="-ml-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-dark-100 transition-colors md:hidden"
               aria-label="Toggle sidebar"
             >
               <svg
@@ -126,7 +126,7 @@ useEffect(() => {
 		</div>
 		) : ( 
 
-		<div className="w-[104px] aspect-[484/165] hidden [@media(min-width:300px)]:block text-black dark:text-white dark:invert ml-2">
+		<div className="w-[104px] aspect-[484/165] hidden [@media(min-width:300px)]:block text-black dark:text-white dark:invert -ml-2">
 		  <svg
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 484 165"
