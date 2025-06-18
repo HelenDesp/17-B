@@ -149,7 +149,7 @@ useEffect(() => {
           {/* Theme Toggle Button */}
 		<button
 		  onClick={toggleTheme}
-		  className="flex items-center gap-2 px-3 py-2 text-dark-200 dark:text-light-200 transition-colors"
+		  className="flex items-center gap-2 xsm:px-1 px-3 py-2 text-dark-200 dark:text-light-200 transition-colors"
 		  aria-label="Toggle dark mode"
 		>
 		  {isHomePage && (
