@@ -111,7 +111,7 @@ useEffect(() => {
           )}
 
 		{!isConnected ? (		  
-		<div className="w-[128px] aspect-[484/165] text-black dark:text-white dark:invert">
+		<div className="w-[128px] xsm:w-[104px] aspect-[484/165] text-black dark:text-white dark:invert">
 		  <svg
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox="0 0 484 165"
@@ -231,7 +231,7 @@ useEffect(() => {
 ) : (
   <button
     onClick={() => open({ view: "Connect" })}
-    className="xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+    className="xsm:border-2 border-4 xsm:px-2 px-4 py-1.5 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
   >
     Connect Wallet
   </button>
