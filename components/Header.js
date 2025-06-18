@@ -84,7 +84,7 @@ useEffect(() => {
 
   return (
     <header className="relative sticky top-0 z-50 bg-white shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
-      <div className="header-container">
+      <div className="header-container flex items-center justify-between px-2 w-full max-w-full overflow-hidden">
 	  <div className="absolute left-0 right-0 bottom-0 h-0.5 md:h-0.5.5 z-10 bg-dark-200 dark:bg-white pointer-events-none" />
         <div className="header-logo">
           {isConnected && (
