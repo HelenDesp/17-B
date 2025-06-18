@@ -82,28 +82,33 @@ export default function TokenActions() {
   const handleSendFlow = () => { setShowBridge(false); open({ view: 'Account' }); };
 
   return (
-    <section className="p-4 bg-white dark:bg-dark-200 rounded-lg shadow-md">
+    <section className="p-4 bg-white border-b2 dark:bg-dark-200 rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Token Actions</h2>
       <div className="flex flex-wrap gap-4 mb-6 justify-between max-w-full">
         {["Buy", "Swap", "Send", "Bridge"].map((btn) => (
           <button
             key={btn}
             onClick={() => handleAction(btn)}
-className={`flex flex-col items-center justify-center border rounded text-base h-20 
-  w-[23%] min-w-[80px] max-w-40 grow
-  max-[1150px]:w-[48%] max-[439px]:w-[48%]
-  ${activeAction === btn ? 'border-gray-900 dark:border-white' : 'border-transparent'}`}
+className={`flex flex-col items-center justify-center border rounded text-base h-20
+  w-[22%]
+  max-[1159px]:w-[47%]
+  max-[1023px]:w-full
+  max-[479px]:w-[47%]
+			  ${activeAction === btn ? 'border-gray-900 dark:border-white' : 'border-transparent'}`}
           >
-            <img
-              src={
-                btn === "Buy" ? "/ethereum.svg" :
-                btn === "Swap" ? "/usdc.svg" :
-                btn === "Send" ? "/dai.svg" :
-                "/wrappedbtc.svg"
-              }
-              alt={btn}
-              className="w-8 h-8 mb-1"
-            />
+			<img
+			  src={
+				btn === "Buy"
+				  ? "/ethereum.svg"
+				  : btn === "Swap"
+				  ? "/usdc.svg"
+				  : btn === "Send"
+				  ? "/dai.svg"
+				  : "/wrappedbtc.svg"
+			  }
+			  alt={btn}
+			  className={`w-8 h-8 mb-1 ${btn === "Buy" ? 'dark:invert' : ''}`}
+			/>
             <span className="text-gray-900 dark:text-white uppercase">{btn}</span>
           </button>
         ))}
@@ -111,19 +116,30 @@ className={`flex flex-col items-center justify-center border rounded text-base h
 
       {showBridge && (
         <div className="flex flex-col gap-4">
-          <div className="text-sm text-red-600">
-            ⚠️ Bridge feature is under construction.<br />
-            Please use 
-            <a
-              href="https://app.across.to/bridge"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-blue-600 ml-1"
-            >
-              [Across.to]
-            </a>
-            as a temporary solution.
-          </div>
+<div className="text-sm text-black dark:text-white">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 32.811 32.811"
+  className="w-4 h-4 inline mr-1 fill-black dark:fill-white align-text-top"
+>
+  <path d="M0,1.356v16.743h5.249v7.154v3.617v2.586h3.61v-2.586h15.423v2.586h3.606V18.098h4.923V1.356H0z M31.136,2.281
+	l-7.764,14.658h-4.783l7.762-14.658C26.351,2.281,31.136,2.281,31.136,2.281z M23.016,2.245l-7.766,14.66h-4.785l7.767-14.66
+	C18.232,2.245,23.016,2.245,23.016,2.245z M1.31,2.429l5.617-0.017L1.281,12.99L1.31,2.429z M7.468,17.06H2.684l7.763-14.658h4.785
+	L7.468,17.06z M24.282,25.252H8.859v-7.154h15.423C24.282,18.098,24.282,25.252,24.282,25.252z M32.149,16.811l-5.616-0.006
+	l5.646-10.576L32.149,16.811z"/>
+</svg> Bridge feature is under construction.<br />
+  Please use
+  <a
+    href="https://app.across.to/bridge"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="ml-1 px-1 py-0.5 rounded underline
+      text-black dark:text-white"
+  >
+    [Across.to]
+  </a>
+  as a temporary solution.
+</div>
           <div className="flex flex-wrap gap-4">
             <label className="flex flex-col text-sm text-gray-800 dark:text-white">
               From Chain
@@ -148,12 +164,14 @@ className={`flex flex-col items-center justify-center border rounded text-base h
               <input type="text" value={amount} onChange={(e) => setAmount(e.target.value)} className="px-3 py-1 rounded border" />
             </label>
           </div>
-          <button
-            disabled
-            className="px-5 py-2 bg-yellow-400 text-white rounded opacity-50 cursor-not-allowed"
-          >
-            Bridge
-          </button>
+			<button
+			  disabled
+			  className="px-4 py-2 opacity-60 cursor-not-allowed
+				bg-black text-white
+				dark:bg-white dark:text-black"
+			>
+			  Bridge
+			</button>
         </div>
       )}
     </section>
