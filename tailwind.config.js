@@ -96,7 +96,7 @@ module.exports = {
         },
       },
 	  screens: {
-		xsm: { max: '411px' },
+		xsm: { max: '480px' },
 	  },	  
       fontFamily: {
         sans: [
