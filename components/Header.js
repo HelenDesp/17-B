@@ -5,6 +5,9 @@ import { modal } from "../context";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
 import { useEnsName } from "wagmi";
+import { usePublicClient } from 'wagmi';
+import { base } from 'viem/chains';
+import { namehash } from 'viem/utils';
 
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
@@ -12,6 +15,8 @@ export default function Header({ toggleSidebar }) {
   const { disconnect } = useDisconnect();
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
+  const publicClient = usePublicClient({ chainId: base.id });
+  const [baseName, setBaseName] = useState(null);
   const { data: ensName } = useEnsName({ address, chainId: 1 });
   const handleWalletModal = () => {
   open({ view: "Account" }); // You can also use "Swap", "OnRampProviders", etc.
@@ -27,6 +32,38 @@ export default function Header({ toggleSidebar }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+useEffect(() => {
+  const resolveBaseName = async () => {
+    if (!address || chain?.id !== 8453) return;
+
+    try {
+      const reverseNode = namehash(`${address.slice(2).toLowerCase()}.addr.reverse`);
+
+      const baseName = await publicClient.readContract({
+        address: '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD', // Base Name Service Resolver
+        abi: [
+          {
+            name: 'name',
+            type: 'function',
+            stateMutability: 'view',
+            inputs: [{ name: 'node', type: 'bytes32' }],
+            outputs: [{ name: '', type: 'string' }],
+          },
+        ],
+        functionName: 'name',
+        args: [reverseNode],
+      });
+
+      setBaseName(baseName);
+    } catch (err) {
+      console.warn('No .base.eth found for address', err);
+      setBaseName(null);
+    }
+  };
+
+  resolveBaseName();
+}, [address, chain]);
   
 useEffect(() => {
   const fetchEthPrice = async () => {
@@ -226,7 +263,7 @@ useEffect(() => {
     onClick={handleWalletModal}
 	className="xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
   >
-    {ensName || formatAddress(address)}
+    {baseName || ensName || formatAddress(address)}
   </button>
 ) : (
   <button
