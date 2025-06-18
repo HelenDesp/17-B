@@ -4,8 +4,9 @@ import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
 
-// Import the official `useName` hook from OnchainKit
-import { useName } from '@coinbase/onchainkit/identity';
+// wagmi/viem imports for direct contract interaction
+import { usePublicClient } from 'wagmi';
+import { base } from 'viem/chains';
 
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
@@ -13,10 +14,49 @@ export default function Header({ toggleSidebar }) {
   const { disconnect } = useDisconnect();
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
+  
+  // This state will hold the resolved .base name from the Masa contract
+  const [baseName, setBaseName] = useState(null);
+  const publicClient = usePublicClient({ chainId: base.id });
 
-  // This one hook handles everything: ENS, BNS, etc.
-  // It automatically detects the chain and uses the correct resolver.
-  const { data: name } = useName({ address });
+  // This useEffect now targets the specific Masa Green contract
+  useEffect(() => {
+    setBaseName(null);
+    if (chain?.id !== base.id || !publicClient || !address) {
+        return;
+    }
+
+    const resolveMasaName = async () => {
+        try {
+            // Call the getSoulNames function on the Masa Green contract
+            const namesArray = await publicClient.readContract({
+                address: '0x03c4738Ee98aE44591e1A4A4F3CaB6641d95DD9a', // The Masa Green contract address you provided
+                abi: [
+                    {
+                        "inputs": [{"internalType": "address", "name": "account", "type": "address"}],
+                        "name": "getSoulNames",
+                        "outputs": [{"internalType": "string[]", "name": "", "type": "string[]"}],
+                        "stateMutability": "view",
+                        "type": "function"
+                    }
+                ],
+                functionName: 'getSoulNames',
+                args: [address]
+            });
+
+            // The function returns an array of names. We will display the first one.
+            if (namesArray && namesArray.length > 0) {
+                setBaseName(namesArray[0]);
+            }
+        } catch (error) {
+            console.error("Could not resolve Masa Green name:", error);
+            setBaseName(null);
+        }
+    };
+
+    resolveMasaName();
+  }, [address, chain, publicClient]);
+
 
   const handleWalletModal = () => {
     open({ view: "Account" });
@@ -61,9 +101,8 @@ export default function Header({ toggleSidebar }) {
   
   if (!mounted) return null;
 
-  // The logic is now much simpler. If a name is found by the hook, use it.
-  // Otherwise, fall back to the formatted address.
-  const displayName = name || formatAddress(address);
+  // Use the resolved baseName if available, otherwise show the address
+  const displayName = baseName || formatAddress(address);
 
   return (
     <header className="relative sticky top-0 z-50 bg-white overflow-x-hidden w-full max-w-full shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
