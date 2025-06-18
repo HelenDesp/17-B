@@ -113,7 +113,7 @@ className={`flex flex-col items-center justify-center border rounded text-base h
 			  alt={btn}
 			  className={`w-8 h-8 mb-1 ${btn === "Buy" ? 'dark:invert' : ''}`}
 			/>
-            <span className="text-gray-900 dark:text-white uppercase">{btn}</span>
+            <span className="text-gray-900 dark:text-white uppercase text-sm max-[400px]:text-xs">{btn}</span>
           </button>
         ))}
       </div>
