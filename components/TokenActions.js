@@ -119,7 +119,7 @@ className={`flex flex-col items-center justify-center border rounded text-base h
       </div>
 
       {showBridge && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 mt-4">
 <div className="text-sm text-black dark:text-white">
 <svg
   xmlns="http://www.w3.org/2000/svg"
