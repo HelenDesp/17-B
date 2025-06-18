@@ -535,3 +535,29 @@ input, textarea, select {
 [data-theme] .w3m-modal {
   border-radius: 4px !important;
 }
+
+@layer utilities {
+  .nft-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  @media (min-width: 521px) {
+    .nft-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1021px) {
+    .nft-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .nft-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+}
