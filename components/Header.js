@@ -19,7 +19,7 @@ export default function Header({ toggleSidebar }) {
   // 1. Hook for ENS (.eth) on Ethereum Mainnet.
   const { data: ensName } = useEnsName({ address, chainId: 1 });
 
-  // 2. Correct BNS lookup using a direct read of the specific BNS contract.
+  // 2. BNS lookup using a direct read of the specific BNS contract with added debugging.
   useEffect(() => {
     setBaseName(null);
     if (chain?.id !== base.id || !publicClient || !address) {
@@ -27,10 +27,10 @@ export default function Header({ toggleSidebar }) {
     }
 
     const resolveBaseName = async () => {
+        console.log("BNS DEBUG: Attempting to resolve .base name for address:", address);
         try {
-            // Directly calling the `names(address)` function on the BNS contract
             const name = await publicClient.readContract({
-                address: '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD', // The specific BNS contract
+                address: '0xC6d566A56A1aFf6c90ff131615583BCD', // The specific BNS contract
                 abi: [
                     {
                         "inputs": [{"internalType": "address", "name": "_owner", "type": "address"}],
@@ -44,11 +44,15 @@ export default function Header({ toggleSidebar }) {
                 args: [address]
             });
 
+            console.log("BNS DEBUG: Received from contract:", name);
+
             if (name) {
                 setBaseName(name);
+            } else {
+                console.log("BNS DEBUG: Contract returned an empty name.");
             }
         } catch (error) {
-            console.error("Could not resolve BNS name via direct contract read. The user may not have a name set.", error);
+            console.error("BNS DEBUG: Error during BNS lookup.", error);
             setBaseName(null);
         }
     };
