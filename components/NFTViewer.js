@@ -58,7 +58,7 @@ export default function NFTViewer({
         ) : nfts.length === 0 ? (
           <p className="text-gray-500 dark:text-white">No NFTs found for this wallet.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="nft-grid gap-4">
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 {/* Checkbox always at bottom left with tooltip */}
