@@ -249,7 +249,7 @@ export default function NFTTransfer({
       </h2>
 
       {/* Mode select as square checkboxes (styled as a select group) */}
-      <div className="mb-4 flex gap-4">
+      <div className="mb-4 flex flex-wrap gap-2 sm:gap-4">
         {TRANSFER_MODES.map(opt => (
 <button
   key={opt.value}
