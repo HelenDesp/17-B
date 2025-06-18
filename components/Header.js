@@ -3,11 +3,8 @@ import { useAccount, useBalance, useDisconnect, useEnsName } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
-
-// Import new required utilities
-import { createPublicClient, http } from 'viem';
+import { usePublicClient } from 'wagmi';
 import { base } from 'viem/chains';
-import { addEnsContracts, createEnsPublicClient } from '@ensdomains/ensjs';
 
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
@@ -17,43 +14,47 @@ export default function Header({ toggleSidebar }) {
   const { open } = useAppKit();
   
   const [baseName, setBaseName] = useState(null);
+  const publicClient = usePublicClient({ chainId: base.id });
 
-  // 1. Hook for ENS (.eth) on Ethereum Mainnet. This remains the same.
+  // 1. Hook for ENS (.eth) on Ethereum Mainnet.
   const { data: ensName } = useEnsName({ address, chainId: 1 });
 
-  // 2. Official method to resolve .base names using ensjs.
+  // 2. Correct BNS lookup using a direct read of the specific BNS contract.
   useEffect(() => {
-    setBaseName(null); // Reset on change
-    if (chain?.id !== base.id || !address) {
+    setBaseName(null);
+    if (chain?.id !== base.id || !publicClient || !address) {
         return;
     }
 
     const resolveBaseName = async () => {
         try {
-            // 1. Create a Viem client configured with the official Base ENS contract addresses
-            const client = createPublicClient({
-                chain: addEnsContracts(base),
-                transport: http(),
+            // Directly calling the `names(address)` function on the BNS contract
+            const name = await publicClient.readContract({
+                address: '0xC6d566A56A1aFf6508b41f6c90ff131615583BCD', // The specific BNS contract
+                abi: [
+                    {
+                        "inputs": [{"internalType": "address", "name": "_owner", "type": "address"}],
+                        "name": "names",
+                        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+                        "stateMutability": "view",
+                        "type": "function"
+                    }
+                ],
+                functionName: 'names',
+                args: [address]
             });
 
-            // 2. Create a high-level ENS client from the Viem client
-            const ensClient = createEnsPublicClient({ client });
-
-            // 3. Fetch the primary name for the address on Base
-            const result = await ensClient.getName({ address });
-
-            // The result is an object like { name: 'yourname.base', ... } or null
-            if (result && result.name) {
-                setBaseName(result.name);
+            if (name) {
+                setBaseName(name);
             }
         } catch (error) {
-            console.error("Error resolving .base name with ensjs:", error);
+            console.error("Could not resolve BNS name via direct contract read. The user may not have a name set.", error);
             setBaseName(null);
         }
     };
 
     resolveBaseName();
-  }, [address, chain]); // Reruns when address or chain changes
+  }, [address, chain, publicClient]);
 
 
   const handleWalletModal = () => {
@@ -109,7 +110,6 @@ export default function Header({ toggleSidebar }) {
 
   return (
     <header className="relative sticky top-0 z-50 bg-white overflow-x-hidden w-full max-w-full shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
-		{/* The rest of your component JSX is unchanged... */}
 		<div className="header-container flex items-center justify-between px-2 w-full max-w-[100vw] overflow-hidden">
         <div className="absolute inset-x-0 bottom-0 h-0.5 z-10 bg-dark-200 dark:bg-white pointer-events-none max-w-full overflow-hidden" />
         <div className="header-logo">
