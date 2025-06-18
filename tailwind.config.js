@@ -95,6 +95,9 @@ module.exports = {
           500: "#ffffff",
         },
       },
+	  screens: {
+		xsm: { max: '411px' },
+	  },	  
       fontFamily: {
         sans: [
           "Inter",
