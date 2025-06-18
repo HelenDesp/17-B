@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useAccount, useBalance, useDisconnect } from "wagmi";
+import { useAccount, useBalance, useDisconnect, useEnsName } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
-
-// wagmi/viem imports for direct contract interaction
 import { usePublicClient } from 'wagmi';
 import { base } from 'viem/chains';
 
@@ -15,13 +13,22 @@ export default function Header({ toggleSidebar }) {
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
   
-  // This state will hold the resolved .base name from the Masa contract
+  // State for the BNS (Masa) name
   const [baseName, setBaseName] = useState(null);
   const publicClient = usePublicClient({ chainId: base.id });
 
-  // This useEffect now targets the specific Masa Green contract
+  // --- 1. HOOK FOR ENS (.eth) ---
+  // This hook fetches the .eth name from Ethereum Mainnet. It runs on any chain.
+  const { data: ensName } = useEnsName({
+    address,
+    chainId: 1,
+    enabled: isConnected,
+  });
+
+  // --- 2. HOOK FOR BNS (.base from Masa Contract) ---
+  // This useEffect targets the specific Masa Green contract you provided.
   useEffect(() => {
-    setBaseName(null);
+    setBaseName(null); // Reset on change
     if (chain?.id !== base.id || !publicClient || !address) {
         return;
     }
@@ -30,7 +37,7 @@ export default function Header({ toggleSidebar }) {
         try {
             // Call the getSoulNames function on the Masa Green contract
             const namesArray = await publicClient.readContract({
-                address: '0x03c4738Ee98aE44591e1A4A4F3CaB6641d95DD9a', // The Masa Green contract address you provided
+                address: '0x03c4738Ee98aE44591e1A4A4F3CaB6641d95DD9a',
                 abi: [
                     {
                         "inputs": [{"internalType": "address", "name": "account", "type": "address"}],
@@ -44,19 +51,18 @@ export default function Header({ toggleSidebar }) {
                 args: [address]
             });
 
-            // The function returns an array of names. We will display the first one.
+            // Display the first name from the returned array
             if (namesArray && namesArray.length > 0) {
                 setBaseName(namesArray[0]);
             }
         } catch (error) {
-            console.error("Could not resolve Masa Green name:", error);
+            console.error("Could not resolve Masa Green BNS name:", error);
             setBaseName(null);
         }
     };
 
     resolveMasaName();
   }, [address, chain, publicClient]);
-
 
   const handleWalletModal = () => {
     open({ view: "Account" });
@@ -101,8 +107,16 @@ export default function Header({ toggleSidebar }) {
   
   if (!mounted) return null;
 
-  // Use the resolved baseName if available, otherwise show the address
-  const displayName = baseName || formatAddress(address);
+  // --- 3. FINAL DISPLAY LOGIC ---
+  // This correctly prioritizes which name to show based on the current chain.
+  let displayName = formatAddress(address);
+  if (chain?.id === base.id) {
+    // If we are on Base, show the BNS name. If not found, show the address.
+    displayName = baseName || formatAddress(address);
+  } else if (ensName) {
+    // If we are NOT on Base, show the ENS name if it exists.
+    displayName = ensName;
+  }
 
   return (
     <header className="relative sticky top-0 z-50 bg-white overflow-x-hidden w-full max-w-full shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
