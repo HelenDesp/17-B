@@ -84,16 +84,22 @@ export default function TokenActions() {
   return (
     <section className="p-4 bg-white border-b2 dark:bg-dark-200 rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Token Actions</h2>
-      <div className="flex flex-wrap gap-4 mb-6 justify-between max-w-full">
+<div
+  className="
+    grid gap-4 w-full
+    grid-cols-4
+    max-[1159px]:grid-cols-2
+    max-[1023px]:grid-cols-4
+    max-[479px]:grid-cols-2
+  "
+>
         {["Buy", "Swap", "Send", "Bridge"].map((btn) => (
-          <button
-            key={btn}
-            onClick={() => handleAction(btn)}
-			className={`flex flex-col items-center justify-center border rounded text-base h-20
-			  min-w-[80px] max-w-40 grow
-			  max-[1160px]:min-w-[47%] max-[1023px]:min-w-[22%] max-[480px]:min-w-[47%]
-			  ${activeAction === btn ? 'border-gray-900 dark:border-white' : 'border-transparent'}`}
-          >
+<button
+  key={btn}
+  onClick={() => handleAction(btn)}
+  className={`flex flex-col items-center justify-center border rounded text-base h-20
+    ${activeAction === btn ? 'border-gray-900 dark:border-white' : 'border-transparent'}`}
+>
 			<img
 			  src={
 				btn === "Buy"
