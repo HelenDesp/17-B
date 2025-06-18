@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useAccount, useBalance, useDisconnect, useEnsName } from "wagmi";
+import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
-import { usePublicClient } from 'wagmi';
-import { base } from 'viem/chains';
+
+// Import the official `useName` hook from OnchainKit
+import { useName } from '@coinbase/onchainkit/identity';
 
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
@@ -12,54 +13,10 @@ export default function Header({ toggleSidebar }) {
   const { disconnect } = useDisconnect();
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
-  
-  const [baseName, setBaseName] = useState(null);
-  const publicClient = usePublicClient({ chainId: base.id });
 
-  // 1. Hook for ENS (.eth) on Ethereum Mainnet.
-  const { data: ensName } = useEnsName({ address, chainId: 1 });
-
-  // 2. BNS lookup using a direct read of the specific BNS contract with added debugging.
-  useEffect(() => {
-    setBaseName(null);
-    if (chain?.id !== base.id || !publicClient || !address) {
-        return;
-    }
-
-    const resolveBaseName = async () => {
-        console.log("BNS DEBUG: Attempting to resolve .base name for address:", address);
-        try {
-            const name = await publicClient.readContract({
-                address: '0xC6d566A56A1aFf6c90ff131615583BCD', // The specific BNS contract
-                abi: [
-                    {
-                        "inputs": [{"internalType": "address", "name": "_owner", "type": "address"}],
-                        "name": "names",
-                        "outputs": [{"internalType": "string", "name": "", "type": "string"}],
-                        "stateMutability": "view",
-                        "type": "function"
-                    }
-                ],
-                functionName: 'names',
-                args: [address]
-            });
-
-            console.log("BNS DEBUG: Received from contract:", name);
-
-            if (name) {
-                setBaseName(name);
-            } else {
-                console.log("BNS DEBUG: Contract returned an empty name.");
-            }
-        } catch (error) {
-            console.error("BNS DEBUG: Error during BNS lookup.", error);
-            setBaseName(null);
-        }
-    };
-
-    resolveBaseName();
-  }, [address, chain, publicClient]);
-
+  // This one hook handles everything: ENS, BNS, etc.
+  // It automatically detects the chain and uses the correct resolver.
+  const { data: name } = useName({ address });
 
   const handleWalletModal = () => {
     open({ view: "Account" });
@@ -104,13 +61,9 @@ export default function Header({ toggleSidebar }) {
   
   if (!mounted) return null;
 
-  // This chain-aware display logic is correct and remains the same
-  let displayName = formatAddress(address);
-  if (chain?.id === base.id && baseName) {
-    displayName = baseName;
-  } else if (chain?.id !== base.id && ensName) {
-    displayName = ensName;
-  }
+  // The logic is now much simpler. If a name is found by the hook, use it.
+  // Otherwise, fall back to the formatted address.
+  const displayName = name || formatAddress(address);
 
   return (
     <header className="relative sticky top-0 z-50 bg-white overflow-x-hidden w-full max-w-full shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
