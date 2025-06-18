@@ -91,7 +91,7 @@ export default function TokenActions() {
             onClick={() => handleAction(btn)}
 			className={`flex flex-col items-center justify-center border rounded text-base h-20
 			  min-w-[80px] max-w-40 grow
-			  max-[1160px]:min-w-[40%] max-[1023px]:min-w-[22%] max-[480px]:min-w-[40%]
+			  w-[48%] sm:w-[48%] xsm:w-full
 			  ${activeAction === btn ? 'border-gray-900 dark:border-white' : 'border-transparent'}`}
           >
 			<img
