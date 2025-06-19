@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useAccount, useBalance, useDisconnect, useEnsName } from "wagmi";
+import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
 import { useName } from '@coinbase/onchainkit/identity';
-import { base, mainnet, sepolia } from 'viem/chains';
+import { base, mainnet, sepolia } from 'viem/chains'; // Import all supported chains
 
 // --- Your Main Header Component ---
 export default function Header({ toggleSidebar }) {
@@ -13,18 +13,15 @@ export default function Header({ toggleSidebar }) {
   const { disconnect } = useDisconnect();
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
-
-  // --- BNS Hook (for Base) ---
-  const { data: baseName, isLoading: isBaseNameLoading } = useName({
+  
+  // --- 1. UNIFIED NAME HOOK ---
+  // We now use OnchainKit's `useName` for all name resolutions (BNS and ENS).
+  // It's given the current `chain` object to be context-aware.
+  const { data: resolvedName, isLoading: isNameLoading } = useName({
     address,
-    chain: base,
-    enabled: isConnected && chain?.id === base.id,
-  });
-
-  // --- ENS Hook (for Ethereum & Sepolia) ---
-  const { data: ensName, isLoading: isEnsNameLoading } = useEnsName({
-    address,
-    enabled: isConnected && (chain?.id === mainnet.id || chain?.id === sepolia.id),
+    chain: chain, // Pass the currently connected chain
+    // Enable the hook only for chains where we want to resolve names.
+    enabled: isConnected && (chain?.id === base.id || chain?.id === mainnet.id || chain?.id === sepolia.id),
   });
 
   const handleWalletModal = () => {
@@ -39,7 +36,7 @@ export default function Header({ toggleSidebar }) {
   useEffect(() => {
     setMounted(true);
   }, []);
-
+  
   useEffect(() => {
     const fetchEthPrice = async () => {
       if (!chain?.id) return;
@@ -61,40 +58,21 @@ export default function Header({ toggleSidebar }) {
       }
     };
     fetchEthPrice();
-  }, [chain]);
+  }, [chain]);  
 
   const formatAddress = (addr) => {
     if (!addr) return "";
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
-
+  
   if (!mounted) return null;
 
-  // --- FINAL, CORRECTED DISPLAY LOGIC ---
-  let displayName = formatAddress(address);
-  if (isConnected && address) {
-    switch (chain?.id) {
-      case base.id:
-        // This is the new validation step:
-        // We check if the returned name for Base is actually an ENS name. If so, we ignore it.
-        const isEnsFallbackOnBase = baseName && baseName.endsWith('.eth');
-        
-        displayName = isBaseNameLoading 
-          ? "Resolving..." 
-          : (baseName && !isEnsFallbackOnBase ? baseName : formatAddress(address));
-        break;
-      
-      case mainnet.id:
-      case sepolia.id:
-        displayName = isEnsNameLoading ? "Resolving..." : (ensName || formatAddress(address));
-        break;
-      
-      default:
-        displayName = formatAddress(address);
-        break;
-    }
-  }
-
+  // --- 2. SIMPLIFIED DISPLAY LOGIC ---
+  // Since the `resolvedName` is now correctly scoped to the active chain,
+  // our logic becomes a simple one-line check.
+  const displayName = isNameLoading
+    ? "Resolving..."
+    : resolvedName || formatAddress(address);
 
   return (
     <header className="relative sticky top-0 z-50 bg-white overflow-x-hidden w-full max-w-full shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
@@ -132,9 +110,9 @@ export default function Header({ toggleSidebar }) {
 
         <div className="header-wallet-info flex items-center">
           <button onClick={toggleTheme} className="flex items-center gap-2 xsm:px-1 px-3 py-2 text-dark-200 dark:text-light-200 transition-colors" aria-label="Toggle dark mode">
-            {isHomePage && ( <span className="text-sm uppercase text-dark-200 dark:text-light-200 [@media(max-width:540px)]:hidden" > THEME </span> )}
-            {theme === "dark" ? ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" > <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /> </svg> ) : ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" > <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" /> </svg> )}
-          </button>
+		  {isHomePage && ( <span className="text-sm uppercase text-dark-200 dark:text-light-200 [@media(max-width:540px)]:hidden" > THEME </span> )}
+		  {theme === "dark" ? ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" > <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /> </svg> ) : ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" > <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" /> </svg> )}
+		  </button>
           {isConnected && ethBalance && (
             <div className="hidden sm:flex items-center bg-gray-100 dark:bg-dark-100 px-3 py-1.5 rounded-lg">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
