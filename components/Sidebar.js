@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useAccount, useEnsName } from "wagmi"; // <-- Import useEnsName
+import { useAccount } from "wagmi";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
-import { useName } from '@coinbase/onchainkit/identity'; // <-- Import Onchain Kit hook
-import { base, mainnet, sepolia } from 'viem/chains'; // <-- Import chain definitions
+import { useDisplayName } from "./useDisplayName"; // <-- 1. IMPORT THE CUSTOM HOOK
 
 export default function Sidebar() {
   const router = useRouter();
@@ -12,18 +11,8 @@ export default function Sidebar() {
   const { open } = useAppKit();
   const [mounted, setMounted] = useState(false);
 
-  // --- 1. ADD THE NAME RESOLUTION HOOKS (Same as Header.js) ---
-  const { data: baseName, isLoading: isBnsLoading } = useName({
-    address,
-    chain: base,
-    enabled: isConnected && chain?.id === base.id,
-  });
-
-  const { data: ensName, isLoading: isEnsLoading } = useEnsName({
-    address,
-    chainId: 1,
-    enabled: isConnected && (chain?.id === base.id || chain?.id === mainnet.id || chain?.id === sepolia.id),
-  });
+  // --- 2. USE THE CUSTOM HOOK ---
+  const { displayName } = useDisplayName();
 
   const formatChainName = (name) => {
     if (!name) return "";
@@ -42,37 +31,20 @@ export default function Sidebar() {
     setMounted(true);
   }, []);
 
-  // --- 2. CREATE THE NEW TRUNCATION FUNCTION ---
-  const formatDisplayName = (name, addr) => {
-    // If a name exists (ENS or BNS)
-    if (name) {
-      if (name.length > 13) {
-        return `${name.substring(0, 13)}...`;
-      }
-      return name; // Return full name if 13 chars or less
+  // --- 3. CREATE THE SIDEBAR-SPECIFIC FORMATTING FUNCTION ---
+  const formatSidebarDisplayName = (name) => {
+    if (!name || name.startsWith("0x") || name === "Resolving...") {
+      // If no name, or it's an address, or loading, format the address
+      const addr = useAccount().address;
+      if (!addr) return "";
+      return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
     }
-    // Fallback for no name or during load
-    if (!addr) return "";
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
+    
+    // If it is a BNS/ENS name, truncate to 13 characters without ellipsis
+    return name.substring(0, 13);
   };
 
   if (!mounted || !isConnected) return null;
-
-  // --- 3. DETERMINE THE FINAL NAME TO DISPLAY ---
-  let finalResolvedName = null;
-  if (isConnected && address) {
-    switch (chain?.id) {
-      case base.id:
-        if (baseName && baseName !== ensName) {
-          finalResolvedName = baseName;
-        }
-        break;
-      case mainnet.id:
-      case sepolia.id:
-        finalResolvedName = ensName;
-        break;
-    }
-  }
 
   const menuItems = [
     // ... (menu items remain unchanged)
@@ -151,9 +123,9 @@ export default function Sidebar() {
               <div className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
                 WELCOME
               </div>
-              {/* --- 4. USE THE NEW FORMATTING FUNCTION HERE --- */}
+              {/* --- 4. USE THE NEW SIDEBAR FORMATTING FUNCTION HERE --- */}
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {formatDisplayName(finalResolvedName, address)}
+                {formatSidebarDisplayName(displayName)}
               </div>
             </div>
           </div>

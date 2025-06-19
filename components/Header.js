@@ -1,34 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { useAccount, useBalance, useDisconnect, useEnsName } from "wagmi";
+import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
-import { useName } from '@coinbase/onchainkit/identity';
-import { base, mainnet, sepolia } from 'viem/chains';
+import { useDisplayName } from "./useDisplayName"; // <-- 1. IMPORT THE CUSTOM HOOK
 
 // --- Your Main Header Component ---
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
-  const { address, isConnected, chain } = useAccount();
-  const { disconnect } = useDisconnect();
+  const { isConnected, chain } = useAccount(); // address is no longer needed here
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
   
-  // --- 1. BNS HOOK (for Base only) ---
-  // This hook resolves names on Base. It might fall back to ENS.
-  const { data: baseName, isLoading: isBnsLoading } = useName({
-    address,
-    chain: base,
-    enabled: isConnected && chain?.id === base.id,
-  });
-  
-  // --- 2. ENS HOOK (for comparison on Base, and for display on Mainnet/Sepolia) ---
-  // We now enable this hook on Base as well, specifically for our comparison logic.
-  const { data: ensName, isLoading: isEnsLoading } = useEnsName({
-    address,
-    chainId: 1,
-    enabled: isConnected && (chain?.id === base.id || chain?.id === mainnet.id || chain?.id === sepolia.id),
-  });
+  // --- 2. USE THE CUSTOM HOOK ---
+  // This one line replaces all the previous name resolution logic.
+  const { displayName } = useDisplayName();
 
   const handleWalletModal = () => {
     open({ view: "Account" });
@@ -36,7 +22,11 @@ export default function Header({ toggleSidebar }) {
 
   const router = useRouter();
   const isHomePage = router.pathname === "/";
-  const { data: ethBalance } = useBalance({ address, enabled: !!address });
+  // We still need useBalance for the header display
+  const { data: ethBalance } = useBalance({ 
+      address: useAccount().address, 
+      enabled: isConnected 
+  });
   const [ethUsd, setEthUsd] = useState(null);
 
   useEffect(() => {
@@ -66,39 +56,10 @@ export default function Header({ toggleSidebar }) {
     fetchEthPrice();
   }, [chain]);  
 
-  const formatAddress = (addr) => {
-    if (!addr) return "";
-    return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
-  };
-  
   if (!mounted) return null;
 
-  // --- 3. ROBUST DISPLAY LOGIC WITH COMPARISON ---
-  let finalResolvedName = null;
-  // Consolidate loading states. Show loading if either relevant hook is active.
-  const isNameLoading = (chain?.id === base.id && isBnsLoading) || 
-                      ((chain?.id === mainnet.id || chain?.id === sepolia.id) && isEnsLoading);
-
-  if (isConnected && address) {
-    switch (chain?.id) {
-      case base.id:
-        // ONLY set the name if the BNS hook returned a name AND it's different from the ENS name.
-        if (baseName && baseName !== ensName) {
-          finalResolvedName = baseName;
-        }
-        break;
-      
-      case mainnet.id:
-      case sepolia.id:
-        finalResolvedName = ensName;
-        break;
-    }
-  }
-
-  const displayName = isNameLoading
-    ? "Resolving..."
-    : finalResolvedName || formatAddress(address);
-
+  // --- 3. ALL COMPLEX LOGIC IS GONE ---
+  // The `displayName` variable from our hook is now used directly in the JSX.
 
   return (
     <header className="relative sticky top-0 z-50 bg-white overflow-x-hidden w-full max-w-full shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
@@ -135,7 +96,7 @@ export default function Header({ toggleSidebar }) {
         </div>
 
         <div className="header-wallet-info flex items-center">
-          <button onClick={toggleTheme} className="flex items-center gap-2 xsm:px-1 px-3 py-2 text-dark-200 dark:text-light-200 transition-colors xsm:ml-3" aria-label="Toggle dark mode">
+          <button onClick={toggleTheme} className="flex items-center gap-2 xsm:px-1 px-3 py-2 text-dark-200 dark:text-light-200 transition-colors xsm:ml-2" aria-label="Toggle dark mode">
 		  {isHomePage && ( <span className="text-sm uppercase text-dark-200 dark:text-light-200 [@media(max-width:540px)]:hidden" > THEME </span> )}
 		  {theme === "dark" ? ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" > <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /> </svg> ) : ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" > <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" /> </svg> )}
 		  </button>
@@ -153,7 +114,7 @@ export default function Header({ toggleSidebar }) {
           {isConnected ? (
             <button
               onClick={handleWalletModal}
-              className="ml-2 inline-block truncate xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm font-cygnito uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black sm-mid:max-w-[210px] xsm:max-w-[170px] [@media(max-width:400px)]:max-w-[150px] [@media(max-width:360px)]:max-w-[130px]"
+              className="ml-2 xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm font-cygnito uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
             >
               {displayName}
             </button>
