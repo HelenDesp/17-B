@@ -140,14 +140,16 @@ export default function Header({ toggleSidebar }) {
           {isConnected ? (
             <button
               onClick={handleWalletModal}
-              className="ml-2 xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:\'Cygnito_Mono\',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+              // Replace the old className with this one
+              className="ml-2 xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm font-cygnito uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
             >
               {displayName}
             </button>
           ) : (
             <button
               onClick={() => open({ view: "Connect" })}
-              className="ml-2 xsm:border-2 border-4 xsm:px-2 px-4 py-1.5 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:\'Cygnito_Mono\',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+              // Replace the old className with this one
+              className="ml-2 xsm:border-2 border-4 xsm:px-2 px-4 py-1.5 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm font-cygnito uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
             >
               Connect Wallet
             </button>
