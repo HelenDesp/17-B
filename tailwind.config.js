@@ -99,6 +99,8 @@ module.exports = {
 		xsm: { max: '480px' },
 	  },	  
       fontFamily: {
+		  
+		cygnito: ['"Cygnito Mono"', "sans-serif"],  
         sans: [
           "Inter",
           "ui-sans-serif",
