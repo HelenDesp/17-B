@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useEnsName } from "wagmi"; // <-- Import useEnsName
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
+import { useName } from '@coinbase/onchainkit/identity'; // <-- Import Onchain Kit hook
+import { base, mainnet, sepolia } from 'viem/chains'; // <-- Import chain definitions
 
 export default function Sidebar() {
   const router = useRouter();
@@ -10,10 +12,22 @@ export default function Sidebar() {
   const { open } = useAppKit();
   const [mounted, setMounted] = useState(false);
 
+  // --- 1. ADD THE NAME RESOLUTION HOOKS (Same as Header.js) ---
+  const { data: baseName, isLoading: isBnsLoading } = useName({
+    address,
+    chain: base,
+    enabled: isConnected && chain?.id === base.id,
+  });
+
+  const { data: ensName, isLoading: isEnsLoading } = useEnsName({
+    address,
+    chainId: 1,
+    enabled: isConnected && (chain?.id === base.id || chain?.id === mainnet.id || chain?.id === sepolia.id),
+  });
+
   const formatChainName = (name) => {
     if (!name) return "";
     const lower = name.toLowerCase();
-
     if (lower.includes("arbitrum")) return "Arbitrum";
     if (lower.includes("bnb")) return "BNB";
     if (lower.includes("polygon")) return "Polygon";
@@ -21,7 +35,6 @@ export default function Sidebar() {
     if (lower.includes("base")) return "Base";
     if (lower.includes("sepolia")) return "Sepolia";
     if (lower.includes("ethereum")) return "Ethereum";
-
     return name;
   };
 
@@ -29,14 +42,40 @@ export default function Sidebar() {
     setMounted(true);
   }, []);
 
-  if (!mounted || !isConnected) return null;
-
-  const formatAddress = (addr) => {
+  // --- 2. CREATE THE NEW TRUNCATION FUNCTION ---
+  const formatDisplayName = (name, addr) => {
+    // If a name exists (ENS or BNS)
+    if (name) {
+      if (name.length > 13) {
+        return `${name.substring(0, 13)}...`;
+      }
+      return name; // Return full name if 13 chars or less
+    }
+    // Fallback for no name or during load
     if (!addr) return "";
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
 
+  if (!mounted || !isConnected) return null;
+
+  // --- 3. DETERMINE THE FINAL NAME TO DISPLAY ---
+  let finalResolvedName = null;
+  if (isConnected && address) {
+    switch (chain?.id) {
+      case base.id:
+        if (baseName && baseName !== ensName) {
+          finalResolvedName = baseName;
+        }
+        break;
+      case mainnet.id:
+      case sepolia.id:
+        finalResolvedName = ensName;
+        break;
+    }
+  }
+
   const menuItems = [
+    // ... (menu items remain unchanged)
     {
       title: "Dashboard",
       icon: (
@@ -101,6 +140,7 @@ export default function Sidebar() {
         <div className="flex justify-between items-center w-full">
           <div className="flex items-center space-x-2">
             <div className="w-10 h-10 flex items-center justify-center">
+              {/* SVG Icon */}
               <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-black dark:text-white rotate-180" viewBox="0 0 4160 4160" fill="currentColor">
                 <path d="M0 2080 l0 -2080 2080 0 2080 0 0 2080 0 2080 -2080 0 -2080 0 0 -2080z m3840 0 l0 -1760 -1760 0 -1760 0 0 1760 0 1760 1760 0 1760 0 0 -1760z"/>
                 <path d="M1983 3300 c-157 -24 -280 -87 -393 -200 -85 -85 -130 -156 -166 -259 -85 -246 -29 -510 150 -699 217 -229 528 -284 815 -145 278 134 432 456 367 765 -53 248 -265 467 -506 522 -85 20 -202 27 -267 16z m233 -341 c32 -12 77 -41 110 -71 138 -127 164 -321 64 -478 -179 -276 -607 -196 -675 126 -61 292 219 528 501 423z"/>
@@ -111,8 +151,9 @@ export default function Sidebar() {
               <div className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
                 WELCOME
               </div>
+              {/* --- 4. USE THE NEW FORMATTING FUNCTION HERE --- */}
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {formatAddress(address)}
+                {formatDisplayName(finalResolvedName, address)}
               </div>
             </div>
           </div>
