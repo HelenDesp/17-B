@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useAccount, useBalance, useDisconnect } from "wagmi";
+import { useAccount, useBalance, useDisconnect, useEnsName } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
 import { useName } from '@coinbase/onchainkit/identity';
-import { base, mainnet, sepolia } from 'viem/chains'; // Import all supported chains
+import { base, mainnet, sepolia } from 'viem/chains'; // Import all needed chain definitions
 
 // --- Your Main Header Component ---
 export default function Header({ toggleSidebar }) {
@@ -14,14 +14,22 @@ export default function Header({ toggleSidebar }) {
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
   
-  // --- 1. UNIFIED NAME HOOK ---
-  // We now use OnchainKit's `useName` for all name resolutions (BNS and ENS).
-  // It's given the current `chain` object to be context-aware.
-  const { data: resolvedName, isLoading: isNameLoading } = useName({
+  // --- 1. BNS HOOK (for Base only) ---
+  // This hook from OnchainKit resolves Base names.
+  // It is STRICTLY enabled only when the connected chain is Base.
+  const { data: baseName, isLoading: isBnsLoading } = useName({
     address,
-    chain: chain, // Pass the currently connected chain
-    // Enable the hook only for chains where we want to resolve names.
-    enabled: isConnected && (chain?.id === base.id || chain?.id === mainnet.id || chain?.id === sepolia.id),
+    chain: base,
+    enabled: isConnected && chain?.id === base.id,
+  });
+  
+  // --- 2. ENS HOOK (for Ethereum/Sepolia only) ---
+  // This is the standard wagmi hook for ENS.
+  // It is STRICTLY enabled only when on Ethereum Mainnet or Sepolia.
+  const { data: ensName, isLoading: isEnsLoading } = useEnsName({
+    address,
+    chainId: 1, // Look for the name on mainnet
+    enabled: isConnected && (chain?.id === mainnet.id || chain?.id === sepolia.id),
   });
 
   const handleWalletModal = () => {
@@ -67,12 +75,27 @@ export default function Header({ toggleSidebar }) {
   
   if (!mounted) return null;
 
-  // --- 2. SIMPLIFIED DISPLAY LOGIC ---
-  // Since the `resolvedName` is now correctly scoped to the active chain,
-  // our logic becomes a simple one-line check.
-  const displayName = isNameLoading
-    ? "Resolving..."
-    : resolvedName || formatAddress(address);
+  // --- 3. FINAL, CHAIN-AWARE DISPLAY LOGIC ---
+  // This switch statement correctly routes to the right name based on the connected chain.
+  let displayName = formatAddress(address);
+  if (isConnected && address) {
+    switch (chain?.id) {
+      case base.id:
+        displayName = isBnsLoading ? "Resolving..." : (baseName || formatAddress(address));
+        break;
+      
+      case mainnet.id:
+      case sepolia.id:
+        displayName = isEnsLoading ? "Resolving..." : (ensName || formatAddress(address));
+        break;
+      
+      // For any other chain, it will correctly default to the formatted address.
+      default:
+        displayName = formatAddress(address);
+        break;
+    }
+  }
+
 
   return (
     <header className="relative sticky top-0 z-50 bg-white overflow-x-hidden w-full max-w-full shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
