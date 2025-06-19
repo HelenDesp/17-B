@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useAccount, useBalance, useDisconnect, useEnsName } from "wagmi";
+import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
-import { useName } from '@coinbase/onchainkit/identity'; // <-- 1. IMPORT THE OFFICIAL HOOK
-import { base } from 'viem/chains';
+import { useName, useEnsName } from '@coinbase/onchainkit/identity'; // useEnsName is also in OCS
+import { base, mainnet, sepolia } from 'viem/chains'; // <-- 1. IMPORT ADDITIONAL CHAINS
 
 // --- Your Main Header Component ---
 export default function Header({ toggleSidebar }) {
@@ -14,20 +14,20 @@ export default function Header({ toggleSidebar }) {
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
   
-  // --- 2. USE THE OCS HOOK FOR BNS ---
-  // This hook from OnchainKit will resolve the primary .base name.
-  // We only enable it when the connected chain is Base (id: 8453).
+  // --- BNS Hook (for Base) ---
   const { data: baseName, isLoading: isBaseNameLoading } = useName({
     address,
     chain: base,
     enabled: isConnected && chain?.id === base.id,
   });
   
-  // --- Use the standard wagmi hook for ENS on Mainnet ---
-  const { data: ensName } = useEnsName({
+  // --- ENS Hook (for Ethereum & Sepolia) ---
+  // <-- 2. UPDATED ENS HOOK LOGIC -->
+  const { data: ensName, isLoading: isEnsNameLoading } = useEnsName({
     address,
-    chainId: 1,
-    enabled: isConnected,
+    // OnchainKit's useEnsName hook correctly defaults to mainnet,
+    // but we enable it only for the chains we want.
+    enabled: isConnected && (chain?.id === mainnet.id || chain?.id === sepolia.id),
   });
 
   const handleWalletModal = () => {
@@ -73,16 +73,23 @@ export default function Header({ toggleSidebar }) {
   
   if (!mounted) return null;
 
-  // --- 3. THE DISPLAY LOGIC ---
-  // This logic correctly prioritizes the name based on the connected chain.
+  // --- 3. REWRITTEN DISPLAY LOGIC ---
   let displayName = formatAddress(address);
-  if (isConnected) {
-    if (chain?.id === base.id) {
-      // On Base, show the BNS name, or the loading state, or fallback to the address
-      displayName = isBaseNameLoading ? "Resolving..." : (baseName || formatAddress(address));
-    } else {
-      // On other chains, show the ENS name or fallback to the address
-      displayName = ensName || formatAddress(address);
+  if (isConnected && address) {
+    switch (chain?.id) {
+      case base.id:
+        displayName = isBaseNameLoading ? "Resolving..." : (baseName || formatAddress(address));
+        break;
+      
+      case mainnet.id:
+      case sepolia.id:
+        displayName = isEnsNameLoading ? "Resolving..." : (ensName || formatAddress(address));
+        break;
+      
+      // For any other chain, it will default to the formatted address
+      default:
+        displayName = formatAddress(address);
+        break;
     }
   }
 
@@ -123,9 +130,9 @@ export default function Header({ toggleSidebar }) {
 
         <div className="header-wallet-info flex items-center">
           <button onClick={toggleTheme} className="flex items-center gap-2 xsm:px-1 px-3 py-2 text-dark-200 dark:text-light-200 transition-colors" aria-label="Toggle dark mode">
-		  {isHomePage && ( <span className="text-sm uppercase text-dark-200 dark:text-light-200 [@media(max-width:540px)]:hidden" > THEME </span> )}		
-		  {theme === "dark" ? ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" > <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /> </svg> ) : ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" > <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" /> </svg> )}
-		  </button>
+            {isHomePage && ( <span className="text-sm uppercase text-dark-200 dark:text-light-200 [@media(max-width:540px)]:hidden" > THEME </span> )}
+            {theme === "dark" ? ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" > <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /> </svg> ) : ( <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" > <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" /> </svg> )}
+          </button>
           {isConnected && ethBalance && (
             <div className="hidden sm:flex items-center bg-gray-100 dark:bg-dark-100 px-3 py-1.5 rounded-lg">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -140,7 +147,6 @@ export default function Header({ toggleSidebar }) {
           {isConnected ? (
             <button
               onClick={handleWalletModal}
-              // Replace the old className with this one
               className="ml-2 xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm font-cygnito uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
             >
               {displayName}
@@ -148,7 +154,6 @@ export default function Header({ toggleSidebar }) {
           ) : (
             <button
               onClick={() => open({ view: "Connect" })}
-              // Replace the old className with this one
               className="ml-2 xsm:border-2 border-4 xsm:px-2 px-4 py-1.5 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm font-cygnito uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
             >
               Connect Wallet
