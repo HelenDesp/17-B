@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useAccount, useBalance, useDisconnect } from "wagmi";
+// <-- 1. IMPORT useEnsName FROM WAGMI, NOT onchainkit -->
+import { useAccount, useBalance, useDisconnect, useEnsName } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
-import { useName, useEnsName } from '@coinbase/onchainkit/identity'; // useEnsName is also in OCS
-import { base, mainnet, sepolia } from 'viem/chains'; // <-- 1. IMPORT ADDITIONAL CHAINS
+// <-- 2. ONLY IMPORT useName FROM onchainkit -->
+import { useName } from '@coinbase/onchainkit/identity';
+import { base, mainnet, sepolia } from 'viem/chains';
 
 // --- Your Main Header Component ---
 export default function Header({ toggleSidebar }) {
@@ -13,20 +15,17 @@ export default function Header({ toggleSidebar }) {
   const { disconnect } = useDisconnect();
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
-  
+
   // --- BNS Hook (for Base) ---
   const { data: baseName, isLoading: isBaseNameLoading } = useName({
     address,
     chain: base,
     enabled: isConnected && chain?.id === base.id,
   });
-  
+
   // --- ENS Hook (for Ethereum & Sepolia) ---
-  // <-- 2. UPDATED ENS HOOK LOGIC -->
   const { data: ensName, isLoading: isEnsNameLoading } = useEnsName({
     address,
-    // OnchainKit's useEnsName hook correctly defaults to mainnet,
-    // but we enable it only for the chains we want.
     enabled: isConnected && (chain?.id === mainnet.id || chain?.id === sepolia.id),
   });
 
@@ -42,7 +41,7 @@ export default function Header({ toggleSidebar }) {
   useEffect(() => {
     setMounted(true);
   }, []);
-  
+
   useEffect(() => {
     const fetchEthPrice = async () => {
       if (!chain?.id) return;
@@ -64,35 +63,33 @@ export default function Header({ toggleSidebar }) {
       }
     };
     fetchEthPrice();
-  }, [chain]);  
+  }, [chain]);
 
   const formatAddress = (addr) => {
     if (!addr) return "";
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
-  
+
   if (!mounted) return null;
 
-  // --- 3. REWRITTEN DISPLAY LOGIC ---
+  // --- Display Logic ---
   let displayName = formatAddress(address);
   if (isConnected && address) {
     switch (chain?.id) {
       case base.id:
         displayName = isBaseNameLoading ? "Resolving..." : (baseName || formatAddress(address));
         break;
-      
+
       case mainnet.id:
       case sepolia.id:
         displayName = isEnsNameLoading ? "Resolving..." : (ensName || formatAddress(address));
         break;
-      
-      // For any other chain, it will default to the formatted address
+
       default:
         displayName = formatAddress(address);
         break;
     }
   }
-
 
   return (
     <header className="relative sticky top-0 z-50 bg-white overflow-x-hidden w-full max-w-full shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
