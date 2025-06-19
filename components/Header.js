@@ -153,7 +153,7 @@ export default function Header({ toggleSidebar }) {
           {isConnected ? (
             <button
               onClick={handleWalletModal}
-              className="ml-2 inline-block truncate xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm font-cygnito uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black sm-mid:max-w-[210px] xsm:max-w-[170px] [@media(max-width:360px)]:max-w-[130px]"
+              className="ml-2 inline-block truncate xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm font-cygnito uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black sm-mid:max-w-[210px] xsm:max-w-[170px] [@media(max-width:400px)]:max-w-[150px] [@media(max-width:360px)]:max-w-[130px]"
             >
               {displayName}
             </button>
