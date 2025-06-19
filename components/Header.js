@@ -4,7 +4,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
 import { useName } from '@coinbase/onchainkit/identity';
-import { base, mainnet, sepolia } from 'viem/chains'; // Import all needed chain definitions
+import { base, mainnet, sepolia } from 'viem/chains';
 
 // --- Your Main Header Component ---
 export default function Header({ toggleSidebar }) {
@@ -15,21 +15,19 @@ export default function Header({ toggleSidebar }) {
   const { open } = useAppKit();
   
   // --- 1. BNS HOOK (for Base only) ---
-  // This hook from OnchainKit resolves Base names.
-  // It is STRICTLY enabled only when the connected chain is Base.
+  // This hook resolves names on Base. It might fall back to ENS.
   const { data: baseName, isLoading: isBnsLoading } = useName({
     address,
     chain: base,
     enabled: isConnected && chain?.id === base.id,
   });
   
-  // --- 2. ENS HOOK (for Ethereum/Sepolia only) ---
-  // This is the standard wagmi hook for ENS.
-  // It is STRICTLY enabled only when on Ethereum Mainnet or Sepolia.
+  // --- 2. ENS HOOK (for comparison on Base, and for display on Mainnet/Sepolia) ---
+  // We now enable this hook on Base as well, specifically for our comparison logic.
   const { data: ensName, isLoading: isEnsLoading } = useEnsName({
     address,
-    chainId: 1, // Look for the name on mainnet
-    enabled: isConnected && (chain?.id === mainnet.id || chain?.id === sepolia.id),
+    chainId: 1,
+    enabled: isConnected && (chain?.id === base.id || chain?.id === mainnet.id || chain?.id === sepolia.id),
   });
 
   const handleWalletModal = () => {
@@ -75,26 +73,31 @@ export default function Header({ toggleSidebar }) {
   
   if (!mounted) return null;
 
-  // --- 3. FINAL, CHAIN-AWARE DISPLAY LOGIC ---
-  // This switch statement correctly routes to the right name based on the connected chain.
-  let displayName = formatAddress(address);
+  // --- 3. ROBUST DISPLAY LOGIC WITH COMPARISON ---
+  let finalResolvedName = null;
+  // Consolidate loading states. Show loading if either relevant hook is active.
+  const isNameLoading = (chain?.id === base.id && isBnsLoading) || 
+                      ((chain?.id === mainnet.id || chain?.id === sepolia.id) && isEnsLoading);
+
   if (isConnected && address) {
     switch (chain?.id) {
       case base.id:
-        displayName = isBnsLoading ? "Resolving..." : (baseName || formatAddress(address));
+        // ONLY set the name if the BNS hook returned a name AND it's different from the ENS name.
+        if (baseName && baseName !== ensName) {
+          finalResolvedName = baseName;
+        }
         break;
       
       case mainnet.id:
       case sepolia.id:
-        displayName = isEnsLoading ? "Resolving..." : (ensName || formatAddress(address));
-        break;
-      
-      // For any other chain, it will correctly default to the formatted address.
-      default:
-        displayName = formatAddress(address);
+        finalResolvedName = ensName;
         break;
     }
   }
+
+  const displayName = isNameLoading
+    ? "Resolving..."
+    : finalResolvedName || formatAddress(address);
 
 
   return (
