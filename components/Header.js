@@ -6,6 +6,51 @@ import { useAppKit } from "@reown/appkit/react";
 import { usePublicClient } from 'wagmi';
 import { base } from 'viem/chains';
 
+// --- 1. Custom Hook to resolve the name from the official Basenames Registrar Controller ---
+const useOfficialBnsName = (address) => {
+  const [bnsName, setBnsName] = useState(null);
+  const publicClient = usePublicClient({ chainId: base.id });
+  const { chain } = useAccount();
+
+  useEffect(() => {
+    setBnsName(null);
+    if (chain?.id !== base.id || !publicClient || !address) {
+      return;
+    }
+
+    const resolveName = async () => {
+      try {
+        const name = await publicClient.readContract({
+          address: '0x4ccb0bb02fcaba27e82a56646e81d8c5bc4119a5', // The official Registrar Controller you found
+          abi: [
+            {
+              "inputs": [{"internalType": "address", "name": "owner", "type": "address"}],
+              "name": "getPrimaryName",
+              "outputs": [{"internalType": "string", "name": "", "type": "string"}],
+              "stateMutability": "view",
+              "type": "function"
+            }
+          ],
+          functionName: 'getPrimaryName',
+          args: [address]
+        });
+
+        if (name) {
+          setBnsName(name);
+        }
+      } catch (error) {
+        console.error("Could not resolve name from Basenames Controller:", error);
+        setBnsName(null);
+      }
+    };
+
+    resolveName();
+  }, [address, chain, publicClient]);
+
+  return bnsName;
+};
+
+// --- 2. Your Main Header Component ---
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
   const { address, isConnected, chain } = useAccount();
@@ -13,56 +58,15 @@ export default function Header({ toggleSidebar }) {
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
   
-  // State for the BNS (Masa) name
-  const [baseName, setBaseName] = useState(null);
-  const publicClient = usePublicClient({ chainId: base.id });
-
-  // --- 1. HOOK FOR ENS (.eth) ---
-  // This hook fetches the .eth name from Ethereum Mainnet. It runs on any chain.
+  // Use our new custom hook for the official BNS name
+  const baseName = useOfficialBnsName(address);
+  
+  // Use the standard hook for ENS for other chains
   const { data: ensName } = useEnsName({
     address,
     chainId: 1,
     enabled: isConnected,
   });
-
-  // --- 2. HOOK FOR BNS (.base from Masa Contract) ---
-  // This useEffect targets the specific Masa Green contract you provided.
-  useEffect(() => {
-    setBaseName(null); // Reset on change
-    if (chain?.id !== base.id || !publicClient || !address) {
-        return;
-    }
-
-    const resolveMasaName = async () => {
-        try {
-            // Call the getSoulNames function on the Masa Green contract
-            const namesArray = await publicClient.readContract({
-                address: '0x03c4738Ee98aE44591e1A4A4F3CaB6641d95DD9a',
-                abi: [
-                    {
-                        "inputs": [{"internalType": "address", "name": "account", "type": "address"}],
-                        "name": "getSoulNames",
-                        "outputs": [{"internalType": "string[]", "name": "", "type": "string[]"}],
-                        "stateMutability": "view",
-                        "type": "function"
-                    }
-                ],
-                functionName: 'getSoulNames',
-                args: [address]
-            });
-
-            // Display the first name from the returned array
-            if (namesArray && namesArray.length > 0) {
-                setBaseName(namesArray[0]);
-            }
-        } catch (error) {
-            console.error("Could not resolve Masa Green BNS name:", error);
-            setBaseName(null);
-        }
-    };
-
-    resolveMasaName();
-  }, [address, chain, publicClient]);
 
   const handleWalletModal = () => {
     open({ view: "Account" });
@@ -107,14 +111,11 @@ export default function Header({ toggleSidebar }) {
   
   if (!mounted) return null;
 
-  // --- 3. FINAL DISPLAY LOGIC ---
-  // This correctly prioritizes which name to show based on the current chain.
+  // Final, correct display logic
   let displayName = formatAddress(address);
   if (chain?.id === base.id) {
-    // If we are on Base, show the BNS name. If not found, show the address.
     displayName = baseName || formatAddress(address);
   } else if (ensName) {
-    // If we are NOT on Base, show the ENS name if it exists.
     displayName = ensName;
   }
 
