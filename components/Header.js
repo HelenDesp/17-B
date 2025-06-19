@@ -8,12 +8,11 @@ import { useDisplayName } from "./useDisplayName"; // <-- 1. IMPORT THE CUSTOM H
 // --- Your Main Header Component ---
 export default function Header({ toggleSidebar }) {
   const [mounted, setMounted] = useState(false);
-  const { isConnected, chain } = useAccount(); // address is no longer needed here
+  // --- FIX: Call useAccount() once at the top level ---
+  const { address, isConnected, chain } = useAccount();
   const { theme, toggleTheme } = useTheme();
   const { open } = useAppKit();
   
-  // --- 2. USE THE CUSTOM HOOK ---
-  // This one line replaces all the previous name resolution logic.
   const { displayName } = useDisplayName();
 
   const handleWalletModal = () => {
@@ -22,9 +21,9 @@ export default function Header({ toggleSidebar }) {
 
   const router = useRouter();
   const isHomePage = router.pathname === "/";
-  // We still need useBalance for the header display
+  // --- FIX: Pass the 'address' variable, don't call the hook again ---
   const { data: ethBalance } = useBalance({ 
-      address: useAccount().address, 
+      address: address, 
       enabled: isConnected 
   });
   const [ethUsd, setEthUsd] = useState(null);
@@ -57,9 +56,6 @@ export default function Header({ toggleSidebar }) {
   }, [chain]);  
 
   if (!mounted) return null;
-
-  // --- 3. ALL COMPLEX LOGIC IS GONE ---
-  // The `displayName` variable from our hook is now used directly in the JSX.
 
   return (
     <header className="relative sticky top-0 z-50 bg-white overflow-x-hidden w-full max-w-full shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
@@ -114,7 +110,7 @@ export default function Header({ toggleSidebar }) {
           {isConnected ? (
             <button
               onClick={handleWalletModal}
-              className="ml-2 xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm font-cygnito uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+              className="ml-2 inline-block truncate xsm:px-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm font-cygnito uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black sm-mid:max-w-[210px] xsm:max-w-[170px] [@media(max-width:400px)]:max-w-[150px] [@media(max-width:360px)]:max-w-[130px]"
             >
               {displayName}
             </button>

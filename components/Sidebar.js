@@ -7,11 +7,11 @@ import { useDisplayName } from "./useDisplayName"; // <-- 1. IMPORT THE CUSTOM H
 
 export default function Sidebar() {
   const router = useRouter();
+  // --- FIX: Call useAccount() once at the top level ---
   const { isConnected, address, chain } = useAccount();
   const { open } = useAppKit();
   const [mounted, setMounted] = useState(false);
 
-  // --- 2. USE THE CUSTOM HOOK ---
   const { displayName } = useDisplayName();
 
   const formatChainName = (name) => {
@@ -31,23 +31,19 @@ export default function Sidebar() {
     setMounted(true);
   }, []);
 
-  // --- 3. CREATE THE SIDEBAR-SPECIFIC FORMATTING FUNCTION ---
-  const formatSidebarDisplayName = (name) => {
+  // --- FIX: Pass 'address' and 'displayName' as arguments ---
+  const formatSidebarDisplayName = (name, addr) => {
     if (!name || name.startsWith("0x") || name === "Resolving...") {
-      // If no name, or it's an address, or loading, format the address
-      const addr = useAccount().address;
       if (!addr) return "";
       return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
     }
     
-    // If it is a BNS/ENS name, truncate to 13 characters without ellipsis
     return name.substring(0, 13);
   };
 
   if (!mounted || !isConnected) return null;
 
   const menuItems = [
-    // ... (menu items remain unchanged)
     {
       title: "Dashboard",
       icon: (
@@ -123,9 +119,8 @@ export default function Sidebar() {
               <div className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
                 WELCOME
               </div>
-              {/* --- 4. USE THE NEW SIDEBAR FORMATTING FUNCTION HERE --- */}
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {formatSidebarDisplayName(displayName)}
+                {formatSidebarDisplayName(displayName, address)}
               </div>
             </div>
           </div>
