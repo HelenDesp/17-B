@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
-// <-- 1. IMPORT useEnsName FROM WAGMI, NOT onchainkit -->
 import { useAccount, useBalance, useDisconnect, useEnsName } from "wagmi";
 import { useTheme } from "../context/ThemeContext";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
-// <-- 2. ONLY IMPORT useName FROM onchainkit -->
 import { useName } from '@coinbase/onchainkit/identity';
 import { base, mainnet, sepolia } from 'viem/chains';
 
@@ -72,24 +70,31 @@ export default function Header({ toggleSidebar }) {
 
   if (!mounted) return null;
 
-  // --- Display Logic ---
+  // --- FINAL, CORRECTED DISPLAY LOGIC ---
   let displayName = formatAddress(address);
   if (isConnected && address) {
     switch (chain?.id) {
       case base.id:
-        displayName = isBaseNameLoading ? "Resolving..." : (baseName || formatAddress(address));
+        // This is the new validation step:
+        // We check if the returned name for Base is actually an ENS name. If so, we ignore it.
+        const isEnsFallbackOnBase = baseName && baseName.endsWith('.eth');
+        
+        displayName = isBaseNameLoading 
+          ? "Resolving..." 
+          : (baseName && !isEnsFallbackOnBase ? baseName : formatAddress(address));
         break;
-
+      
       case mainnet.id:
       case sepolia.id:
         displayName = isEnsNameLoading ? "Resolving..." : (ensName || formatAddress(address));
         break;
-
+      
       default:
         displayName = formatAddress(address);
         break;
     }
   }
+
 
   return (
     <header className="relative sticky top-0 z-50 bg-white overflow-x-hidden w-full max-w-full shadow-md dark:bg-dark-200 dark:shadow-white/38 transition-colors duration-200">
