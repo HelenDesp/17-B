@@ -104,7 +104,7 @@ export default function Sidebar() {
       {/* User info */}
       <div className="pl-2 pr-4 py-4 border-b border-black dark:border-white">
         {/* --- RESTRUCTURED LAYOUT --- */}
-        <div className="flex items-center space-x-2 w-full">
+        <div className="flex items-center space-x-4 w-full">
           {/* Profile Icon */}
           <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-black dark:text-white rotate-180" viewBox="0 0 4160 4160" fill="currentColor">
