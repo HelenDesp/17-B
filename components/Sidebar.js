@@ -104,7 +104,7 @@ export default function Sidebar() {
   return (
     <div className="h-full flex flex-col bg-white border-r-2 border-dark-200 dark:bg-dark-200 dark:border-light-200 shadow-lg">
       {/* User info */}
-      <div className="pl-2 pr-4 py-4 border-b border-black dark:border-white">
+      <div className="px-2 py-4 border-b border-black dark:border-white">
         {/* --- 2. CORRECTED LAYOUT STRUCTURE --- */}
         <div className="flex items-center space-x-3 w-full">
           {/* Profile Icon */}
