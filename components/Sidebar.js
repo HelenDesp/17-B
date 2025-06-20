@@ -3,11 +3,10 @@ import { useAccount } from "wagmi";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useAppKit } from "@reown/appkit/react";
-import { useDisplayName } from "./useDisplayName"; // <-- 1. IMPORT THE CUSTOM HOOK
+import { useDisplayName } from "./useDisplayName";
 
 export default function Sidebar() {
   const router = useRouter();
-  // --- FIX: Call useAccount() once at the top level ---
   const { isConnected, address, chain } = useAccount();
   const { open } = useAppKit();
   const [mounted, setMounted] = useState(false);
@@ -31,7 +30,6 @@ export default function Sidebar() {
     setMounted(true);
   }, []);
 
-  // --- FIX: Pass 'address' and 'displayName' as arguments ---
   const formatSidebarDisplayName = (name, addr) => {
     if (!name || name.startsWith("0x") || name === "Resolving...") {
       if (!addr) return "";
@@ -105,39 +103,41 @@ export default function Sidebar() {
     <div className="h-full flex flex-col bg-white border-r-2 border-dark-200 dark:bg-dark-200 dark:border-light-200 shadow-lg">
       {/* User info */}
       <div className="pl-2 pr-4 py-4 border-b border-black dark:border-white">
-        <div className="flex justify-between items-center w-full">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 flex items-center justify-center">
-              {/* SVG Icon */}
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-black dark:text-white rotate-180" viewBox="0 0 4160 4160" fill="currentColor">
-                <path d="M0 2080 l0 -2080 2080 0 2080 0 0 2080 0 2080 -2080 0 -2080 0 0 -2080z m3840 0 l0 -1760 -1760 0 -1760 0 0 1760 0 1760 1760 0 1760 0 0 -1760z"/>
-                <path d="M1983 3300 c-157 -24 -280 -87 -393 -200 -85 -85 -130 -156 -166 -259 -85 -246 -29 -510 150 -699 217 -229 528 -284 815 -145 278 134 432 456 367 765 -53 248 -265 467 -506 522 -85 20 -202 27 -267 16z m233 -341 c32 -12 77 -41 110 -71 138 -127 164 -321 64 -478 -179 -276 -607 -196 -675 126 -61 292 219 528 501 423z"/>
-                <path d="M1855 1555 c-301 -47 -585 -180 -778 -365 l-71 -67 108 -104 c60 -57 112 -106 117 -107 5 -2 35 20 67 49 420 385 1159 386 1564 1 52 -49 60 -53 75 -41 46 36 213 194 213 202 0 14 -101 107 -183 168 -188 140 -423 235 -670 268 -103 14 -341 12 -442 -4z"/>
-              </svg>
-            </div>
-            <div>
+        {/* --- RESTRUCTURED LAYOUT --- */}
+        <div className="flex items-center space-x-2 w-full">
+          {/* Profile Icon */}
+          <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-black dark:text-white rotate-180" viewBox="0 0 4160 4160" fill="currentColor">
+              <path d="M0 2080 l0 -2080 2080 0 2080 0 0 2080 0 2080 -2080 0 -2080 0 0 -2080z m3840 0 l0 -1760 -1760 0 -1760 0 0 1760 0 1760 1760 0 1760 0 0 -1760z"/>
+              <path d="M1983 3300 c-157 -24 -280 -87 -393 -200 -85 -85 -130 -156 -166 -259 -85 -246 -29 -510 150 -699 217 -229 528 -284 815 -145 278 134 432 456 367 765 -53 248 -265 467 -506 522 -85 20 -202 27 -267 16z m233 -341 c32 -12 77 -41 110 -71 138 -127 164 -321 64 -478 -179 -276 -607 -196 -675 126 -61 292 219 528 501 423z"/>
+              <path d="M1855 1555 c-301 -47 -585 -180 -778 -365 l-71 -67 108 -104 c60 -57 112 -106 117 -107 5 -2 35 20 67 49 420 385 1159 386 1564 1 52 -49 60 -53 75 -41 46 36 213 194 213 202 0 14 -101 107 -183 168 -188 140 -423 235 -670 268 -103 14 -341 12 -442 -4z"/>
+            </svg>
+          </div>
+          {/* Right side content (Welcome, Chain, Address) */}
+          <div className="flex-grow min-w-0">
+            {/* Top row */}
+            <div className="flex justify-between items-center">
               <div className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
                 WELCOME
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                {formatSidebarDisplayName(displayName, address)}
-              </div>
+              {isConnected && chain && (
+                <button
+                  onClick={() => open({ view: 'Networks' })}
+                  className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
+                  style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
+                >
+                  {formatChainName(chain.name)}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="ml-0.5 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {/* Bottom row */}
+            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {formatSidebarDisplayName(displayName, address)}
             </div>
           </div>
-          {isConnected && chain && (
-		  <div className="ml-3">
-            <button
-              onClick={() => open({ view: 'Networks' })}
-              className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
-              style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
-            >
-              {formatChainName(chain.name)}
-              <svg xmlns="http://www.w3.org/2000/svg" className="ml-0.5 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
-              </svg>
-            </button>
-		  </div>	
-          )}
         </div>
       </div>
 
