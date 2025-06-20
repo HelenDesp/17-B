@@ -129,7 +129,7 @@ export default function Sidebar() {
                   style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
                 >
                   {formatChainName(chain.name)}
-                  <svg xmlns="http://www.w3.org/2000/svg" className="ml-0.5 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="ml-0.5 -mr-1 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
                   </svg>
                 </button>
