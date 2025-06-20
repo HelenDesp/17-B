@@ -93,10 +93,10 @@ export default function WalletCard() {
 			>
 			  {/* --- 1. MODIFICATION: Icon is now on the left --- */}
 			  {/* --- 2. MODIFICATION: Icon color is now green --- */}
-			  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+			  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
 				  <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
 			  </svg>
-			  <img src={getChainLogo(chain?.id)} alt="" className="w-4 h-4 rounded-full" />
+			  <img src={getChainLogo(chain?.id)} alt="" className="w-4 h-4 mr-1.5 rounded-full" />
 			  <span className="text-xs font-medium">{getChainName(chain?.id)}</span>
 			</button>
           </div>
