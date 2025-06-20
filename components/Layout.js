@@ -5,37 +5,66 @@ import Footer from "./Footer";
 import { useTheme } from "../context/ThemeContext";
 import { useAccount } from "wagmi";
 
+// --- 1. Import your page components ---
+// We'll create simple placeholders for now.
+// You should replace these with your actual components.
+const Dashboard = () => <div className="p-6"><h1>Dashboard Content</h1></div>;
+const Nfts = () => <div className="p-6"><h1>NFTs Content</h1></div>;
+const Tokens = () => <div className="p-6"><h1>Tokens Content</h1></div>;
+const Transfer = () => <div className="p-6"><h1>Transfer Content</h1></div>;
+const History = () => <div className="p-6"><h1>History Content</h1></div>;
+const Settings = () => <div className="p-6"><h1>Settings Content</h1></div>;
+
+
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme } = useTheme();
   const { isConnected } = useAccount();
   const [isMobile, setIsMobile] = useState(false);
 
+  // --- 2. Add state to manage the active view ---
+  const [activeTab, setActiveTab] = useState("dashboard");
+
+
   // Handle mobile detection
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
-    // Set initial value
     checkIfMobile();
-
-    // Add event listener
     window.addEventListener("resize", checkIfMobile);
-
-    // Remove event listener on cleanup
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
-  // Close sidebar on mobile when switching routes
+  // Close sidebar on mobile when switching routes (now tabs)
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
     }
-  }, [children, isMobile]);
+  }, [activeTab, isMobile]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  // --- 3. Add function to render the correct content component ---
+  const renderContent = () => {
+    switch (activeTab) {
+      case "nfts":
+        return <Nfts />;
+      case "tokens":
+        return <Tokens />;
+      case "transfer":
+        return <Transfer />;
+      case "history":
+        return <History />;
+      case "settings":
+        return <Settings />;
+      case "dashboard":
+      default:
+        // By default, it shows the original content from index.js
+        return children; 
+    }
   };
 
   return (
@@ -63,7 +92,8 @@ export default function Layout({ children }) {
                 : "sticky top-0 h-screen w-64 shrink-0"
             }`}
           >
-            <Sidebar />
+            {/* --- 4. Pass the state and setter to the Sidebar --- */}
+            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
           </div>
         )}
 
@@ -79,8 +109,8 @@ export default function Layout({ children }) {
               </div>
             )}
 
-            {/* Main content */}
-            <div className="relative">{children}</div>
+            {/* --- 5. Render the dynamic content --- */}
+            <div className="relative">{renderContent()}</div>
           </div>
         </main>
       </div>
