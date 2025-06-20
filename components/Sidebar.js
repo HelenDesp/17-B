@@ -30,13 +30,15 @@ export default function Sidebar() {
     setMounted(true);
   }, []);
 
+  // --- 1. REMOVED CHARACTER LIMIT ---
+  // This function now returns the full name or the formatted address.
   const formatSidebarDisplayName = (name, addr) => {
     if (!name || name.startsWith("0x") || name === "Resolving...") {
       if (!addr) return "";
       return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
     }
-    
-    return name.substring(0, 13);
+    // Return the full name, no more .substring(0, 13)
+    return name;
   };
 
   if (!mounted || !isConnected) return null;
@@ -103,8 +105,8 @@ export default function Sidebar() {
     <div className="h-full flex flex-col bg-white border-r-2 border-dark-200 dark:bg-dark-200 dark:border-light-200 shadow-lg">
       {/* User info */}
       <div className="pl-2 pr-4 py-4 border-b border-black dark:border-white">
-        {/* --- RESTRUCTURED LAYOUT --- */}
-        <div className="flex items-center space-x-4 w-full">
+        {/* --- 2. CORRECTED LAYOUT STRUCTURE --- */}
+        <div className="flex items-center space-x-3 w-full">
           {/* Profile Icon */}
           <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-black dark:text-white rotate-180" viewBox="0 0 4160 4160" fill="currentColor">
@@ -113,10 +115,10 @@ export default function Sidebar() {
               <path d="M1855 1555 c-301 -47 -585 -180 -778 -365 l-71 -67 108 -104 c60 -57 112 -106 117 -107 5 -2 35 20 67 49 420 385 1159 386 1564 1 52 -49 60 -53 75 -41 46 36 213 194 213 202 0 14 -101 107 -183 168 -188 140 -423 235 -670 268 -103 14 -341 12 -442 -4z"/>
             </svg>
           </div>
-          {/* Right side content (Welcome, Chain, Address) */}
+          {/* Right side content (grows to fill space) */}
           <div className="flex-grow min-w-0">
-            {/* Top row */}
-            <div className="flex justify-between items-center">
+            {/* Top row: Welcome and Chain */}
+            <div className="flex justify-between items-center mb-1">
               <div className="text-sm font-medium text-gray-700 dark:text-gray-200" style={{ fontFamily: "'Cygnito Mono', sans-serif" }}>
                 WELCOME
               </div>
@@ -133,7 +135,7 @@ export default function Sidebar() {
                 </button>
               )}
             </div>
-            {/* Bottom row */}
+            {/* Bottom row: Address */}
             <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
               {formatSidebarDisplayName(displayName, address)}
             </div>
