@@ -77,7 +77,7 @@ export default function WalletCard() {
   return (
     <div className="bg-gradient-to-r from-primary-950 to-secondary-950 p-6 text-white relative overflow-hidden">
       <div className="relative z-10">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-1">
           <h3 className="text-lg font-medium text-white/90">
             Ethereum Wallet
           </h3>
