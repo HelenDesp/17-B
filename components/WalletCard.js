@@ -62,8 +62,8 @@ export default function WalletCard() {
   const getChainLogo = (chainId) => {
     switch (chainId) {
       case 1: return "/ethereum.svg";
-      case 8453: return "/base.svg";
-      case 137: return "/polygon.svg";
+      case 8453: return "/ethereum.svg";
+      case 137: return "/ethereum.svg";
       case 42161: return "/arbitrum.svg";
       case 10: return "/optimism.svg";
       case 56: return "/bnb.svg";
