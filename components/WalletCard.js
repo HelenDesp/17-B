@@ -1,22 +1,25 @@
 import React, { useState } from "react";
-import { useAccount, useBalance, useEnsName } from "wagmi";
+import { useAccount, useBalance } from "wagmi";
 import { QRCodeSVG } from "qrcode.react";
-import { useAppKit } from "@reown/appkit/react"; // <-- 1. Import useAppKit
+import { useAppKit } from "@reown/appkit/react";
+import { useDisplayName } from "./useDisplayName"; // <-- 1. IMPORT THE CUSTOM HOOK
 
 export default function WalletCard() {
   const { address, isConnected, chain } = useAccount();
-  const { open } = useAppKit(); // <-- 2. Get the open function
+  const { open } = useAppKit();
   const { data: ethBalance } = useBalance({
     address,
     enabled: !!address,
   });
   
-  const { data: ensName } = useEnsName({ address, chainId: 1 });
+  // --- 2. USE THE CUSTOM HOOK TO GET THE NAME ---
+  const { displayName } = useDisplayName();
   
   const [showReceive, setShowReceive] = useState(false);  
 
   if (!isConnected) return null;
 
+  // This formatting is only for the numeric address now
   const formatAddress = (addr) => {
     if (!addr) return "";
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
@@ -68,31 +71,25 @@ export default function WalletCard() {
     }
   };
 
+  // --- 3. Check if the displayName is a resolved name (not an address) ---
+  const hasResolvedName = displayName && !displayName.startsWith("0x");
+
   return (
     <div className="bg-gradient-to-r from-primary-950 to-secondary-950 p-6 text-white relative overflow-hidden">
       <div className="relative z-10">
-        {/* --- 3. MODIFIED HEADER SECTION --- */}
         <div className="flex justify-between items-start mb-4">
-          {/* Left side: Title remains */}
           <h3 className="text-lg font-medium text-white/90">
             Ethereum Wallet
           </h3>
-          {/* Right side: Contains both Status and the new Network button */}
           <div className="flex flex-col items-end space-y-2">
-            {/* Connected Status */}
             <div className="flex items-center px-2 py-1 bg-white/20 rounded-full">
               <span className="w-2 h-2 rounded-full bg-green-400 mr-1"></span>
               <span className="text-xs">Connected</span>
             </div>
-
-			{/* New Clickable Network Button */}
 			<button
 			  onClick={() => open({ view: 'Networks' })}
-			  // --- 3. MODIFICATION: Reduced padding to make the button narrower ---
 			  className="flex items-center px-2 pl-1 py-1 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
 			>
-			  {/* --- 1. MODIFICATION: Icon is now on the left --- */}
-			  {/* --- 2. MODIFICATION: Icon color is now green --- */}
 			  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
 				  <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
 			  </svg>
@@ -101,24 +98,52 @@ export default function WalletCard() {
           </div>
         </div>
 
-        <div>
-          <div className="text-sm text-white/70">Wallet Address</div>
-          <div className="text-base font-medium mt-1 flex items-center">
-            {formatAddress(address)}
-            <button
-              className="ml-2 p-1 text-white/70 hover:text-white transition-colors"
-              onClick={() => navigator.clipboard.writeText(address)}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+        {/* --- 4. CONDITIONAL RENDERING LOGIC --- */}
+        <div className="space-y-4">
+          {/* This block only shows if an ENS/BNS name exists */}
+          {hasResolvedName && (
+            <div>
+              <div className="text-sm text-white/70">Wallet Name</div>
+              <div className="text-base font-medium mt-1 flex items-center">
+                <span>{displayName}</span>
+                <button
+                  className="ml-2 p-1 text-white/70 hover:text-white transition-colors"
+                  onClick={() => navigator.clipboard.writeText(displayName)}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                    <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* This block always shows the numeric address */}
+          <div>
+            <div className="text-sm text-white/70">Wallet Address</div>
+            <div className="text-base font-medium mt-1 flex items-center">
+              <span>{formatAddress(address)}</span>
+              <button
+                className="ml-2 p-1 text-white/70 hover:text-white transition-colors"
+                onClick={() => navigator.clipboard.writeText(address)}
               >
-                <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-                <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                  <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -174,9 +199,9 @@ export default function WalletCard() {
               )}
             </div>
 
-            {ensName ? (
+            {hasResolvedName ? (
               <>
-                <p className="text-sm mt-4 font-medium text-gray-700 dark:text-gray-300">{ensName}</p>
+                <p className="text-sm mt-4 font-medium text-gray-700 dark:text-gray-300">{displayName}</p>
                 <p className="text-xs mt-1 text-gray-700 dark:text-gray-300 break-all">{address}</p>
               </>
             ) : (
