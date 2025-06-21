@@ -57,15 +57,16 @@ export default function WalletCard() {
     }
   }; 
 
-  // NOTE: For these logos to work, you must have the corresponding .svg files
-  // (e.g., base.svg, polygon.svg) in your project's `public` folder.
+  // --- 1. MODIFICATION: Corrected all image paths and added Sepolia ---
+  // The paths now correctly point to the root of the `public` folder.
   const getChainLogo = (chainId) => {
     switch (chainId) {
       case 1: return "/ethereum.svg";
-      case 8453: return "/ethereum.svg";
-      case 137: return "/ethereum.svg";
+      case 8453: return "/base.svg";
+      case 137: return "/polygon.svg";
       case 42161: return "/arbitrum.svg";
       case 10: return "/optimism.svg";
+      case 11155111: return "/ethereum.svg"; // Sepolia uses the Ethereum logo
       case 56: return "/bnb.svg";
       default: return null;
     }
@@ -76,6 +77,7 @@ export default function WalletCard() {
   return (
     <div className="bg-gradient-to-r from-primary-950 to-secondary-950 p-6 text-white relative overflow-hidden">
       <div className="relative z-10">
+        {/* --- 2. MODIFICATION: Reduced spacing below header --- */}
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-medium text-white/90">
             Ethereum Wallet
@@ -97,7 +99,8 @@ export default function WalletCard() {
           </div>
         </div>
 
-        <div className="space-y-4 mt-4">
+        {/* --- 3. MODIFICATION: Simplified spacing for consistency --- */}
+        <div className="space-y-2 mt-2">
           {hasResolvedName && (
             <div>
               <div className="text-sm text-white/70">Wallet Name</div>
@@ -143,7 +146,7 @@ export default function WalletCard() {
           </div>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-2">
           <div className="text-sm text-white/70">Balance</div>
           <div className="text-2xl font-normal">
             {ethBalance
@@ -189,10 +192,8 @@ export default function WalletCard() {
               {getChainLogo(chain?.id) && (
                 <img
                   src={getChainLogo(chain?.id)}
-                  alt=""
+                  alt="Chain Logo"
                   className="absolute top-1/2 left-1/2 w-8 h-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-1"
-                  // --- MODIFICATION: Hide broken image icons ---
-                  onError={(e) => { e.target.style.display = 'none'; }}
                 />
               )}
             </div>
@@ -223,7 +224,6 @@ export default function WalletCard() {
                     onClick={() => navigator.clipboard.writeText(address)}
                     className="flex items-center text-black dark:text-primary-600 hover:underline"
                   >
-                    {/* --- MODIFICATION: Using consistent icon --- */}
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                       <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
@@ -236,7 +236,6 @@ export default function WalletCard() {
                   onClick={() => navigator.clipboard.writeText(address)}
                   className="flex items-center text-black dark:text-primary-600 hover:underline"
                 >
-                  {/* --- MODIFICATION: Using consistent icon --- */}
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                     <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
@@ -255,4 +254,3 @@ export default function WalletCard() {
     </div>
   );
 }
-
