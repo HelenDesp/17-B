@@ -57,6 +57,8 @@ export default function WalletCard() {
     }
   }; 
 
+  // NOTE: For these logos to work, you must have the corresponding .svg files
+  // (e.g., base.svg, polygon.svg) in your project's `public` folder.
   const getChainLogo = (chainId) => {
     switch (chainId) {
       case 1: return "/ethereum.svg";
@@ -74,7 +76,7 @@ export default function WalletCard() {
   return (
     <div className="bg-gradient-to-r from-primary-950 to-secondary-950 p-6 text-white relative overflow-hidden">
       <div className="relative z-10">
-        <div className="flex justify-between items-start mb-0">
+        <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-medium text-white/90">
             Ethereum Wallet
           </h3>
@@ -187,8 +189,10 @@ export default function WalletCard() {
               {getChainLogo(chain?.id) && (
                 <img
                   src={getChainLogo(chain?.id)}
-                  alt="Chain"
+                  alt=""
                   className="absolute top-1/2 left-1/2 w-8 h-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-1"
+                  // --- MODIFICATION: Hide broken image icons ---
+                  onError={(e) => { e.target.style.display = 'none'; }}
                 />
               )}
             </div>
@@ -202,7 +206,6 @@ export default function WalletCard() {
               <p className="text-sm mt-4 text-gray-700 dark:text-gray-300 break-all">{address}</p>
             )}
 
-            {/* --- MODIFICATION: Conditional Copy Buttons --- */}
             <div className="flex items-center justify-center mt-2 space-x-4">
               {hasResolvedName ? (
                 <>
@@ -220,8 +223,10 @@ export default function WalletCard() {
                     onClick={() => navigator.clipboard.writeText(address)}
                     className="flex items-center text-black dark:text-primary-600 hover:underline"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-8-4h8m-2-4h-4a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2z" />
+                    {/* --- MODIFICATION: Using consistent icon --- */}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                     </svg>
                     Copy Address
                   </button>
@@ -231,8 +236,10 @@ export default function WalletCard() {
                   onClick={() => navigator.clipboard.writeText(address)}
                   className="flex items-center text-black dark:text-primary-600 hover:underline"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-8-4h8m-2-4h-4a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2z" />
+                  {/* --- MODIFICATION: Using consistent icon --- */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                    <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                   </svg>
                   Copy Address
                 </button>
@@ -248,3 +255,4 @@ export default function WalletCard() {
     </div>
   );
 }
+
