@@ -89,7 +89,7 @@ export default function WalletCard() {
 			<button
 			  onClick={() => open({ view: 'Networks' })}
 			  // --- 3. MODIFICATION: Reduced padding to make the button narrower ---
-			  className="flex items-center px-2 pr-1 py-1 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+			  className="flex items-center px-2 pl-1 py-1 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
 			>
 			  {/* --- 1. MODIFICATION: Icon is now on the left --- */}
 			  {/* --- 2. MODIFICATION: Icon color is now green --- */}
