@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAccount, useBalance } from "wagmi";
 import { QRCodeSVG } from "qrcode.react";
 import { useAppKit } from "@reown/appkit/react";
-import { useDisplayName } from "./useDisplayName"; // <-- 1. IMPORT THE CUSTOM HOOK
+import { useDisplayName } from "./useDisplayName";
 
 export default function WalletCard() {
   const { address, isConnected, chain } = useAccount();
@@ -12,14 +12,12 @@ export default function WalletCard() {
     enabled: !!address,
   });
   
-  // --- 2. USE THE CUSTOM HOOK TO GET THE NAME ---
   const { displayName } = useDisplayName();
   
   const [showReceive, setShowReceive] = useState(false);  
 
   if (!isConnected) return null;
 
-  // This formatting is only for the numeric address now
   const formatAddress = (addr) => {
     if (!addr) return "";
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
@@ -71,13 +69,12 @@ export default function WalletCard() {
     }
   };
 
-  // --- 3. Check if the displayName is a resolved name (not an address) ---
-  const hasResolvedName = displayName && !displayName.startsWith("0x");
+  const hasResolvedName = displayName && !displayName.startsWith("0x") && displayName !== "Resolving...";
 
   return (
     <div className="bg-gradient-to-r from-primary-950 to-secondary-950 p-6 text-white relative overflow-hidden">
       <div className="relative z-10">
-        <div className="flex justify-between items-start mb-1">
+        <div className="flex justify-between items-start mb-0">
           <h3 className="text-lg font-medium text-white/90">
             Ethereum Wallet
           </h3>
@@ -98,9 +95,7 @@ export default function WalletCard() {
           </div>
         </div>
 
-        {/* --- 4. CONDITIONAL RENDERING LOGIC --- */}
-        <div className="space-y-4">
-          {/* This block only shows if an ENS/BNS name exists */}
+        <div className="space-y-4 mt-4">
           {hasResolvedName && (
             <div>
               <div className="text-sm text-white/70">Wallet Name</div>
@@ -124,7 +119,6 @@ export default function WalletCard() {
             </div>
           )}
 
-          {/* This block always shows the numeric address */}
           <div>
             <div className="text-sm text-white/70">Wallet Address</div>
             <div className="text-base font-medium mt-1 flex items-center">
@@ -208,16 +202,41 @@ export default function WalletCard() {
               <p className="text-sm mt-4 text-gray-700 dark:text-gray-300 break-all">{address}</p>
             )}
 
-            <div className="flex items-center justify-center mt-2 space-x-1">
-              <button
-                onClick={() => navigator.clipboard.writeText(address)}
-                className="flex items-center text-black dark:text-primary-600 hover:underline"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-8-4h8m-2-4h-4a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2z" />
-                </svg>
-                Copy address
-              </button>
+            {/* --- MODIFICATION: Conditional Copy Buttons --- */}
+            <div className="flex items-center justify-center mt-2 space-x-4">
+              {hasResolvedName ? (
+                <>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(displayName)}
+                    className="flex items-center text-black dark:text-primary-600 hover:underline"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                      <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                    </svg>
+                    Copy Name
+                  </button>
+                  <button
+                    onClick={() => navigator.clipboard.writeText(address)}
+                    className="flex items-center text-black dark:text-primary-600 hover:underline"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-8-4h8m-2-4h-4a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2z" />
+                    </svg>
+                    Copy Address
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => navigator.clipboard.writeText(address)}
+                  className="flex items-center text-black dark:text-primary-600 hover:underline"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16h8M8 12h8m-8-4h8m-2-4h-4a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2z" />
+                  </svg>
+                  Copy Address
+                </button>
+              )}
             </div>
           </div>
         </div>
