@@ -58,12 +58,12 @@ export default function WalletCard() {
 
   const getChainLogo = (chainId) => {
     switch (chainId) {
-      case 1: return "/logos/eth.svg";
-      case 8453: return "/logos/base.svg";
-      case 137: return "/logos/polygon.svg";
-      case 42161: return "/logos/arbitrum.svg";
-      case 10: return "/logos/op.svg";
-      case 56: return "/logos/bnb.svg";
+      case 1: return "/eth.svg";
+      case 8453: return "/base.svg";
+      case 137: return "/polygon.svg";
+      case 42161: return "/arbitrum.svg";
+      case 10: return "/op.svg";
+      case 56: return "/bnb.svg";
       default: return null;
     }
   };
@@ -93,7 +93,7 @@ export default function WalletCard() {
 			>
 			  {/* --- 1. MODIFICATION: Icon is now on the left --- */}
 			  {/* --- 2. MODIFICATION: Icon color is now green --- */}
-			  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+			  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-green-400" fill="currentColor" viewBox="0 0 20 20">
 				  <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
 			  </svg>
 			  <img src={getChainLogo(chain?.id)} alt="" className="w-4 h-4 mr-1.5 rounded-full" />
