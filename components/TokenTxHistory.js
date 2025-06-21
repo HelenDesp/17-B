@@ -8,7 +8,7 @@ const ALCHEMY_URLS = {
   10: "https://opt-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
   137: "https://polygon-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
   56: "https://bnb-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
-  11155111: "https://eth-sepolia.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr", 
+  11155111: "https://eth-sepolia.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
 };
 
 export default function TokenTxHistory({ address, chainId }) {
@@ -19,83 +19,71 @@ export default function TokenTxHistory({ address, chainId }) {
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   
-const { chain } = useAccount();
+  const { chain } = useAccount();
 
-const getChainLabel = (chainId) => {
-  switch (chainId) {
-    case 1: return "Ethereum";
-    case 8453: return "Base";
-    case 137: return "Polygon";
-    case 42161: return "Arbitrum";
-    case 10: return "Optimism";
-    case 11155111: return "Sepolia";
-    case 56: return "BNB";
-    default: return "Base";
-  }
-};  
+  const getChainLabel = (chainId) => {
+    switch (chainId) {
+      case 1: return "Ethereum";
+      case 8453: return "Base";
+      case 137: return "Polygon";
+      case 42161: return "Arbitrum";
+      case 10: return "Optimism";
+      case 11155111: return "Sepolia";
+      case 56: return "BNB";
+      default: return "Base";
+    }
+  };  
 
-const getExplorerBaseUrl = (chainId) => {
-  switch (chainId) {
-    case 1: return "https://etherscan.io";
-    case 8453: return "https://basescan.org";
-    case 137: return "https://polygonscan.com";
-    case 42161: return "https://arbiscan.io";
-    case 10: return "https://optimistic.etherscan.io";
-    case 56: return "https://bscscan.com";
-    case 11155111: return "https://sepolia.etherscan.io";
-    default: return "https://etherscan.io";
-  }
-};
+  const getExplorerBaseUrl = (chainId) => {
+    switch (chainId) {
+      case 1: return "https://etherscan.io";
+      case 8453: return "https://basescan.org";
+      case 137: return "https://polygonscan.com";
+      case 42161: return "https://arbiscan.io";
+      case 10: return "https://optimistic.etherscan.io";
+      case 56: return "https://bscscan.com";
+      case 11155111: return "https://sepolia.etherscan.io";
+      default: return "https://etherscan.io";
+    }
+  };
 
-useEffect(() => {
-  if (!address || !chainId) return;
+  useEffect(() => {
+    if (!address || !chainId) return;
 
-  const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
-  if (!ALCHEMY_BASE_URL) return;
+    const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
+    if (!ALCHEMY_BASE_URL) return;
 
     const fetchTxs = async () => {
       try {
-        const [sentRes, receivedRes] = await Promise.all([
-          fetch(ALCHEMY_BASE_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              jsonrpc: "2.0",
-              id: 1,
-              method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                fromAddress: address,
-                category: ["external", "erc20"],
-                withMetadata: true,
-                excludeZeroValue: true,
-                maxCount: "0x32"
-              }]
-            })
-          }),
-          fetch(ALCHEMY_BASE_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              jsonrpc: "2.0",
-              id: 2,
-              method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                toAddress: address,
-                category: ["external", "erc20"],
-                withMetadata: true,
-                excludeZeroValue: true,
-                maxCount: "0x32"
-              }]
-            })
+        // --- MODIFICATION START ---
+        // We now make a single request to get both sent and received transactions.
+        const res = await fetch(ALCHEMY_BASE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "alchemy_getAssetTransfers",
+            params: [{
+              fromBlock: "0x0",
+              // By providing the address to both fromAddress and toAddress,
+              // we get all transactions involving this address.
+              // Note: A simpler way is to use the 'address' parameter instead,
+              // but this method is more explicit about the intent.
+              fromAddress: address,
+              toAddress: address,
+              category: ["external", "erc20"],
+              withMetadata: true,
+              excludeZeroValue: true,
+              maxCount: "0x64" // Fetched a bit more to have a good pool for grouping
+            }]
           })
-        ]);
+        });
 
-        const sent = await sentRes.json();
-        const received = await receivedRes.json();
-        const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
-
+        const data = await res.json();
+        const all = data.result?.transfers || [];
+        // --- MODIFICATION END ---
+        
         // Exclude all NFTs (ERC-721 & ERC-1155)
 		const filtered = all.filter(tx =>
 		  tx.category !== "erc721" &&
