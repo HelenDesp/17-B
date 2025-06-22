@@ -235,10 +235,11 @@ export default function Dashboard() {
         }
       />
 
-{/* --- START of Responsive Layout Block --- */}
+{/* --- START of Corrected Responsive Layout Block --- */}
 
-{/* This layout is for LARGE screens (1024px and wider) */}
-<div className="hidden lg:grid dashboard-columns">
+{/* --- Layout for LARGE screens (1024px and wider) --- */}
+{/* This div is HIDDEN by default, and becomes a GRID on large screens. */}
+<div className="hidden lg:grid grid-cols-2 gap-6">
     {/* Left Column on Large Screens */}
     <div className="space-y-6">
         <NFTTransfer
@@ -261,8 +262,9 @@ export default function Dashboard() {
     </div>
 </div>
 
-{/* This layout is for SMALL screens (less than 1024px) */}
-<div className="grid lg:hidden dashboard-columns">
+{/* --- Layout for SMALL screens (less than 1024px) --- */}
+{/* This div is a GRID by default, and becomes HIDDEN on large screens. */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:hidden">
     {/* Left Column on Small Screens */}
     <div className="space-y-6">
         <NFTTransfer
@@ -285,7 +287,7 @@ export default function Dashboard() {
     </div>
 </div>
 
-{/* --- END of Responsive Layout Block --- */}
+{/* --- END of Corrected Responsive Layout Block --- */}
     </div>
   );
 }
