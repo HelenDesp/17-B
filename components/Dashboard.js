@@ -235,28 +235,57 @@ export default function Dashboard() {
         }
       />
 
-      <div className="dashboard-columns">
-        <div className="space-y-6">
-			<NFTTransfer
-				nfts={nfts}
-				mode={transferMode}
-				setMode={setTransferMode}
-				selectedNFTsFromDashboard={selectedNFTs}
-				setSelectedNFTsFromDashboard={setSelectedNFTs}
-				chainId={8453}
-				fetchNFTs={fetchNFTsRef}
-			/>		
-          <WalletCard />
-		  <TokenTxHistory address={address} chainId={chain?.id} />
-          <TokenBalances />
-        </div>
-        <div className="space-y-6">
-		  <NftTxHistory address={address} chainId={chain?.id} />
-		  <TokenActions />
-          <TokenTransfer />
-          <ActivityCard />
-        </div>
-      </div>
+{/* --- START of Responsive Layout Block --- */}
+
+{/* This layout is for LARGE screens (1024px and wider) */}
+<div className="hidden lg:grid dashboard-columns">
+    {/* Left Column on Large Screens */}
+    <div className="space-y-6">
+        <NFTTransfer
+            nfts={nfts}
+            mode={transferMode}
+            setMode={setTransferMode}
+            selectedNFTsFromDashboard={selectedNFTs}
+            setSelectedNFTsFromDashboard={setSelectedNFTs}
+            chainId={8453}
+            fetchNFTs={fetchNFTsRef}
+        />		
+        <WalletCard />
+        <TokenTxHistory address={address} chainId={chain?.id} />
+    </div>
+    {/* Right Column on Large Screens */}
+    <div className="space-y-6">
+        <NftTxHistory address={address} chainId={chain?.id} />
+        <TokenActions />
+        <TokenTransfer />
+    </div>
+</div>
+
+{/* This layout is for SMALL screens (less than 1024px) */}
+<div className="grid lg:hidden dashboard-columns">
+    {/* Left Column on Small Screens */}
+    <div className="space-y-6">
+        <NFTTransfer
+            nfts={nfts}
+            mode={transferMode}
+            setMode={setTransferMode}
+            selectedNFTsFromDashboard={selectedNFTs}
+            setSelectedNFTsFromDashboard={setSelectedNFTs}
+            chainId={8453}
+            fetchNFTs={fetchNFTsRef}
+        />		
+        <NftTxHistory address={address} chainId={chain?.id} />
+    </div>
+    {/* Right Column on Small Screens */}
+    <div className="space-y-6">
+        <WalletCard />
+        <TokenActions />
+        <TokenTransfer />
+        <TokenTxHistory address={address} chainId={chain?.id} />
+    </div>
+</div>
+
+{/* --- END of Responsive Layout Block --- */}
     </div>
   );
 }
