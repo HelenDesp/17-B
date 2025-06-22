@@ -23,11 +23,33 @@ function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }
   );
 }
 
+// --- ADD THIS FUNCTION ---
+// This function checks the transaction data for an image URL and converts IPFS links.
+function getNftImageUrl(tx) {
+  // Alchemy's getAssetTransfers often provides image URLs in the 'media' array.
+  // We prioritize the gateway URL which is a direct HTTP link.
+  const media = tx.media?.[0];
+  if (media?.gateway) {
+    return media.gateway;
+  }
+  if (media?.thumbnail) {
+    return media.thumbnail;
+  }
+
+  // As a fallback, if the media object contains a raw IPFS link, we convert it.
+  if (typeof media?.raw === 'string' && media.raw.startsWith("ipfs://")) {
+    return media.raw.replace("ipfs://", "https://ipfs.io/ipfs/");
+  }
+
+  // Final fallback to a placeholder if no image is found.
+  return 'https://placehold.co/40';
+}
+
 // --- CHANGE: Renamed component to NftTxHistory ---
 export default function NftTxHistory({ address, chainId }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
-  const perPage = 4;
+  const perPage = 3;
   const maxTxs = txs.slice(0, 60); // Your original variable, left untouched.
 
   // Your original variable, which is now used for mint/burn logic.
@@ -160,7 +182,7 @@ export default function NftTxHistory({ address, chainId }) {
                 {/* --- CHANGE: Added NFT thumbnail and new layout structure --- */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <img 
-                    src={tx.media?.[0]?.thumbnail || tx.media?.[0]?.gateway || 'https://via.placeholder.com/40'} 
+                    src={getNftImageUrl(tx)}
                     alt={tx.asset}
                     className="w-10 h-10 rounded object-cover bg-gray-200 flex-shrink-0"
                   />
