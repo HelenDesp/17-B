@@ -12,7 +12,10 @@ const ALCHEMY_URLS = {
   11155111: "https://eth-sepolia.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr", 
 };
 
-// This helper component is necessary to use the hook correctly.
+// --- We need the contract address to fetch the image data ---
+const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
+
+
 function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }) {
   const { displayName, isNameLoading } = useDisplayName(address);
   const nameToShow = isNameLoading ? "Resolving..." : displayName && !displayName.startsWith("0x") ? displayName : shortenAddress(address);
@@ -23,39 +26,73 @@ function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }
   );
 }
 
-// --- ADD THIS FUNCTION ---
-// This function checks the transaction data for an image URL and converts IPFS links.
-function getNftImageUrl(tx) {
-  // Alchemy's getAssetTransfers often provides image URLs in the 'media' array.
-  // We prioritize the gateway URL which is a direct HTTP link.
-  const media = tx.media?.[0];
-  if (media?.gateway) {
-    return media.gateway;
-  }
-  if (media?.thumbnail) {
-    return media.thumbnail;
+// --- UPDATED FUNCTION TO FIX IMAGE THUMBNAILS ---
+// This function now uses the pre-fetched image map for reliability.
+function getNftImageUrl(tx, imageMap) {
+  // The tokenId from the transaction history is in hex, convert it to a string.
+  const tokenId = parseInt(tx.tokenId, 16).toString();
+  
+  // First, check our reliable map of pre-fetched images.
+  if (imageMap.has(tokenId)) {
+    return imageMap.get(tokenId);
   }
 
-  // As a fallback, if the media object contains a raw IPFS link, we convert it.
+  // Fallback logic from before, in case the image map doesn't have the token.
+  const media = tx.media?.[0];
+  if (media?.gateway) { return media.gateway; }
+  if (media?.thumbnail) { return media.thumbnail; }
   if (typeof media?.raw === 'string' && media.raw.startsWith("ipfs://")) {
     return media.raw.replace("ipfs://", "https://ipfs.io/ipfs/");
   }
 
-  // Final fallback to a placeholder if no image is found.
   return 'https://placehold.co/40';
 }
 
-// --- CHANGE: Renamed component to NftTxHistory ---
+
 export default function NftTxHistory({ address, chainId }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
-  const perPage = 3;
-  const maxTxs = txs.slice(0, 60); // Your original variable, left untouched.
-
-  // Your original variable, which is now used for mint/burn logic.
+  const perPage = 4;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
-  
   const { chain } = useAccount();
+
+  // --- NEW STATE TO HOLD OUR IMAGE URLS ---
+  const [nftImageMap, setNftImageMap] = useState(new Map());
+
+  // --- NEW useEffect TO PRE-FETCH ALL CORRECT IMAGE URLS ---
+  useEffect(() => {
+    const fetchAllNftImages = async () => {
+      // This endpoint is known to work from your NFTViewer.js
+      const res = await fetch(
+        `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&contractAddresses[]=${CONTRACT_ADDRESS}&withMetadata=true`,
+        { headers: { accept: "application/json" } }
+      );
+      const data = await res.json();
+      const imageMap = new Map();
+
+      for (const nft of data.ownedNfts || []) {
+        const meta = nft.raw?.metadata || {};
+        let finalImageUrl = 'https://placehold.co/40';
+        const rawUrl = nft.image?.originalUrl || meta.image || '';
+
+        if (typeof rawUrl === 'string' && rawUrl.trim() !== '') {
+            const trimmedUrl = rawUrl.trim();
+            if (trimmedUrl.startsWith("ipfs://")) {
+                finalImageUrl = trimmedUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
+            } else if (trimmedUrl.startsWith("http")) {
+                finalImageUrl = trimmedUrl;
+            }
+        }
+        imageMap.set(nft.tokenId, finalImageUrl);
+      }
+      setNftImageMap(imageMap);
+    };
+
+    if (address) {
+      fetchAllNftImages();
+    }
+  }, [address]);
+
 
   const getChainLabel = (chainId) => {
     switch (chainId) { case 1: return "Ethereum"; case 8453: return "Base"; case 137: return "Polygon"; case 42161: return "Arbitrum"; case 10: return "Optimism"; case 11155111: return "Sepolia"; case 56: return "BNB"; default: return "Base"; }
@@ -72,84 +109,56 @@ export default function NftTxHistory({ address, chainId }) {
 
     const fetchTxs = async () => {
       try {
-        const [sentRes, receivedRes] = await Promise.all([
-          fetch(ALCHEMY_BASE_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              jsonrpc: "2.0",
-              id: 1,
-              method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                fromAddress: address,
-                // --- CHANGE: Fetching NFT categories instead of tokens ---
-                category: ["erc721", "erc1155"],
-                withMetadata: true,
-                excludeZeroValue: true,
-                maxCount: "0x32"
-              }]
-            })
-          }),
-          fetch(ALCHEMY_BASE_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              jsonrpc: "2.0",
-              id: 2,
-              method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                toAddress: address,
-                // --- CHANGE: Fetching NFT categories instead of tokens ---
-                category: ["erc721", "erc1155"],
-                withMetadata: true,
-                excludeZeroValue: true,
-                maxCount: "0x32"
-              }]
-            })
+        const fetchBody = (addrField, addrValue) => ({
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "alchemy_getAssetTransfers",
+            params: [{
+              fromBlock: "0x0",
+              [addrField]: addrValue,
+              contractAddresses: [CONTRACT_ADDRESS],
+              category: ["erc721", "erc1155"],
+              withMetadata: true,
+              excludeZeroValue: true,
+              maxCount: "0x64"
+            }]
           })
+        });
+
+        const [sentRes, receivedRes] = await Promise.all([
+          fetch(ALCHEMY_BASE_URL, fetchBody("fromAddress", address)),
+          fetch(ALCHEMY_BASE_URL, fetchBody("toAddress", address))
         ]);
 
         const sent = await sentRes.json();
         const received = await receivedRes.json();
         const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
 
-        // --- CHANGE: This filter is no longer needed, as we only requested NFTs from the API. Removing it is essential for the logic to work. ---
-		// const filtered = all.filter(tx => tx.category !== "erc721" && tx.category !== "erc1155");
-
-        const grouped = [];
-        const seenTxIdentifiers = new Set(); // Use a more specific identifier to avoid duplicates from sent/received calls
-
-        // Using your original loop structure, but processing the 'all' array directly
+        const seenTxIdentifiers = new Set();
+        const uniqueTxs = [];
         for (const tx of all) {
-          const uniqueId = `${tx.hash}-${tx.asset}-${tx.tokenId}-${tx.from}-${tx.to}`;
-          if (seenTxIdentifiers.has(uniqueId)) continue;
-          seenTxIdentifiers.add(uniqueId);
-          
-          let type = "Unknown";
-          const sentByMe = tx.from.toLowerCase() === address.toLowerCase();
-          const receivedByMe = tx.to.toLowerCase() === address.toLowerCase();
-
-          // --- CHANGE: New logic to determine NFT transaction type ---
-          if (tx.from.toLowerCase() === zeroAddress && receivedByMe) {
-              type = 'Minted';
-          } else if (tx.to.toLowerCase() === zeroAddress && sentByMe) {
-              type = 'Burned'; // A common NFT action
-          } else if (sentByMe) {
-              type = 'Sent';
-          } else if (receivedByMe) {
-              type = 'Received';
-          }
-
-          // We only add transactions that are relevant to the user
-          if (type !== "Unknown") {
-            grouped.push({ ...tx, _type: type });
-          }
+            const uniqueId = `${tx.hash}-${tx.asset}-${tx.tokenId}-${tx.from}-${tx.to}`;
+            if(!seenTxIdentifiers.has(uniqueId)) {
+                uniqueTxs.push(tx);
+                seenTxIdentifiers.add(uniqueId);
+            }
         }
         
-        // Sort transactions by date after they have been processed
-        const sortedTxs = grouped.sort((a,b) => new Date(b.metadata.blockTimestamp) - new Date(a.metadata.blockTimestamp));
+        const processedTxs = uniqueTxs.map(tx => {
+            let type = "Unknown";
+            const sentByMe = tx.from.toLowerCase() === address.toLowerCase();
+            const receivedByMe = tx.to.toLowerCase() === address.toLowerCase();
+            if (tx.from.toLowerCase() === zeroAddress && receivedByMe) { type = 'Minted'; } 
+            else if (tx.to.toLowerCase() === zeroAddress && sentByMe) { type = 'Burned'; }
+            else if (sentByMe) { type = 'Sent'; } 
+            else if (receivedByMe) { type = 'Received'; }
+            return { ...tx, _type: type };
+        }).filter(tx => tx._type !== "Unknown");
+        
+        const sortedTxs = processedTxs.sort((a,b) => new Date(b.metadata.blockTimestamp) - new Date(a.metadata.blockTimestamp));
 
         setTxs(sortedTxs);
       } catch (err) {
@@ -168,7 +177,6 @@ export default function NftTxHistory({ address, chainId }) {
   return (
     <div className="p-4 bg-white border-b2 dark:bg-dark-200 shadow">
 	<div className="flex justify-between items-center mb-2">
-      {/* --- CHANGE: Title updated for NFTs --- */}
 	  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">NFT Transactions</h3>
 	  <span className="text-sm text-gray-500 dark:text-gray-400 uppercase">{getChainLabel(chain?.id)}</span>
 	</div>
@@ -179,10 +187,10 @@ export default function NftTxHistory({ address, chainId }) {
           paginated.map((tx, i) => (
             <div key={`${tx.hash}-${i}`} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
               <div className="flex items-center justify-between">
-                {/* --- CHANGE: Added NFT thumbnail and new layout structure --- */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <img 
-                    src={getNftImageUrl(tx)}
+                    // --- Using the updated function with the pre-fetched map ---
+                    src={getNftImageUrl(tx, nftImageMap)} 
                     alt={tx.asset}
                     className="w-10 h-10 rounded object-cover bg-gray-200 flex-shrink-0"
                   />
@@ -190,7 +198,6 @@ export default function NftTxHistory({ address, chainId }) {
                     <div className="text-black dark:text-white"><strong>{tx._type}</strong></div>
                     <div className="flex justify-between text-sm mt-1">
                       <div className="text-black dark:text-white font-medium truncate pr-2" title={`${tx.asset} #${parseInt(tx.tokenId, 16)}`}>
-                        {/* --- CHANGE: Display NFT Collection & ID --- */}
                         {tx.asset} #{parseInt(tx.tokenId, 16)}
                       </div>
                     </div>
@@ -208,7 +215,6 @@ export default function NftTxHistory({ address, chainId }) {
                 <div className="mt-2 pl-12 space-y-1 text-xs">
                   <div className="flex items-center justify-between text-black dark:text-white">
                     <a href={`${getExplorerBaseUrl(chainId)}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="underline">View on Explorer</a>
-                    {/* --- CHANGE: Using icons for NFT actions. Re-using existing icons. --- */}
                     {(tx._type === "Sent" || tx._type === "Burned") && <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-5 h-5 ml-2 fill-black dark:fill-white"><path d="M77.17187,170.82861a3.99971,3.99971,0,0,1,0-5.65722L182.34277,60H92a4,4,0,0,1,0-8H192c.0166,0,.03174.0047.04834.00488a4.02377,4.02377,0,0,1,.73437.074c.12159.02411.23389.06927.35108.10412a2.30534,2.30534,0,0,1,.77588.32282c.103.05633.21045.10168.30908.16772a4.02182,4.02182,0,0,1,.58691.47919c.00684.007.01563.01154.02246.01862l.01417.01684a4.0149,4.0149,0,0,1,.48388.5929c.06738.1001.11328.20856.16992.313a3.85529,3.85529,0,0,1,.19776.37573,3.97336,3.97336,0,0,1,.12646.40607c.03321.114.07715.223.10059.34094A3.98826,3.98826,0,0,1,196,56V156a4,4,0,0,1-8,0V65.657L82.82812,170.82861a3.99971,3.99971,0,0,1-5.65625,0ZM216,211.99609H40a4,4,0,0,0,0,8H216a4,4,0,0,0,0-8Z" /></svg>}
 				    {(tx._type === "Received" || tx._type === "Minted") && <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-5 h-5 ml-2 fill-black dark:fill-white"><path d="M53.17187,114.82471a3.99992,3.99992,0,0,1,5.65625-5.65723L124,174.33936V31.99609a4,4,0,0,1,8,0V174.33936l65.17187-65.17188a3.99992,3.99992,0,1,1,5.65625,5.65723l-72,72c-.00683.00708-.01562.01172-.02246.01855a4.01055,4.01055,0,0,1-.58691.47925c-.10059.06714-.209.11328-.314.17041a3.961,3.961,0,0,1-.37452.197,3.91774,3.91774,0,0,1-.40918.12695c-.11279.03321-.2207.07715-.33789.1001a3.91693,3.91693,0,0,1-1.5664,0c-.11719-.023-.2251-.06689-.33789-.1001a3.91774,3.91774,0,0,1-.40918-.12695,3.961,3.961,0,0,1-.37452-.197c-.105-.05713-.21337-.10327-.314-.17041a4.01055,4.01055,0,0,1-.58691-.47925c-.00684-.00683-.01563-.01147-.02247-.01855ZM216,211.99609H40a4,4,0,0,0,0,8H216a4,4,0,0,0,0-8Z" /></svg>}
                   </div>
