@@ -88,11 +88,19 @@ export default function Dashboard() {
           const meta = nft.raw?.metadata || {};
           
           // --- FIX for NFT IMAGES ---
-          // More robustly handles the image URL and converts IPFS links.
-          let imageUrl = nft.image?.originalUrl || meta.image || "";
-          if (imageUrl.startsWith("ipfs://")) {
-            // Using a reliable public gateway to resolve IPFS content
-            imageUrl = imageUrl.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/");
+          // This new logic correctly converts IPFS URLs and handles missing images.
+          let finalImageUrl = 'https://via.placeholder.com/150'; // Default placeholder
+          const rawUrl = nft.image?.originalUrl || meta.image || '';
+
+          if (typeof rawUrl === 'string' && rawUrl.trim() !== '') {
+              const trimmedUrl = rawUrl.trim();
+              if (trimmedUrl.startsWith("ipfs://")) {
+                  // Use a standard public gateway
+                  finalImageUrl = trimmedUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
+              } else if (trimmedUrl.startsWith("http")) {
+                  // Use the URL directly if it's already a link
+                  finalImageUrl = trimmedUrl;
+              }
           }
           
           const name = meta.name || nft.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
@@ -102,7 +110,7 @@ export default function Dashboard() {
           parsed.push({
             tokenId: nft.tokenId,
             name,
-            image: imageUrl, // Use the processed URL
+            image: finalImageUrl, // Assign the corrected and verified image URL
             traits: {
               manifesto: getTrait("Manifesto"),
               friend: getTrait("Friend"),
@@ -179,23 +187,30 @@ export default function Dashboard() {
           Manage your crypto assets, make transfers, and track your transaction
           history in one place.
         </p>
+
         <div className="mt-6 dashboard-grid">
           <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Balance</div>
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Total Balance
+            </div>
             <div className="mt-1 text-2xl font-normal text-gray-900 dark:text-white">
               {ethBalance ? parseFloat(ethBalance.formatted).toFixed(5) : "0.00000"}{" "}
               {ethBalance?.symbol || "ETH"}
             </div>
           </div>
           <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Network</div>
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Network
+            </div>
             <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white flex items-center">
               <span className="w-3 h-3 rounded-full bg-green-400 mr-2"></span>
               {chain?.name || "Ethereum Mainnet"}
             </div>
           </div>
           <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Gas Price</div>
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              Gas Price
+            </div>
             <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white">
               {gasPriceGwei ? `${gasPriceGwei} Gwei` : "Loading..."}
             </div>
@@ -218,31 +233,33 @@ export default function Dashboard() {
       />
       
       {/* --- FIX for LAYOUT ---
-          The components are now placed inside the main 'dashboard-columns' grid 
-          to achieve the desired layout behavior.
+          This is your original two-column layout. I have placed the components
+          into the correct columns as you requested.
       */}
       <div className="dashboard-columns">
         {/* --- LEFT COLUMN --- */}
         <div className="space-y-6">
           <WalletCard />
+		      <TokenTxHistory address={address} chainId={chain?.id} />
           <TokenBalances />
+          {/* NFTTransfer is now in the LEFT column */}
           <NFTTransfer
-            nfts={nfts}
-            mode={transferMode}
-            setMode={setTransferMode}
-            selectedNFTsFromDashboard={selectedNFTs}
-            setSelectedNFTsFromDashboard={setSelectedNFTs}
-            chainId={8453}
-            fetchNFTs={fetchNFTsRef}
-          />
-           <TokenTransfer />
+				      nfts={nfts}
+				      mode={transferMode}
+				      setMode={setTransferMode}
+				      selectedNFTsFromDashboard={selectedNFTs}
+				      setSelectedNFTsFromDashboard={setSelectedNFTs}
+				      chainId={8453}
+				      fetchNFTs={fetchNFTsRef}
+			    />
         </div>
         {/* --- RIGHT COLUMN --- */}
         <div className="space-y-6">
-          <TokenActions />
-          <TokenTxHistory address={address} chainId={chain?.id} />
-          <NftTxHistory address={address} chainId={chain?.id} />
+		      <TokenActions />
+          <TokenTransfer />
           <ActivityCard />
+          {/* NftTxHistory is now in the RIGHT column */}
+          <NftTxHistory address={address} chainId={chain?.id} />
         </div>
       </div>
     </div>
