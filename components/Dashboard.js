@@ -264,7 +264,7 @@ export default function Dashboard() {
 
 {/* --- Layout for SMALL screens (less than 1024px) --- */}
 {/* This div is a GRID by default, and becomes HIDDEN on large screens. */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:hidden">
+<div className="grid grid-cols-1 lg:hidden">
     {/* Left Column on Small Screens */}
     <div className="space-y-6">
         <NFTTransfer
