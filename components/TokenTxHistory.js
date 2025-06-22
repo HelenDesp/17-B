@@ -14,10 +14,8 @@ const ALCHEMY_URLS = {
 
 // --- HELPER COMPONENT USING YOUR REFACTORED HOOK ---
 function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }) {
-  // Use your powerful, reusable hook for any address
   const { displayName, isNameLoading } = useDisplayName(address);
 
-  // Determine what to show: the resolved name, a loading state, or the shortened address
   const nameToShow = isNameLoading
     ? "Resolving..."
     : displayName && !displayName.startsWith("0x")
@@ -85,14 +83,7 @@ export default function TokenTxHistory({ address, chainId }) {
               jsonrpc: "2.0",
               id: 1,
               method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                fromAddress: address,
-                category: ["external", "erc20"],
-                withMetadata: true,
-                excludeZeroValue: true,
-                maxCount: "0x32"
-              }]
+              params: [{ fromBlock: "0x0", fromAddress: address, category: ["external", "erc20"], withMetadata: true, excludeZeroValue: true, maxCount: "0x32" }]
             })
           }),
           fetch(ALCHEMY_BASE_URL, {
@@ -102,14 +93,7 @@ export default function TokenTxHistory({ address, chainId }) {
               jsonrpc: "2.0",
               id: 2,
               method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                toAddress: address,
-                category: ["external", "erc20"],
-                withMetadata: true,
-                excludeZeroValue: true,
-                maxCount: "0x32"
-              }]
+              params: [{ fromBlock: "0x0", toAddress: address, category: ["external", "erc20"], withMetadata: true, excludeZeroValue: true, maxCount: "0x32" }]
             })
           })
         ]);
@@ -117,22 +101,17 @@ export default function TokenTxHistory({ address, chainId }) {
         const sent = await sentRes.json();
         const received = await receivedRes.json();
         const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
-
         const filtered = all.filter(tx => tx.category !== "erc721" && tx.category !== "erc1155");
 
         const grouped = [];
         const seenHashes = new Set();
         const hashMap = new Map();
         for (const tx of filtered) {
-          if (!hashMap.has(tx.hash)) {
-            hashMap.set(tx.hash, []);
-          }
+          if (!hashMap.has(tx.hash)) { hashMap.set(tx.hash, []); }
           hashMap.get(tx.hash).push(tx);
         }
 
-        const txList = Array.from(hashMap.entries()).sort((a, b) =>
-          new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp)
-        );
+        const txList = Array.from(hashMap.entries()).sort((a, b) => new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp));
 
         for (const [hash, txGroup] of txList) {
           if (seenHashes.has(hash)) continue;
@@ -142,15 +121,14 @@ export default function TokenTxHistory({ address, chainId }) {
           let type = "Unknown";
           if (sentTx && receivedTx) {
             type = `Swapped (${receivedTx.asset || sentTx.asset})`;
+          } else if (sentTx && txGroup.some(t => t.to?.toLowerCase() === address.toLowerCase() && t.from?.toLowerCase() !== address.toLowerCase() && t.asset !== sentTx.asset)) {
+            type = "Sent (Minted)";
           } else if (sentTx) {
             type = "Sent";
           } else if (receivedTx) {
             type = "Received";
           }
-          grouped.push({
-            ...(sentTx || receivedTx || txGroup[0]),
-            _type: type
-          });
+          grouped.push({ ...(sentTx || receivedTx || txGroup[0]), _type: type });
         }
         setTxs(grouped);
       } catch (err) {
@@ -167,9 +145,7 @@ export default function TokenTxHistory({ address, chainId }) {
 
 	const formatShortDate = (dateStr) => {
 	  const d = new Date(dateStr);
-	  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
-			 ", " +
-			 d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+	  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ", " + d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
 	};
 	
 	const [expandedIndexes, setExpandedIndexes] = useState({});
@@ -198,25 +174,46 @@ export default function TokenTxHistory({ address, chainId }) {
 				  <div className="text-black dark:text-white">{formatShortDate(tx.metadata.blockTimestamp)}</div>
 				</div>
 				<div className="flex items-center justify-between text-black dark:text-white">
-				  <a href={`${getExplorerBaseUrl(chainId)}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="underline">View on Explorer</a>
+				    <a href={`${getExplorerBaseUrl(chainId)}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="underline">View on Explorer</a>
+                    {/* --- ICONS RESTORED --- */}
+                    {tx._type?.startsWith("Sent") && (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-5 h-5 ml-2 fill-black dark:fill-white"><path d="M77.17187,170.82861a3.99971,3.99971,0,0,1,0-5.65722L182.34277,60H92a4,4,0,0,1,0-8H192c.0166,0,.03174.0047.04834.00488a4.02377,4.02377,0,0,1,.73437.074c.12159.02411.23389.06927.35108.10412a2.30534,2.30534,0,0,1,.77588.32282c.103.05633.21045.10168.30908.16772a4.02182,4.02182,0,0,1,.58691.47919c.00684.007.01563.01154.02246.01862l.01417.01684a4.0149,4.0149,0,0,1,.48388.5929c.06738.1001.11328.20856.16992.313a3.85529,3.85529,0,0,1,.19776.37573,3.97336,3.97336,0,0,1,.12646.40607c.03321.114.07715.223.10059.34094A3.98826,3.98826,0,0,1,196,56V156a4,4,0,0,1-8,0V65.657L82.82812,170.82861a3.99971,3.99971,0,0,1-5.65625,0ZM216,211.99609H40a4,4,0,0,0,0,8H216a4,4,0,0,0,0-8Z" /></svg>
+                    )}
+                    {tx._type?.startsWith("Received") && (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-5 h-5 ml-2 fill-black dark:fill-white"><path d="M53.17187,114.82471a3.99992,3.99992,0,0,1,5.65625-5.65723L124,174.33936V31.99609a4,4,0,0,1,8,0V174.33936l65.17187-65.17188a3.99992,3.99992,0,1,1,5.65625,5.65723l-72,72c-.00683.00708-.01562.01172-.02246.01855a4.01055,4.01055,0,0,1-.58691.47925c-.10059.06714-.209.11328-.314.17041a3.961,3.961,0,0,1-.37452.197,3.91774,3.91774,0,0,1-.40918.12695c-.11279.03321-.2207.07715-.33789.1001a3.91693,3.91693,0,0,1-1.5664,0c-.11719-.023-.2251-.06689-.33789-.1001a3.91774,3.91774,0,0,1-.40918-.12695,3.961,3.961,0,0,1-.37452-.197c-.105-.05713-.21337-.10327-.314-.17041a4.01055,4.01055,0,0,1-.58691-.47925c-.00684-.00683-.01563-.01147-.02247-.01855ZM216,211.99609H40a4,4,0,0,0,0,8H216a4,4,0,0,0,0-8Z" /></svg>
+                    )}
+                    {tx._type?.startsWith("Swapped") && (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="w-5 h-5 ml-2 fill-black dark:fill-white"><path d="M132,40V216a4,4,0,0,1-8,0V40a4,4,0,0,1,8,0ZM99.69434,129.52966a3.95348,3.95348,0,0,0,.12548-.40527c.0337-.11389.07764-.223.10108-.34094a4.01026,4.01026,0,0,0,0-1.5669c-.02344-.11792-.06738-.22693-.10108-.34082a3.95868,3.95868,0,0,0-.12548-.40552,4.0404,4.0404,0,0,0-.20362-.38623c-.05517-.10058-.09912-.20532-.16357-.30175a4.02777,4.02777,0,0,0-.50147-.61292L66.82812,93.17188a3.99957,3.99957,0,0,0-5.65624,5.65624L86.34277,124H16a4,4,0,0,0,0,8H86.34277L61.17188,157.17188a3.99957,3.99957,0,1,0,5.65624,5.65624l31.99756-31.99743a4.02777,4.02777,0,0,0,.50147-.61292c.06445-.09643.1084-.20129.16357-.302A4.00758,4.00758,0,0,0,99.69434,129.52966ZM240,124H169.65723l25.17089-25.17188a3.99957,3.99957,0,1,0-5.65624-5.65624l-31.99756,31.99743a4.02777,4.02777,0,0,0-.50147.61292c-.06445.097-.10889.20239-.16455.30359a2.34888,2.34888,0,0,0-.32861.79162c-.03369.1134-.07715.2218-.10059.33911a4.01026,4.01026,0,0,0,0,1.5669c.02344.11731.06738.22583.10059.33911a2.34963,2.34963,0,0,0,.32861.7915c.05566.1012.1001.20655.16455.30371a4.02777,4.02777,0,0,0,.50147.61292l31.99756,31.99743a3.99957,3.99957,0,0,0,5.65624-5.65624L169.65723,132H240a4,4,0,0,0,0-8Z" /></svg>
+                    )}
 				</div>
               {expandedIndexes[i] && (
                 <div className="mt-2 space-y-1 text-xs">
-                  <div className="text-black dark:text-white"><strong>From:</strong>{' '}
-                    <AddressDisplay address={tx.from} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress}/>
-                  </div>
-                  <div className="text-black dark:text-white"><strong>To:</strong>{' '}
-                    <AddressDisplay address={tx.to} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress}/>
-                  </div>
-					<div className="text-black dark:text-white"><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
-					<div className="text-black dark:text-white"><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
+                  <div className="text-black dark:text-white"><strong>From:</strong>{' '}<AddressDisplay address={tx.from} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress}/></div>
+                  <div className="text-black dark:text-white"><strong>To:</strong>{' '}<AddressDisplay address={tx.to} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress}/></div>
+                  <div className="text-black dark:text-white"><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
+                  <div className="text-black dark:text-white"><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
                 </div>
               )}
             </div>
           ))
         )}
       </div>
-      {/* Pagination UI can be added here if needed */}
+        {/* --- PAGINATION UI RESTORED --- */}
+        {txs.length > perPage && (
+            <div className="flex justify-between items-center mt-4 text-sm">
+                <div className="flex gap-2">
+                    <button onClick={() => setPage(1)} disabled={page === 1} className="px-2 py-1 border rounded disabled:opacity-50">First</button>
+                    <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-2 py-1 border rounded disabled:opacity-50">&lt;</button>
+                </div>
+                <div className="text-gray-700 dark:text-gray-300">
+                    Page {page} / {Math.min(15, Math.ceil(txs.length / 4))}
+                </div>
+                <div className="flex gap-2">
+                    <button onClick={() => setPage((p) => Math.min(Math.ceil(txs.length / 4), p + 1))} disabled={page * 4 >= Math.min(txs.length, 60)} className="px-2 py-1 border rounded disabled:opacity-50">&gt;</button>
+                    <button onClick={() => setPage(Math.min(15, Math.ceil(txs.length / 4)))} disabled={page === Math.min(15, Math.ceil(txs.length / 4))} className="px-2 py-1 border rounded disabled:opacity-50">Last</button>
+                </div>
+            </div>
+        )}
     </div>
   );
 }
