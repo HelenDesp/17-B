@@ -9,14 +9,13 @@ import NFTViewer from "./NFTViewer";
 import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
 import TokenTxHistory from "./TokenTxHistory";
-import NftTxHistory from "./NftTxHistory";
+import NftTxHistory from "./NftTxHistory"; // --- 1. IMPORT NftTxHistory ---
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
-import { readContract } from "viem/actions"; // <-- ADD THIS
+import { readContract } from "viem/actions";
 
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
-// Minimal ERC721 ABI for ownerOf
 const erc721Abi = [
   {
     name: "ownerOf",
@@ -34,7 +33,6 @@ export default function Dashboard() {
   const [nfts, setNfts] = useState([]);
   const [gasPriceGwei, setGasPriceGwei] = useState(null);
 
-  // For selection and mode:
   const [selectedNFTs, setSelectedNFTs] = useState([]);
   const [transferMode, setTransferMode] = useState("single");
 
@@ -75,7 +73,6 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [chain]);
 
-  // EXPOSE fetchNFTs on ref and run on mount/address change:
   useEffect(() => {
     fetchNFTsRef.current = async () => {
       if (!address) return;
@@ -88,7 +85,6 @@ export default function Dashboard() {
         const parsed = [];
 
         for (const nft of data.ownedNfts || []) {
-          // Use Alchemy's returned metadata directly!
           const meta = nft.raw?.metadata || {};
           const image = nft.image?.originalUrl ||
                         (meta.image?.startsWith("ipfs://")
@@ -111,21 +107,10 @@ export default function Dashboard() {
           });
         }
 
-        // --- On-chain ownerOf filtering for trustless UI
         const client = createPublicClient({
           chain: defineChain({
-            id: 8453,
-            name: 'Base',
-            nativeCurrency: {
-              name: 'Ethereum',
-              symbol: 'ETH',
-              decimals: 18,
-            },
-            rpcUrls: {
-              default: {
-                http: ['https://mainnet.base.org'],
-              },
-            },
+            id: 8453, name: 'Base', nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18, },
+            rpcUrls: { default: { http: ['https://mainnet.base.org'], }, },
           }),
           transport: http(),
         });
@@ -134,17 +119,12 @@ export default function Dashboard() {
         for (const nft of parsed) {
           try {
             const owner = await readContract(client, {
-              abi: erc721Abi,
-              address: CONTRACT_ADDRESS,
-              functionName: 'ownerOf',
-              args: [nft.tokenId],
+              abi: erc721Abi, address: CONTRACT_ADDRESS, functionName: 'ownerOf', args: [nft.tokenId],
             });
             if (owner.toLowerCase() === address.toLowerCase()) {
               verified.push(nft);
             }
-          } catch (err) {
-            // If error, skip NFT (may be burned or unminted)
-          }
+          } catch (err) { /* Omit errors */ }
         }
         setNfts(verified);
       } catch (err) {
@@ -152,7 +132,7 @@ export default function Dashboard() {
       }
     };
 
-    fetchNFTsRef.current(); // Run on mount and address change!
+    fetchNFTsRef.current();
   }, [address]);
 
   useEffect(() => {
@@ -191,29 +171,21 @@ export default function Dashboard() {
 
         <div className="mt-6 dashboard-grid">
           <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Total Balance
-            </div>
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Balance</div>
             <div className="mt-1 text-2xl font-normal text-gray-900 dark:text-white">
-              {ethBalance
-                ? parseFloat(ethBalance.formatted).toFixed(5)
-                : "0.00000"}{" "}
+              {ethBalance ? parseFloat(ethBalance.formatted).toFixed(5) : "0.00000"}{" "}
               {ethBalance?.symbol || "ETH"}
             </div>
           </div>
           <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Network
-            </div>
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Network</div>
             <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white flex items-center">
               <span className="w-3 h-3 rounded-full bg-green-400 mr-2"></span>
               {chain?.name || "Ethereum Mainnet"}
             </div>
           </div>
           <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Gas Price
-            </div>
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Gas Price</div>
             <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white">
               {gasPriceGwei ? `${gasPriceGwei} Gwei` : "Loading..."}
             </div>
@@ -235,27 +207,29 @@ export default function Dashboard() {
         }
       />
 
-		<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-			<NFTTransfer
-				nfts={nfts}
-				mode={transferMode}
-				setMode={setTransferMode}
-				selectedNFTsFromDashboard={selectedNFTs}
-				setSelectedNFTsFromDashboard={setSelectedNFTs}
-				chainId={8453}
-				fetchNFTs={fetchNFTsRef}
-			/>
-			<NftTxHistory address={address} chainId={chain?.id} />
-		</div>
+      {/* --- 2. WRAP NFTTransfer and NftTxHistory in a 2-column grid --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <NFTTransfer
+          nfts={nfts}
+          mode={transferMode}
+          setMode={setTransferMode}
+          selectedNFTsFromDashboard={selectedNFTs}
+          setSelectedNFTsFromDashboard={setSelectedNFTs}
+          chainId={8453}
+          fetchNFTs={fetchNFTsRef}
+        />
+        <NftTxHistory address={address} chainId={chain?.id} />
+      </div>
+
 
       <div className="dashboard-columns">
         <div className="space-y-6">
           <WalletCard />
-		  <TokenTxHistory address={address} chainId={chain?.id} />
+		      <TokenTxHistory address={address} chainId={chain?.id} />
           <TokenBalances />
         </div>
         <div className="space-y-6">
-		  <TokenActions />
+		      <TokenActions />
           <TokenTransfer />
           <ActivityCard />
         </div>
