@@ -9,6 +9,7 @@ import NFTViewer from "./NFTViewer";
 import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
 import TokenTxHistory from "./TokenTxHistory";
+import NftTxHistory from "./NftTxHistory";
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
 import { readContract } from "viem/actions"; // <-- ADD THIS
@@ -234,15 +235,18 @@ export default function Dashboard() {
         }
       />
 
-      <NFTTransfer
-        nfts={nfts}
-        mode={transferMode}
-        setMode={setTransferMode}
-        selectedNFTsFromDashboard={selectedNFTs}
-        setSelectedNFTsFromDashboard={setSelectedNFTs}
-        chainId={8453}
-        fetchNFTs={fetchNFTsRef}
-      />
+		<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+			<NFTTransfer
+				nfts={nfts}
+				mode={transferMode}
+				setMode={setTransferMode}
+				selectedNFTsFromDashboard={selectedNFTs}
+				setSelectedNFTsFromDashboard={setSelectedNFTs}
+				chainId={8453}
+				fetchNFTs={fetchNFTsRef}
+			/>
+			<NftTxHistory address={address} chainId={chain?.id} />
+		</div>
 
       <div className="dashboard-columns">
         <div className="space-y-6">
