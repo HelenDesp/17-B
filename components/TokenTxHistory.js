@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useAccount, useEnsName } from "wagmi";
+import { useAccount } from "wagmi";
+import { useDisplayName } from "./useDisplayName"; // <-- IMPORT YOUR HOOK
 
 const ALCHEMY_URLS = {
   1: "https://eth-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
@@ -11,54 +12,17 @@ const ALCHEMY_URLS = {
   11155111: "https://eth-sepolia.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
 };
 
-// --- NEW, MORE POWERFUL AddressDisplay COMPONENT ---
-// This component replicates the logic from your `useDisplayName` hook
-// to resolve both BNS and ENS for any given address.
+// --- HELPER COMPONENT USING YOUR REFACTORED HOOK ---
 function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }) {
-  const [displayName, setDisplayName] = useState(shortenAddress(address));
+  // Use your powerful, reusable hook for any address
+  const { displayName, isNameLoading } = useDisplayName(address);
 
-  // 1. We use wagmi's useEnsName hook for ENS (.eth) resolution as a fallback.
-  const { data: ensName } = useEnsName({
-    address: address,
-    chainId: 1, // ENS is on Ethereum Mainnet
-    enabled: !!address,
-  });
-
-  useEffect(() => {
-    // A function to fetch the Base Name Service (.base) name.
-    const fetchBnsName = async () => {
-      if (!address) return;
-      try {
-        // IMPORTANT: This is a placeholder API for BNS.
-        // You should replace this with the actual API call from your `useDisplayName` hook
-        // to ensure it works exactly like the rest of your app.
-        const response = await fetch(`https://api.prd.space.id/v1/getName?tld=base&address=${address}`);
-        const data = await response.json();
-        
-        // If a BNS name is found, we use it and stop.
-        if (data && data.name) {
-          setDisplayName(data.name);
-          return;
-        }
-
-        // 2. If no BNS name, we check if an ENS name was found by the hook.
-        if (ensName) {
-          setDisplayName(ensName);
-          return;
-        }
-
-        // 3. If neither is found, we default to the shortened address.
-        setDisplayName(shortenAddress(address));
-        
-      } catch (error) {
-        // If there's an error, fall back to ENS or the shortened address.
-        console.error("BNS lookup failed:", error);
-        setDisplayName(ensName || shortenAddress(address));
-      }
-    };
-
-    fetchBnsName();
-  }, [address, ensName]); // Rerun when address or the resolved ensName changes
+  // Determine what to show: the resolved name, a loading state, or the shortened address
+  const nameToShow = isNameLoading
+    ? "Resolving..."
+    : displayName && !displayName.startsWith("0x")
+    ? displayName
+    : shortenAddress(address);
 
   return (
     <a
@@ -66,238 +30,193 @@ function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }
       target="_blank"
       rel="noopener noreferrer"
       className="underline text-black dark:text-white"
-      title={address} // Show full address on hover
+      title={address}
     >
-      {displayName}
+      {nameToShow}
     </a>
   );
 }
 
-// The rest of the TokenTxHistory component remains largely the same,
-// but now it will use the new AddressDisplay component.
 export default function TokenTxHistory({ address, chainId }) {
-    const [txs, setTxs] = useState([]);
-    const [page, setPage] = useState(1);
-    const perPage = 4;
+  const [txs, setTxs] = useState([]);
+  const [page, setPage] = useState(1);
+  const perPage = 4;
   
-    const { chain } = useAccount();
-  
-    const getChainLabel = (chainId) => {
-      switch (chainId) {
-        case 1: return "Ethereum";
-        case 8453: return "Base";
-        case 137: return "Polygon";
-        case 42161: return "Arbitrum";
-        case 10: return "Optimism";
-        case 11155111: return "Sepolia";
-        case 56: return "BNB";
-        default: return "Base";
-      }
-    };  
-  
-    const getExplorerBaseUrl = (chainId) => {
-      switch (chainId) {
-        case 1: return "https://etherscan.io";
-        case 8453: return "https://basescan.org";
-        case 137: return "https://polygonscan.com";
-        case 42161: return "https://arbiscan.io";
-        case 10: return "https://optimistic.etherscan.io";
-        case 56: return "https://bscscan.com";
-        case 11155111: return "https://sepolia.etherscan.io";
-        default: return "https://etherscan.io";
+  const { chain } = useAccount();
+
+  const getChainLabel = (chainId) => {
+    switch (chainId) {
+      case 1: return "Ethereum";
+      case 8453: return "Base";
+      case 137: return "Polygon";
+      case 42161: return "Arbitrum";
+      case 10: return "Optimism";
+      case 11155111: return "Sepolia";
+      case 56: return "BNB";
+      default: return "Base";
+    }
+  };  
+
+  const getExplorerBaseUrl = (chainId) => {
+    switch (chainId) {
+      case 1: return "https://etherscan.io";
+      case 8453: return "https://basescan.org";
+      case 137: return "https://polygonscan.com";
+      case 42161: return "https://arbiscan.io";
+      case 10: return "https://optimistic.etherscan.io";
+      case 56: return "https://bscscan.com";
+      case 11155111: return "https://sepolia.etherscan.io";
+      default: return "https://etherscan.io";
+    }
+  };
+
+  useEffect(() => {
+    if (!address || !chainId) return;
+    const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
+    if (!ALCHEMY_BASE_URL) return;
+
+    const fetchTxs = async () => {
+      try {
+        const [sentRes, receivedRes] = await Promise.all([
+          fetch(ALCHEMY_BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "alchemy_getAssetTransfers",
+              params: [{
+                fromBlock: "0x0",
+                fromAddress: address,
+                category: ["external", "erc20"],
+                withMetadata: true,
+                excludeZeroValue: true,
+                maxCount: "0x32"
+              }]
+            })
+          }),
+          fetch(ALCHEMY_BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 2,
+              method: "alchemy_getAssetTransfers",
+              params: [{
+                fromBlock: "0x0",
+                toAddress: address,
+                category: ["external", "erc20"],
+                withMetadata: true,
+                excludeZeroValue: true,
+                maxCount: "0x32"
+              }]
+            })
+          })
+        ]);
+
+        const sent = await sentRes.json();
+        const received = await receivedRes.json();
+        const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
+
+        const filtered = all.filter(tx => tx.category !== "erc721" && tx.category !== "erc1155");
+
+        const grouped = [];
+        const seenHashes = new Set();
+        const hashMap = new Map();
+        for (const tx of filtered) {
+          if (!hashMap.has(tx.hash)) {
+            hashMap.set(tx.hash, []);
+          }
+          hashMap.get(tx.hash).push(tx);
+        }
+
+        const txList = Array.from(hashMap.entries()).sort((a, b) =>
+          new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp)
+        );
+
+        for (const [hash, txGroup] of txList) {
+          if (seenHashes.has(hash)) continue;
+          seenHashes.add(hash);
+          const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
+          const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
+          let type = "Unknown";
+          if (sentTx && receivedTx) {
+            type = `Swapped (${receivedTx.asset || sentTx.asset})`;
+          } else if (sentTx) {
+            type = "Sent";
+          } else if (receivedTx) {
+            type = "Received";
+          }
+          grouped.push({
+            ...(sentTx || receivedTx || txGroup[0]),
+            _type: type
+          });
+        }
+        setTxs(grouped);
+      } catch (err) {
+        console.error("Error fetching token tx history:", err);
       }
     };
-  
-    useEffect(() => {
-      if (!address || !chainId) return;
-  
-      const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
-      if (!ALCHEMY_BASE_URL) return;
-  
-      const fetchTxs = async () => {
-        try {
-          const [sentRes, receivedRes] = await Promise.all([
-            fetch(ALCHEMY_BASE_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                jsonrpc: "2.0",
-                id: 1,
-                method: "alchemy_getAssetTransfers",
-                params: [{
-                  fromBlock: "0x0",
-                  fromAddress: address,
-                  category: ["external", "erc20"],
-                  withMetadata: true,
-                  excludeZeroValue: true,
-                  maxCount: "0x32"
-                }]
-              })
-            }),
-            fetch(ALCHEMY_BASE_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                jsonrpc: "2.0",
-                id: 2,
-                method: "alchemy_getAssetTransfers",
-                params: [{
-                  fromBlock: "0x0",
-                  toAddress: address,
-                  category: ["external", "erc20"],
-                  withMetadata: true,
-                  excludeZeroValue: true,
-                  maxCount: "0x32"
-                }]
-              })
-            })
-          ]);
-  
-          const sent = await sentRes.json();
-          const received = await receivedRes.json();
-          const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
-  
-          const filtered = all.filter(tx =>
-            tx.category !== "erc721" &&
-            tx.category !== "erc1155"
-          );
-  
-          const grouped = [];
-          const seenHashes = new Set();
-  
-          const hashMap = new Map();
-          for (const tx of filtered) {
-            if (!hashMap.has(tx.hash)) {
-              hashMap.set(tx.hash, []);
-            }
-            hashMap.get(tx.hash).push(tx);
-          }
-  
-          const txList = Array.from(hashMap.entries()).sort((a, b) =>
-            new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp)
-          );
-  
-          for (const [hash, txGroup] of txList) {
-            if (seenHashes.has(hash)) continue;
-            seenHashes.add(hash);
-  
-            const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
-            const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
-  
-            let type = "Unknown";
-  
-            if (sentTx && receivedTx) {
-              const swapToken = receivedTx.asset || sentTx.asset;
-              type = `Swapped (${swapToken})`;
-            } else if (sentTx) {
-              type = "Sent";
-            } else if (receivedTx) {
-              type = "Received";
-            }
-  
-            grouped.push({
-              ...(sentTx || receivedTx || txGroup[0]),
-              _type: type
-            });
-          }
-  
-          setTxs(grouped);
-        } catch (err) {
-          console.error("Error fetching token tx history:", err);
-        }
-      };
-  
-      fetchTxs();
-    }, [address, chainId]);
-  
-      const shortenAddress = (addr) => {
-        if (!addr) return "";
-        return addr.slice(0, 6) + "..." + addr.slice(-4);
-      }; 
-  
-      const formatShortDate = (dateStr) => {
-        const d = new Date(dateStr);
-        return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
-               ", " +
-               d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-      };
-      
-      const [expandedIndexes, setExpandedIndexes] = useState({});
-      
-    const paginated = txs.slice((page - 1) * perPage, page * perPage);
-  
-    return (
-      <div className="p-4 bg-white border-b2 dark:bg-dark-200 shadow">
-        <div className="flex justify-between items-center mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Token Transactions</h3>
-            <span className="text-sm text-gray-500 dark:text-gray-400 uppercase">{getChainLabel(chain?.id)}</span>
-        </div>
-        <div className="space-y-2">
-          {paginated.length === 0 ? (
-            <p className="text-gray-600 dark:text-white text-sm">No recent transactions.</p>
-          ) : (
-            paginated.map((tx, i) => (
-              <div key={i} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
-                <div className="flex justify-between items-center">
-                  <div className="text-black dark:text-white"><strong>{tx._type}</strong></div>
-                  <button
-                    onClick={() => setExpandedIndexes(prev => ({ ...prev, [i]: !prev[i] }))}
-                    className="text-xs underline text-black dark:text-white"
-                  >
-                    {expandedIndexes[i] ? "Hide" : "Details"}
-                  </button>
-                </div>
-                  <div className="flex justify-between text-sm mt-1">
-                    <div className="text-black dark:text-white">
-                      {tx.asset || "ETH"} – {parseFloat(tx.value).toFixed(5)}
-                    </div>
-                    <div className="text-black dark:text-white">{formatShortDate(tx.metadata.blockTimestamp)}</div>
-                  </div>
-                  <div className="flex items-center justify-between text-black dark:text-white">
-                    <a
-                      href={`${getExplorerBaseUrl(chainId)}/tx/${tx.hash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline"
-                    >
-                      View on Explorer
-                    </a>
-                  </div>
-                {expandedIndexes[i] && (
-                  <div className="mt-2 space-y-1 text-xs">
-                    <div className="text-black dark:text-white"><strong>From:</strong>{' '}
-                        <AddressDisplay
-                            address={tx.from}
-                            chainId={chainId}
-                            getExplorerBaseUrl={getExplorerBaseUrl}
-                            shortenAddress={shortenAddress}
-                        />
-                    </div>
-                    <div className="text-black dark:text-white"><strong>To:</strong>{' '}
-                        <AddressDisplay
-                            address={tx.to}
-                            chainId={chainId}
-                            getExplorerBaseUrl={getExplorerBaseUrl}
-                            shortenAddress={shortenAddress}
-                        />
-                    </div>
-                      <div className="text-black dark:text-white">
-                        <strong>Block:</strong> {parseInt(tx.blockNum, 16)}
-                      </div>
-                      <div className="text-black dark:text-white">
-                        <strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}
-                      </div>
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-          {txs.length > perPage && (
-            <div className="flex justify-between items-center mt-4 text-sm">
-             {/* Pagination controls can be added here */}
-            </div>
-          )}
+    fetchTxs();
+  }, [address, chainId]);
+
+	const shortenAddress = (addr) => {
+	  if (!addr) return "";
+	  return addr.slice(0, 6) + "..." + addr.slice(-4);
+	}; 
+
+	const formatShortDate = (dateStr) => {
+	  const d = new Date(dateStr);
+	  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
+			 ", " +
+			 d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+	};
+	
+	const [expandedIndexes, setExpandedIndexes] = useState({});
+	const paginated = txs.slice((page - 1) * perPage, page * perPage);
+
+  return (
+    <div className="p-4 bg-white border-b2 dark:bg-dark-200 shadow">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Token Transactions</h3>
+        <span className="text-sm text-gray-500 dark:text-gray-400 uppercase">{getChainLabel(chain?.id)}</span>
       </div>
-    );
-  }
+      <div className="space-y-2">
+        {paginated.length === 0 ? (
+          <p className="text-gray-600 dark:text-white text-sm">No recent transactions.</p>
+        ) : (
+          paginated.map((tx, i) => (
+            <div key={i} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
+              <div className="flex justify-between items-center">
+                <div className="text-black dark:text-white"><strong>{tx._type}</strong></div>
+                <button onClick={() => setExpandedIndexes(prev => ({ ...prev, [i]: !prev[i] }))} className="text-xs underline text-black dark:text-white">
+                  {expandedIndexes[i] ? "Hide" : "Details"}
+                </button>
+              </div>
+				<div className="flex justify-between text-sm mt-1">
+				  <div className="text-black dark:text-white">{tx.asset || "ETH"} – {parseFloat(tx.value).toFixed(5)}</div>
+				  <div className="text-black dark:text-white">{formatShortDate(tx.metadata.blockTimestamp)}</div>
+				</div>
+				<div className="flex items-center justify-between text-black dark:text-white">
+				  <a href={`${getExplorerBaseUrl(chainId)}/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="underline">View on Explorer</a>
+				</div>
+              {expandedIndexes[i] && (
+                <div className="mt-2 space-y-1 text-xs">
+                  <div className="text-black dark:text-white"><strong>From:</strong>{' '}
+                    <AddressDisplay address={tx.from} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress}/>
+                  </div>
+                  <div className="text-black dark:text-white"><strong>To:</strong>{' '}
+                    <AddressDisplay address={tx.to} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress}/>
+                  </div>
+					<div className="text-black dark:text-white"><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
+					<div className="text-black dark:text-white"><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+      {/* Pagination UI can be added here if needed */}
+    </div>
+  );
+}

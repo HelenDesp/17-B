@@ -4,48 +4,49 @@ import { base, mainnet, sepolia } from 'viem/chains';
 import { useState, useEffect } from 'react';
 
 /**
- * A custom hook to resolve a user's display name based on the connected chain.
- * It intelligently fetches BNS for Base and ENS for Ethereum/Sepolia,
- * handling loading states and fallbacks automatically.
- * * @returns {object} An object containing the `displayName` string and an `isNameLoading` boolean.
+ * A custom hook to resolve a display name for a given address, based on the connected chain.
+ * It intelligently fetches BNS for Base and ENS for Ethereum/Sepolia.
+ * @param {string} [addressProp] - The address to resolve. If not provided, it will use the connected user's address.
+ * @returns {object} An object containing the `displayName` string and an `isNameLoading` boolean.
  */
-export const useDisplayName = () => {
-  const { address, isConnected, chain } = useAccount();
+export const useDisplayName = (addressProp) => {
+  // --- 1. DETERMINE WHICH ADDRESS TO USE ---
+  const { address: connectedAddress, isConnected, chain } = useAccount();
+  // Use the address passed as a prop, OR fall back to the connected user's address.
+  const addressToResolve = addressProp || connectedAddress;
 
-  // --- Internal Hooks for Name Resolution ---
-
-  // BNS Hook (for Base only): Fetches potential name on Base.
+  // --- 2. UPDATE INTERNAL HOOKS TO USE `addressToResolve` ---
+  // BNS Hook (for Base only)
   const { data: bnsName, isLoading: isBnsLoading } = useName({
-    address,
+    address: addressToResolve, // <-- Use the flexible address
     chain: base,
-    enabled: isConnected && chain?.id === base.id,
+    // Enable only if an address is available and the chain is Base
+    enabled: !!addressToResolve && isConnected && chain?.id === base.id,
   });
 
-  // ENS Hook (for comparison on Base, and for display on Mainnet/Sepolia)
-  // This is enabled on Base as well, specifically to detect and prevent the fallback issue.
+  // ENS Hook (for Mainnet/Sepolia, and for comparison on Base)
   const { data: ensName, isLoading: isEnsLoading } = useEnsName({
-    address,
+    address: addressToResolve, // <-- Use the flexible address
     chainId: 1, // Always resolve against mainnet ENS registry
-    enabled: isConnected && (chain?.id === base.id || chain?.id === mainnet.id || chain?.id === sepolia.id),
+    // Enable only if an address is available
+    enabled: !!addressToResolve && isConnected,
   });
 
   // --- State for the final display name and loading status ---
-  
   const [displayName, setDisplayName] = useState('');
   const [isNameLoading, setIsNameLoading] = useState(false);
 
   // --- Utility to format a standard 0x address ---
-  
   const formatAddress = (addr) => {
     if (!addr) return '';
     return `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`;
   };
 
-  // --- Effect to process and set the final display name ---
-
+  // --- 3. UPDATE Effect to process the final display name ---
   useEffect(() => {
-    if (!isConnected || !address) {
-      setDisplayName(formatAddress(address));
+    // Use `addressToResolve` for checks
+    if (!isConnected || !addressToResolve) {
+      setDisplayName(formatAddress(addressToResolve));
       setIsNameLoading(false);
       return;
     }
@@ -64,9 +65,11 @@ export const useDisplayName = () => {
 
     switch (chain?.id) {
       case base.id:
-        // This is the crucial check: Only use the resolved name on Base if it's NOT the same as the ENS name.
         if (bnsName && bnsName !== ensName) {
           finalResolvedName = bnsName;
+        } else if (ensName) {
+          // Fallback to ENS on Base if BNS doesn't resolve or is the same
+          finalResolvedName = ensName;
         }
         break;
       
@@ -76,11 +79,12 @@ export const useDisplayName = () => {
         break;
     }
     
-    setDisplayName(finalResolvedName || formatAddress(address));
+    // Use `addressToResolve` for the final fallback
+    setDisplayName(finalResolvedName || formatAddress(addressToResolve));
 
-  }, [address, chain, isConnected, bnsName, ensName, isBnsLoading, isEnsLoading]);
+  // --- 4. UPDATE Dependency Array ---
+  }, [addressToResolve, chain, isConnected, bnsName, ensName, isBnsLoading, isEnsLoading]);
 
-  // --- Return the final, processed values ---
 
   return { displayName, isNameLoading };
 };
