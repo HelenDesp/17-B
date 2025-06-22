@@ -243,7 +243,7 @@ export default function NFTTransfer({
   };
 
   return (
-    <div className="bg-white dark:bg-dark-200 border-b2 shadow-card dark:shadow-card-dark p-6 mt-6">
+    <div className="bg-white dark:bg-dark-200 border-b2 shadow-card dark:shadow-card-dark p-6">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
         Transfer Your NFT(s)
       </h2>
