@@ -9,7 +9,7 @@ import NFTViewer from "./NFTViewer";
 import NFTTransfer from "./nftTransfer";
 import CustomWalletButton from "./CustomWalletButton";
 import TokenTxHistory from "./TokenTxHistory";
-import NftTxHistory from "./NftTxHistory"; // --- 1. IMPORT NftTxHistory ---
+import NftTxHistory from "./NftTxHistory";
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
 import { readContract } from "viem/actions";
@@ -86,11 +86,15 @@ export default function Dashboard() {
 
         for (const nft of data.ownedNfts || []) {
           const meta = nft.raw?.metadata || {};
-          const image = nft.image?.originalUrl ||
-                        (meta.image?.startsWith("ipfs://")
-                          ? meta.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-                          : meta.image);
-
+          
+          // --- FIX for NFT IMAGES ---
+          // More robustly handles the image URL and converts IPFS links.
+          let imageUrl = nft.image?.originalUrl || meta.image || "";
+          if (imageUrl.startsWith("ipfs://")) {
+            // Using a reliable public gateway to resolve IPFS content
+            imageUrl = imageUrl.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/");
+          }
+          
           const name = meta.name || nft.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
           const getTrait = (type) =>
             meta.attributes?.find((attr) => attr.trait_type === type)?.value || "";
@@ -98,7 +102,7 @@ export default function Dashboard() {
           parsed.push({
             tokenId: nft.tokenId,
             name,
-            image,
+            image: imageUrl, // Use the processed URL
             traits: {
               manifesto: getTrait("Manifesto"),
               friend: getTrait("Friend"),
@@ -109,8 +113,10 @@ export default function Dashboard() {
 
         const client = createPublicClient({
           chain: defineChain({
-            id: 8453, name: 'Base', nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18, },
-            rpcUrls: { default: { http: ['https://mainnet.base.org'], }, },
+            id: 8453,
+            name: 'Base',
+            nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
+            rpcUrls: { default: { http: ['https://mainnet.base.org'] } },
           }),
           transport: http(),
         });
@@ -119,12 +125,17 @@ export default function Dashboard() {
         for (const nft of parsed) {
           try {
             const owner = await readContract(client, {
-              abi: erc721Abi, address: CONTRACT_ADDRESS, functionName: 'ownerOf', args: [nft.tokenId],
+              abi: erc721Abi,
+              address: CONTRACT_ADDRESS,
+              functionName: 'ownerOf',
+              args: [nft.tokenId],
             });
             if (owner.toLowerCase() === address.toLowerCase()) {
               verified.push(nft);
             }
-          } catch (err) { /* Omit errors */ }
+          } catch (err) {
+            // If error, skip NFT
+          }
         }
         setNfts(verified);
       } catch (err) {
@@ -168,7 +179,6 @@ export default function Dashboard() {
           Manage your crypto assets, make transfers, and track your transaction
           history in one place.
         </p>
-
         <div className="mt-6 dashboard-grid">
           <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Balance</div>
@@ -206,31 +216,32 @@ export default function Dashboard() {
           )
         }
       />
-
-      {/* --- 2. WRAP NFTTransfer and NftTxHistory in a 2-column grid --- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <NFTTransfer
-          nfts={nfts}
-          mode={transferMode}
-          setMode={setTransferMode}
-          selectedNFTsFromDashboard={selectedNFTs}
-          setSelectedNFTsFromDashboard={setSelectedNFTs}
-          chainId={8453}
-          fetchNFTs={fetchNFTsRef}
-        />
-        <NftTxHistory address={address} chainId={chain?.id} />
-      </div>
-
-
+      
+      {/* --- FIX for LAYOUT ---
+          The components are now placed inside the main 'dashboard-columns' grid 
+          to achieve the desired layout behavior.
+      */}
       <div className="dashboard-columns">
+        {/* --- LEFT COLUMN --- */}
         <div className="space-y-6">
           <WalletCard />
-		      <TokenTxHistory address={address} chainId={chain?.id} />
           <TokenBalances />
+          <NFTTransfer
+            nfts={nfts}
+            mode={transferMode}
+            setMode={setTransferMode}
+            selectedNFTsFromDashboard={selectedNFTs}
+            setSelectedNFTsFromDashboard={setSelectedNFTs}
+            chainId={8453}
+            fetchNFTs={fetchNFTsRef}
+          />
+           <TokenTransfer />
         </div>
+        {/* --- RIGHT COLUMN --- */}
         <div className="space-y-6">
-		      <TokenActions />
-          <TokenTransfer />
+          <TokenActions />
+          <TokenTxHistory address={address} chainId={chain?.id} />
+          <NftTxHistory address={address} chainId={chain?.id} />
           <ActivityCard />
         </div>
       </div>
