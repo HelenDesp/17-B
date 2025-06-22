@@ -12,10 +12,11 @@ import TokenTxHistory from "./TokenTxHistory";
 import NftTxHistory from "./NftTxHistory";
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
-import { readContract } from "viem/actions";
+import { readContract } from "viem/actions"; // <-- ADD THIS
 
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
+// Minimal ERC721 ABI for ownerOf
 const erc721Abi = [
   {
     name: "ownerOf",
@@ -33,6 +34,7 @@ export default function Dashboard() {
   const [nfts, setNfts] = useState([]);
   const [gasPriceGwei, setGasPriceGwei] = useState(null);
 
+  // For selection and mode:
   const [selectedNFTs, setSelectedNFTs] = useState([]);
   const [transferMode, setTransferMode] = useState("single");
 
@@ -73,6 +75,7 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [chain]);
 
+  // EXPOSE fetchNFTs on ref and run on mount/address change:
   useEffect(() => {
     fetchNFTsRef.current = async () => {
       if (!address) return;
@@ -85,24 +88,13 @@ export default function Dashboard() {
         const parsed = [];
 
         for (const nft of data.ownedNfts || []) {
+          // Use Alchemy's returned metadata directly!
           const meta = nft.raw?.metadata || {};
-          
-          // --- FIX for NFT IMAGES ---
-          // This new logic correctly converts IPFS URLs and handles missing images.
-          let finalImageUrl = 'https://via.placeholder.com/150'; // Default placeholder
-          const rawUrl = nft.image?.originalUrl || meta.image || '';
+          const image = nft.image?.originalUrl ||
+                        (meta.image?.startsWith("ipfs://")
+                          ? meta.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+                          : meta.image);
 
-          if (typeof rawUrl === 'string' && rawUrl.trim() !== '') {
-              const trimmedUrl = rawUrl.trim();
-              if (trimmedUrl.startsWith("ipfs://")) {
-                  // Use a standard public gateway
-                  finalImageUrl = trimmedUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
-              } else if (trimmedUrl.startsWith("http")) {
-                  // Use the URL directly if it's already a link
-                  finalImageUrl = trimmedUrl;
-              }
-          }
-          
           const name = meta.name || nft.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
           const getTrait = (type) =>
             meta.attributes?.find((attr) => attr.trait_type === type)?.value || "";
@@ -110,7 +102,7 @@ export default function Dashboard() {
           parsed.push({
             tokenId: nft.tokenId,
             name,
-            image: finalImageUrl, // Assign the corrected and verified image URL
+            image,
             traits: {
               manifesto: getTrait("Manifesto"),
               friend: getTrait("Friend"),
@@ -119,12 +111,21 @@ export default function Dashboard() {
           });
         }
 
+        // --- On-chain ownerOf filtering for trustless UI
         const client = createPublicClient({
           chain: defineChain({
             id: 8453,
             name: 'Base',
-            nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
-            rpcUrls: { default: { http: ['https://mainnet.base.org'] } },
+            nativeCurrency: {
+              name: 'Ethereum',
+              symbol: 'ETH',
+              decimals: 18,
+            },
+            rpcUrls: {
+              default: {
+                http: ['https://mainnet.base.org'],
+              },
+            },
           }),
           transport: http(),
         });
@@ -142,7 +143,7 @@ export default function Dashboard() {
               verified.push(nft);
             }
           } catch (err) {
-            // If error, skip NFT
+            // If error, skip NFT (may be burned or unminted)
           }
         }
         setNfts(verified);
@@ -151,7 +152,7 @@ export default function Dashboard() {
       }
     };
 
-    fetchNFTsRef.current();
+    fetchNFTsRef.current(); // Run on mount and address change!
   }, [address]);
 
   useEffect(() => {
@@ -194,7 +195,9 @@ export default function Dashboard() {
               Total Balance
             </div>
             <div className="mt-1 text-2xl font-normal text-gray-900 dark:text-white">
-              {ethBalance ? parseFloat(ethBalance.formatted).toFixed(5) : "0.00000"}{" "}
+              {ethBalance
+                ? parseFloat(ethBalance.formatted).toFixed(5)
+                : "0.00000"}{" "}
               {ethBalance?.symbol || "ETH"}
             </div>
           </div>
@@ -231,35 +234,27 @@ export default function Dashboard() {
           )
         }
       />
-      
-      {/* --- FIX for LAYOUT ---
-          This is your original two-column layout. I have placed the components
-          into the correct columns as you requested.
-      */}
+
       <div className="dashboard-columns">
-        {/* --- LEFT COLUMN --- */}
         <div className="space-y-6">
+			<NFTTransfer
+				nfts={nfts}
+				mode={transferMode}
+				setMode={setTransferMode}
+				selectedNFTsFromDashboard={selectedNFTs}
+				setSelectedNFTsFromDashboard={setSelectedNFTs}
+				chainId={8453}
+				fetchNFTs={fetchNFTsRef}
+			/>		
           <WalletCard />
-		      <TokenTxHistory address={address} chainId={chain?.id} />
+		  <TokenTxHistory address={address} chainId={chain?.id} />
           <TokenBalances />
-          {/* NFTTransfer is now in the LEFT column */}
-          <NFTTransfer
-				      nfts={nfts}
-				      mode={transferMode}
-				      setMode={setTransferMode}
-				      selectedNFTsFromDashboard={selectedNFTs}
-				      setSelectedNFTsFromDashboard={setSelectedNFTs}
-				      chainId={8453}
-				      fetchNFTs={fetchNFTsRef}
-			    />
         </div>
-        {/* --- RIGHT COLUMN --- */}
         <div className="space-y-6">
-		      <TokenActions />
+		  <NftTxHistory address={address} chainId={chain?.id} />
+		  <TokenActions />
           <TokenTransfer />
           <ActivityCard />
-          {/* NftTxHistory is now in the RIGHT column */}
-          <NftTxHistory address={address} chainId={chain?.id} />
         </div>
       </div>
     </div>
