@@ -12,11 +12,10 @@ import TokenTxHistory from "./TokenTxHistory";
 import NftTxHistory from "./NftTxHistory";
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
-import { readContract } from "viem/actions"; // <-- ADD THIS
+import { readContract } from "viem/actions";
 
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
-// Minimal ERC721 ABI for ownerOf
 const erc721Abi = [
   {
     name: "ownerOf",
@@ -34,7 +33,6 @@ export default function Dashboard() {
   const [nfts, setNfts] = useState([]);
   const [gasPriceGwei, setGasPriceGwei] = useState(null);
 
-  // For selection and mode:
   const [selectedNFTs, setSelectedNFTs] = useState([]);
   const [transferMode, setTransferMode] = useState("single");
 
@@ -75,7 +73,6 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [chain]);
 
-  // EXPOSE fetchNFTs on ref and run on mount/address change:
   useEffect(() => {
     fetchNFTsRef.current = async () => {
       if (!address) return;
@@ -88,13 +85,14 @@ export default function Dashboard() {
         const parsed = [];
 
         for (const nft of data.ownedNfts || []) {
-          // Use Alchemy's returned metadata directly!
           const meta = nft.raw?.metadata || {};
-          const image = nft.image?.originalUrl ||
-                        (meta.image?.startsWith("ipfs://")
-                          ? meta.image.replace("ipfs://", "https://ipfs.io/ipfs/")
-                          : meta.image);
-
+          
+          // FIX for NFT IMAGES: This logic correctly handles IPFS links.
+          let imageUrl = nft.image?.originalUrl || meta.image || '';
+          if (imageUrl.startsWith("ipfs://")) {
+            imageUrl = imageUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
+          }
+          
           const name = meta.name || nft.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
           const getTrait = (type) =>
             meta.attributes?.find((attr) => attr.trait_type === type)?.value || "";
@@ -102,7 +100,7 @@ export default function Dashboard() {
           parsed.push({
             tokenId: nft.tokenId,
             name,
-            image,
+            image: imageUrl, // Use the corrected image URL
             traits: {
               manifesto: getTrait("Manifesto"),
               friend: getTrait("Friend"),
@@ -111,7 +109,6 @@ export default function Dashboard() {
           });
         }
 
-        // --- On-chain ownerOf filtering for trustless UI
         const client = createPublicClient({
           chain: defineChain({
             id: 8453,
@@ -143,7 +140,7 @@ export default function Dashboard() {
               verified.push(nft);
             }
           } catch (err) {
-            // If error, skip NFT (may be burned or unminted)
+            // If error, skip NFT
           }
         }
         setNfts(verified);
@@ -152,7 +149,7 @@ export default function Dashboard() {
       }
     };
 
-    fetchNFTsRef.current(); // Run on mount and address change!
+    fetchNFTsRef.current();
   }, [address]);
 
   useEffect(() => {
@@ -161,9 +158,11 @@ export default function Dashboard() {
 
   if (!mounted) return null;
 
-  if (!isConnected) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 px-4">
+  // --- FIX for LAYOUT: Replaced the `if(!isConnected)` return with conditional classes ---
+  return (
+    <>
+      {/* This "Connect Wallet" view is now only SHOWN when !isConnected */}
+      <div className={!isConnected ? 'flex flex-col items-center justify-center py-16 px-4' : 'hidden'}>
         <div className="max-w-lg text-center">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Mudelo to your Web3 Wallet
@@ -175,119 +174,106 @@ export default function Dashboard() {
           <CustomWalletButton />
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="space-y-6">
-      <div className="bg-white border-b2 dark:bg-dark-200 rounded-xl shadow-sm p-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Welcome to your Web3 Wallet
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Manage your crypto assets, make transfers, and track your transaction
-          history in one place.
-        </p>
+      {/* This main dashboard view is now only SHOWN when isConnected */}
+      <div className={isConnected ? "space-y-6" : 'hidden'}>
+        <div className="bg-white border-b2 dark:bg-dark-200 rounded-xl shadow-sm p-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Welcome to your Web3 Wallet
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Manage your crypto assets, make transfers, and track your transaction
+            history in one place.
+          </p>
 
-        <div className="mt-6 dashboard-grid">
-          <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Total Balance
+          <div className="mt-6 dashboard-grid">
+            <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Balance</div>
+              <div className="mt-1 text-2xl font-normal text-gray-900 dark:text-white">
+                {ethBalance ? parseFloat(ethBalance.formatted).toFixed(5) : "0.00000"}{" "}{ethBalance?.symbol || "ETH"}
+              </div>
             </div>
-            <div className="mt-1 text-2xl font-normal text-gray-900 dark:text-white">
-              {ethBalance
-                ? parseFloat(ethBalance.formatted).toFixed(5)
-                : "0.00000"}{" "}
-              {ethBalance?.symbol || "ETH"}
+            <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Network</div>
+              <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white flex items-center">
+                <span className="w-3 h-3 rounded-full bg-green-400 mr-2"></span>
+                {chain?.name || "Ethereum Mainnet"}
+              </div>
+            </div>
+            <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
+              <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Gas Price</div>
+              <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white">
+                {gasPriceGwei ? `${gasPriceGwei} Gwei` : "Loading..."}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Average</div>
             </div>
           </div>
-          <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Network
-            </div>
-            <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white flex items-center">
-              <span className="w-3 h-3 rounded-full bg-green-400 mr-2"></span>
-              {chain?.name || "Ethereum Mainnet"}
-            </div>
+        </div>
+
+        <NFTViewer
+          nfts={nfts}
+          selectMode={transferMode === "multiple" ? "multiple" : "none"}
+          selectedNFTs={selectedNFTs}
+          onSelectNFT={(tokenId) =>
+            setSelectedNFTs((prev) =>
+              prev.includes(tokenId)
+                ? prev.filter((id) => id !== tokenId)
+                : [...prev, tokenId]
+            )
+          }
+        />
+      
+        {/* Using your solved responsive layout block */}
+        <div>
+          {/* --- Layout for LARGE screens (1024px and wider) --- */}
+          <div className="hidden lg:grid grid-cols-2 gap-6">
+              {/* Left Column on Large Screens */}
+              <div className="space-y-6">
+                  <NFTTransfer
+                      nfts={nfts}
+                      mode={transferMode}
+                      setMode={setTransferMode}
+                      selectedNFTsFromDashboard={selectedNFTs}
+                      setSelectedNFTsFromDashboard={setSelectedNFTs}
+                      chainId={8453}
+                      fetchNFTs={fetchNFTsRef}
+                  />		
+                  <WalletCard />
+                  <TokenTxHistory address={address} chainId={chain?.id} isConnected={isConnected} />
+              </div>
+              {/* Right Column on Large Screens */}
+              <div className="space-y-6">
+                  <NftTxHistory address={address} chainId={chain?.id} />
+                  <TokenActions />
+                  <TokenTransfer />
+              </div>
           </div>
-          <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Gas Price
-            </div>
-            <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white">
-              {gasPriceGwei ? `${gasPriceGwei} Gwei` : "Loading..."}
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">Average</div>
+
+          {/* --- Layout for SMALL screens (less than 1024px) --- */}
+          <div className="grid grid-cols-1 gap-6 lg:hidden">
+              {/* Left Column on Small Screens */}
+              <div className="space-y-6">
+                  <NFTTransfer
+                      nfts={nfts}
+                      mode={transferMode}
+                      setMode={setTransferMode}
+                      selectedNFTsFromDashboard={selectedNFTs}
+                      setSelectedNFTsFromDashboard={setSelectedNFTs}
+                      chainId={8453}
+                      fetchNFTs={fetchNFTsRef}
+                  />		
+                  <NftTxHistory address={address} chainId={chain?.id} />
+              </div>
+              {/* Right Column on Small Screens */}
+              <div className="space-y-6">
+                  <WalletCard />
+                  <TokenActions />
+                  <TokenTransfer />
+                  <TokenTxHistory address={address} chainId={chain?.id} isConnected={isConnected} />
+              </div>
           </div>
         </div>
       </div>
-
-      <NFTViewer
-        nfts={nfts}
-        selectMode={transferMode === "multiple" ? "multiple" : "none"}
-        selectedNFTs={selectedNFTs}
-        onSelectNFT={(tokenId) =>
-          setSelectedNFTs((prev) =>
-            prev.includes(tokenId)
-              ? prev.filter((id) => id !== tokenId)
-              : [...prev, tokenId]
-          )
-        }
-      />
-
-{/* --- START of Corrected Responsive Layout Block --- */}
-
-{/* --- Layout for LARGE screens (1024px and wider) --- */}
-{/* This div is HIDDEN by default, and becomes a GRID on large screens. */}
-<div className="hidden lg:grid grid-cols-2 gap-6">
-    {/* Left Column on Large Screens */}
-    <div className="space-y-6">
-        <NFTTransfer
-            nfts={nfts}
-            mode={transferMode}
-            setMode={setTransferMode}
-            selectedNFTsFromDashboard={selectedNFTs}
-            setSelectedNFTsFromDashboard={setSelectedNFTs}
-            chainId={8453}
-            fetchNFTs={fetchNFTsRef}
-        />		
-        <WalletCard />
-        <TokenTxHistory address={address} chainId={chain?.id} isConnected={isConnected} />
-    </div>
-    {/* Right Column on Large Screens */}
-    <div className="space-y-6">
-
-        <TokenActions />
-        <TokenTransfer />
-    </div>
-</div>
-
-{/* --- Layout for SMALL screens (less than 1024px) --- */}
-{/* This div is a GRID by default, and becomes HIDDEN on large screens. */}
-<div className="grid grid-cols-1 gap-6 lg:hidden">
-    {/* Left Column on Small Screens */}
-    <div className="space-y-6">
-        <NFTTransfer
-            nfts={nfts}
-            mode={transferMode}
-            setMode={setTransferMode}
-            selectedNFTsFromDashboard={selectedNFTs}
-            setSelectedNFTsFromDashboard={setSelectedNFTs}
-            chainId={8453}
-            fetchNFTs={fetchNFTsRef}
-        />		
-
-    </div>
-    {/* Right Column on Small Screens */}
-    <div className="space-y-6">
-        <WalletCard />
-        <TokenActions />
-        <TokenTransfer />
-        <TokenTxHistory address={address} chainId={chain?.id} isConnected={isConnected} />
-    </div>
-</div>
-
-{/* --- END of Corrected Responsive Layout Block --- */}
-    </div>
+    </>
   );
 }
