@@ -2,7 +2,7 @@
 const nextConfig = {
   // Disable all development indicators
 
-  reactStrictMode: true,
+  reactStrictMode: false,
 };
 
 export default nextConfig;
