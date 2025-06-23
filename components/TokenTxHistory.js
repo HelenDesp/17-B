@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useAccount } from "wagmi";
+import { useDisplayName } from "./useDisplayName";
 
 const ALCHEMY_URLS = {
   1: "https://eth-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
@@ -11,7 +12,30 @@ const ALCHEMY_URLS = {
   11155111: "https://eth-sepolia.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr", 
 };
 
-export default function TokenTxHistory({ address, chainId }) {
+function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }) {
+  const { displayName, isNameLoading } = useDisplayName(address);
+
+  const nameToShow = isNameLoading
+    ? "Resolving..."
+    : displayName && !displayName.startsWith("0x")
+    ? displayName
+    : shortenAddress(address);
+
+  return (
+    <a
+      href={`${getExplorerBaseUrl(chainId)}/address/${address}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="underline text-black dark:text-white"
+      title={address}
+    >
+      {nameToShow}
+    </a>
+  );
+}
+
+
+export default function TokenTxHistory({ address, chainId, isConnected }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 4;
@@ -19,10 +43,10 @@ export default function TokenTxHistory({ address, chainId }) {
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   
-  // --- FIX: A ref to track if a fetch has been completed for the current data ---
+  // THE FIX: A ref to track if a fetch has been completed for the current data
   const fetchController = useRef({ lastFetchedKey: null });
-
-  const { chain, isConnected } = useAccount();
+  
+  const { chain } = useAccount();
 
   const getChainLabel = (chainId) => {
     switch (chainId) {
@@ -51,15 +75,17 @@ export default function TokenTxHistory({ address, chainId }) {
   };
 
   useEffect(() => {
-    // FIX: Add isConnected to the check
+    // Add isConnected to the initial check
     if (!address || !chainId || !isConnected) return;
 
-    // FIX: Create a unique key to prevent re-fetching for the same data
+    // Create a unique key for the current address and chain combination
     const currentFetchKey = `${address}-${chainId}`;
-    if (fetchController.current.lastFetchedKey === currentFetchKey) {
-        return;
-    }
 
+    // If we have already fetched for this exact key, stop.
+    if (fetchController.current.lastFetchedKey === currentFetchKey) {
+      return; 
+    }
+    
     const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
     if (!ALCHEMY_BASE_URL) return;
 
@@ -73,14 +99,7 @@ export default function TokenTxHistory({ address, chainId }) {
               jsonrpc: "2.0",
               id: 1,
               method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                fromAddress: address,
-                category: ["external", "erc20"],
-                withMetadata: true,
-                excludeZeroValue: true,
-                maxCount: "0x32"
-              }]
+              params: [{ fromBlock: "0x0", fromAddress: address, category: ["external", "erc20"], withMetadata: true, excludeZeroValue: true, maxCount: "0x32" }]
             })
           }),
           fetch(ALCHEMY_BASE_URL, {
@@ -90,14 +109,7 @@ export default function TokenTxHistory({ address, chainId }) {
               jsonrpc: "2.0",
               id: 2,
               method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                toAddress: address,
-                category: ["external", "erc20"],
-                withMetadata: true,
-                excludeZeroValue: true,
-                maxCount: "0x32"
-              }]
+              params: [{ fromBlock: "0x0", toAddress: address, category: ["external", "erc20"], withMetadata: true, excludeZeroValue: true, maxCount: "0x32" }]
             })
           })
         ]);
@@ -107,64 +119,29 @@ export default function TokenTxHistory({ address, chainId }) {
         
         if (sent.result && received.result) {
             const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
-
-            const filtered = all.filter(tx =>
-              tx.category !== "erc721" &&
-              tx.category !== "erc1155"
-            );
-
+            const filtered = all.filter(tx => tx.category !== "erc721" && tx.category !== "erc1155");
             const grouped = [];
             const seenHashes = new Set();
-
             const hashMap = new Map();
-            for (const tx of filtered) {
-              if (!hashMap.has(tx.hash)) {
-                hashMap.set(tx.hash, []);
-              }
-              hashMap.get(tx.hash).push(tx);
-            }
-
-            const txList = Array.from(hashMap.entries()).sort((a, b) =>
-              new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp)
-            );
+            for (const tx of filtered) { if (!hashMap.has(tx.hash)) { hashMap.set(tx.hash, []); } hashMap.get(tx.hash).push(tx); }
+            const txList = Array.from(hashMap.entries()).sort((a, b) => new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp));
 
             for (const [hash, txGroup] of txList) {
-              if (seenHashes.has(hash)) continue;
-              seenHashes.add(hash);
-
-              const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
-              const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
-              const allTokens = txGroup.map(t => t.asset).filter(Boolean);
-
-              let type = "Unknown";
-
-                if (sentTx && receivedTx) {
-                const swapToken = receivedTx.asset || sentTx.asset;
-                type = `Swapped (${swapToken})`;
-                } else if (
-                sentTx &&
-                txGroup.some(
-                    t =>
-                    t.to?.toLowerCase() === address.toLowerCase() &&
-                    t.from?.toLowerCase() !== address.toLowerCase() &&
-                    t.asset !== sentTx.asset
-                )
-                ) {
-                type = "Sent (Minted)";
-                } else if (sentTx) {
-                type = "Sent";
-                } else if (receivedTx) {
-                type = "Received";
-                }
-
-              grouped.push({
-                ...(sentTx || receivedTx || txGroup[0]),
-                _type: type
-              });
+                if (seenHashes.has(hash)) continue;
+                seenHashes.add(hash);
+                const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
+                const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
+                const allTokens = txGroup.map(t => t.asset).filter(Boolean);
+                let type = "Unknown";
+                if (sentTx && receivedTx) { const swapToken = receivedTx.asset || sentTx.asset; type = `Swapped (${swapToken})`; } 
+                else if (sentTx && txGroup.some(t => t.to?.toLowerCase() === address.toLowerCase() && t.from?.toLowerCase() !== address.toLowerCase() && t.asset !== sentTx.asset)) { type = "Sent (Minted)"; }
+                else if (sentTx) { type = "Sent"; }
+                else if (receivedTx) { type = "Received"; }
+                grouped.push({ ...(sentTx || receivedTx || txGroup[0]), _type: type });
             }
-
             setTxs(grouped);
-            // FIX: On success, update the ref so we don't fetch again for this key
+
+            // On success, update the ref with the key we just fetched.
             fetchController.current.lastFetchedKey = currentFetchKey;
         }
       } catch (err) {
@@ -173,8 +150,7 @@ export default function TokenTxHistory({ address, chainId }) {
     };
 
     fetchTxs();
-  // FIX: Add isConnected to the dependency array
-  }, [address, chainId, isConnected]);
+  }, [address, chainId, isConnected]); // Add isConnected to the dependency array
 
 	const shortenAddress = (addr) => {
 	  if (!addr) return "";
@@ -200,7 +176,7 @@ export default function TokenTxHistory({ address, chainId }) {
 	</div>
       <div className="space-y-2">
         {paginated.length === 0 ? (
-          <p className="text-gray-600 dark:text-white text-sm">No recent transactions.</p>
+          <p className="text-gray-500 dark:text-white text-sm">No recent transactions.</p>
         ) : (
           paginated.map((tx, i) => (
             <div key={i} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
