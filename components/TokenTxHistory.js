@@ -34,48 +34,49 @@ function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }
   );
 }
 
-// --- CHANGE 1 of 2: Removed 'export default' from the function declaration ---
+
+// --- CHANGE 1 of 2: Removed 'export default' from this line ---
 function TokenTxHistory({ address, chainId }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 4;
-  const maxTxs = txs.slice(0, 60);
+  const maxTxs = txs.slice(0, 60); // keep only last 60
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   
-  const { chain } = useAccount();
+const { chain } = useAccount();
 
-  const getChainLabel = (chainId) => {
-    switch (chainId) {
-      case 1: return "Ethereum";
-      case 8453: return "Base";
-      case 137: return "Polygon";
-      case 42161: return "Arbitrum";
-      case 10: return "Optimism";
-      case 11155111: return "Sepolia";
-      case 56: return "BNB";
-      default: return "Base";
-    }
-  };  
+const getChainLabel = (chainId) => {
+  switch (chainId) {
+    case 1: return "Ethereum";
+    case 8453: return "Base";
+    case 137: return "Polygon";
+    case 42161: return "Arbitrum";
+    case 10: return "Optimism";
+    case 11155111: return "Sepolia";
+    case 56: return "BNB";
+    default: return "Base";
+  }
+};  
 
-  const getExplorerBaseUrl = (chainId) => {
-    switch (chainId) {
-      case 1: return "https://etherscan.io";
-      case 8453: return "https://basescan.org";
-      case 137: return "https://polygonscan.com";
-      case 42161: return "https://arbiscan.io";
-      case 10: return "https://optimistic.etherscan.io";
-      case 56: return "https://bscscan.com";
-      case 11155111: return "https://sepolia.etherscan.io";
-      default: return "https://etherscan.io";
-    }
-  };
+const getExplorerBaseUrl = (chainId) => {
+  switch (chainId) {
+    case 1: return "https://etherscan.io";
+    case 8453: return "https://basescan.org";
+    case 137: return "https://polygonscan.com";
+    case 42161: return "https://arbiscan.io";
+    case 10: return "https://optimistic.etherscan.io";
+    case 56: return "https://bscscan.com";
+    case 11155111: return "https://sepolia.etherscan.io";
+    default: return "https://etherscan.io";
+  }
+};
 
-  useEffect(() => {
-    if (!address || !chainId) return;
+useEffect(() => {
+  if (!address || !chainId) return;
 
-    const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
-    if (!ALCHEMY_BASE_URL) return;
+  const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
+  if (!ALCHEMY_BASE_URL) return;
 
     const fetchTxs = async () => {
       try {
@@ -120,15 +121,16 @@ function TokenTxHistory({ address, chainId }) {
         const received = await receivedRes.json();
         const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
 
-        const filtered = all.filter(tx =>
-          tx.category !== "erc721" &&
-          tx.category !== "erc1155"
-        );
+        // Exclude all NFTs (ERC-721 & ERC-1155)
+		const filtered = all.filter(tx =>
+		  tx.category !== "erc721" &&
+		  tx.category !== "erc1155"
+		);
 
         const grouped = [];
         const seenHashes = new Set();
-        const hashMap = new Map();
 
+        const hashMap = new Map();
         for (const tx of filtered) {
           if (!hashMap.has(tx.hash)) {
             hashMap.set(tx.hash, []);
@@ -208,7 +210,7 @@ function TokenTxHistory({ address, chainId }) {
 	</div>
       <div className="space-y-2">
         {paginated.length === 0 ? (
-          <p className="text-gray-500 dark:text-white text-sm">No recent transactions.</p>
+          <p className="text-gray-600 dark:text-white text-sm">No recent transactions.</p>
         ) : (
           paginated.map((tx, i) => (
             <div key={i} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
@@ -327,3 +329,5 @@ function TokenTxHistory({ address, chainId }) {
     </div>
   );
 }
+// --- CHANGE 2 of 2: The component is wrapped in React.memo before being exported ---
+export default React.memo(TokenTxHistory);
