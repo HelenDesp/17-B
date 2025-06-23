@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAccount } from "wagmi";
-// --- ADDITION 1 of 3: IMPORT THE 'useDisplayName' HOOK ---
 import { useDisplayName } from "./useDisplayName";
 
 const ALCHEMY_URLS = {
@@ -13,7 +12,6 @@ const ALCHEMY_URLS = {
   11155111: "https://eth-sepolia.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr", 
 };
 
-// --- ADDITION 2 of 3: ADD THE HELPER COMPONENT TO USE THE HOOK ---
 function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }) {
   const { displayName, isNameLoading } = useDisplayName(address);
 
@@ -45,39 +43,51 @@ export default function TokenTxHistory({ address, chainId, isConnected }) {
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   
-const { chain } = useAccount();
+  // --- THE FIX: A ref to track if a fetch has been completed ---
+  const fetchController = useRef({ lastFetchedKey: null });
+  
+  const { chain } = useAccount();
 
-const getChainLabel = (chainId) => {
-  switch (chainId) {
-    case 1: return "Ethereum";
-    case 8453: return "Base";
-    case 137: return "Polygon";
-    case 42161: return "Arbitrum";
-    case 10: return "Optimism";
-    case 11155111: return "Sepolia";
-    case 56: return "BNB";
-    default: return "Base";
-  }
-};  
+  const getChainLabel = (chainId) => {
+    switch (chainId) {
+      case 1: return "Ethereum";
+      case 8453: return "Base";
+      case 137: return "Polygon";
+      case 42161: return "Arbitrum";
+      case 10: return "Optimism";
+      case 11155111: return "Sepolia";
+      case 56: return "BNB";
+      default: return "Base";
+    }
+  };  
 
-const getExplorerBaseUrl = (chainId) => {
-  switch (chainId) {
-    case 1: return "https://etherscan.io";
-    case 8453: return "https://basescan.org";
-    case 137: return "https://polygonscan.com";
-    case 42161: return "https://arbiscan.io";
-    case 10: return "https://optimistic.etherscan.io";
-    case 56: return "https://bscscan.com";
-    case 11155111: return "https://sepolia.etherscan.io";
-    default: return "https://etherscan.io";
-  }
-};
+  const getExplorerBaseUrl = (chainId) => {
+    switch (chainId) {
+      case 1: return "https://etherscan.io";
+      case 8453: return "https://basescan.org";
+      case 137: return "https://polygonscan.com";
+      case 42161: return "https://arbiscan.io";
+      case 10: return "https://optimistic.etherscan.io";
+      case 56: return "https://bscscan.com";
+      case 11155111: return "https://sepolia.etherscan.io";
+      default: return "https://etherscan.io";
+    }
+  };
 
-useEffect(() => {
-  if (!address || !chainId || !isConnected) return;
+  useEffect(() => {
+    // Initial guards remain
+    if (!address || !chainId || !isConnected) return;
 
-  const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
-  if (!ALCHEMY_BASE_URL) return;
+    // Create a unique key for the current request
+    const currentFetchKey = `${address}-${chainId}`;
+
+    // If we have already fetched for this exact key, stop.
+    if (fetchController.current.lastFetchedKey === currentFetchKey) {
+      return; 
+    }
+    
+    const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
+    if (!ALCHEMY_BASE_URL) return;
 
     const fetchTxs = async () => {
       try {
@@ -89,14 +99,7 @@ useEffect(() => {
               jsonrpc: "2.0",
               id: 1,
               method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                fromAddress: address,
-                category: ["external", "erc20"],
-                withMetadata: true,
-                excludeZeroValue: true,
-                maxCount: "0x32"
-              }]
+              params: [{ fromBlock: "0x0", fromAddress: address, category: ["external", "erc20"], withMetadata: true, excludeZeroValue: true, maxCount: "0x32" }]
             })
           }),
           fetch(ALCHEMY_BASE_URL, {
@@ -106,79 +109,42 @@ useEffect(() => {
               jsonrpc: "2.0",
               id: 2,
               method: "alchemy_getAssetTransfers",
-              params: [{
-                fromBlock: "0x0",
-                toAddress: address,
-                category: ["external", "erc20"],
-                withMetadata: true,
-                excludeZeroValue: true,
-                maxCount: "0x32"
-              }]
+              params: [{ fromBlock: "0x0", toAddress: address, category: ["external", "erc20"], withMetadata: true, excludeZeroValue: true, maxCount: "0x32" }]
             })
           })
         ]);
 
         const sent = await sentRes.json();
         const received = await receivedRes.json();
-        const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
+        
+        // Only proceed and set the flag if the fetches were successful
+        if (sent.result && received.result) {
+            const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
+            const filtered = all.filter(tx => tx.category !== "erc721" && tx.category !== "erc1155");
+            const grouped = [];
+            const seenHashes = new Set();
+            const hashMap = new Map();
+            for (const tx of filtered) { if (!hashMap.has(tx.hash)) { hashMap.set(tx.hash, []); } hashMap.get(tx.hash).push(tx); }
+            const txList = Array.from(hashMap.entries()).sort((a, b) => new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp));
 
-        // Exclude all NFTs (ERC-721 & ERC-1155)
-		const filtered = all.filter(tx =>
-		  tx.category !== "erc721" &&
-		  tx.category !== "erc1155"
-		);
+            for (const [hash, txGroup] of txList) {
+                if (seenHashes.has(hash)) continue;
+                seenHashes.add(hash);
+                const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
+                const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
+                const allTokens = txGroup.map(t => t.asset).filter(Boolean);
+                let type = "Unknown";
+                if (sentTx && receivedTx) { const swapToken = receivedTx.asset || sentTx.asset; type = `Swapped (${swapToken})`; } 
+                else if (sentTx && txGroup.some(t => t.to?.toLowerCase() === address.toLowerCase() && t.from?.toLowerCase() !== address.toLowerCase() && t.asset !== sentTx.asset)) { type = "Sent (Minted)"; }
+                else if (sentTx) { type = "Sent"; }
+                else if (receivedTx) { type = "Received"; }
+                grouped.push({ ...(sentTx || receivedTx || txGroup[0]), _type: type });
+            }
+            setTxs(grouped);
 
-        const grouped = [];
-        const seenHashes = new Set();
-
-        const hashMap = new Map();
-        for (const tx of filtered) {
-          if (!hashMap.has(tx.hash)) {
-            hashMap.set(tx.hash, []);
-          }
-          hashMap.get(tx.hash).push(tx);
+            // On success, "raise the flag" so we don't fetch for this key again.
+            fetchController.current.lastFetchedKey = currentFetchKey;
         }
-
-        const txList = Array.from(hashMap.entries()).sort((a, b) =>
-          new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp)
-        );
-
-        for (const [hash, txGroup] of txList) {
-          if (seenHashes.has(hash)) continue;
-          seenHashes.add(hash);
-
-          const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
-          const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
-          const allTokens = txGroup.map(t => t.asset).filter(Boolean);
-
-          let type = "Unknown";
-
-			if (sentTx && receivedTx) {
-			  const swapToken = receivedTx.asset || sentTx.asset;
-			  type = `Swapped (${swapToken})`;
-			} else if (
-			  sentTx &&
-			  txGroup.some(
-				t =>
-				  t.to?.toLowerCase() === address.toLowerCase() &&
-				  t.from?.toLowerCase() !== address.toLowerCase() &&
-				  t.asset !== sentTx.asset
-			  )
-			) {
-			  type = "Sent (Minted)";
-			} else if (sentTx) {
-			  type = "Sent";
-			} else if (receivedTx) {
-			  type = "Received";
-			}
-
-          grouped.push({
-            ...(sentTx || receivedTx || txGroup[0]),
-            _type: type
-          });
-        }
-
-        setTxs(grouped);
       } catch (err) {
         console.error("Error fetching token tx history:", err);
       }
@@ -266,68 +232,34 @@ useEffect(() => {
 					  viewBox="0 0 256 256"
 					  className="w-5 h-5 ml-2 fill-black dark:fill-white"
 					>
-					  <path d="M132,40V216a4,4,0,0,1-8,0V40a4,4,0,0,1,8,0ZM99.69434,129.52966a3.95348,3.95348,0,0,0,.12548-.40527c.0337-.11389.07764-.223.10108-.34094a4.01026,4.01026,0,0,0,0-1.5669c-.02344-.11792-.06738-.22693-.10108-.34082a3.95868,3.95868,0,0,0-.12548-.40552,4.0404,4.0404,0,0,0-.20362-.38623c-.05517-.10058-.09912-.20532-.16357-.30175a4.02777,4.02777,0,0,0-.50147-.61292L66.82812,93.17188a3.99957,3.99957,0,0,0-5.65624,5.65624L86.34277,124H16a4,4,0,0,0,0,8H86.34277L61.17188,157.17188a3.99957,3.99957,0,1,0,5.65624,5.65624l31.99756-31.99743a4.02777,4.02777,0,0,0,.50147-.61292c.06445-.09643.1084-.20129.16357-.302A4.00758,4.00758,0,0,0,99.69434,129.52966ZM240,124H169.65723l25.17089-25.17188a3.99957,3.99957,0,1,0-5.65624-5.65624l-31.99756,31.99743a4.02777,4.02777,0,0,0-.50147.61292c-.06445.097-.10889.20239-.16455.30359a2.34888,2.34888,0,0,0-.32861.79162c-.03369.1134-.07715.2218-.10059.33911a4.01026,4.01026,0,0,0,0,1.5669c.02344.11731.06738.22583.10059.33911a2.34963,2.34963,0,0,0,.32861.7915c.05566.1012.1001.20655.16455.30371a4.02777,4.02777,0,0,0,.50147.61292l31.99756,31.99743a3.99957,3.99957,0,0,0,5.65624-5.65624L169.65723,132H240a4,4,0,0,0,0-8Z" />
-					</svg>
-				  )}
-				</div>
+					  <path d="M132,40V216a4,4,0,0,1-8,0V40a4,4,0,0,1,8,0ZM99.69434,129.52966a3.95348,3.95348,0,0,0,.12548-.40527c.0337-.11389.07764-.223.10108-.34094a4.01026,4.01026,0,0,0,0-1.5669c-.02344-.11792-.06738-.22693-.10108-.34082a3.95868,3.95868,0,0,0-.12548-.40552,4.0404,4.0404,0,0,0-.20362-.38623c-.05517-.10058-.09912-.20532-.16357-.30175a4.02777,4.02777,0,0,0-.50147-.61292L66.82812,93.17188a3.99957,3.99957,0,0,0-5.65624,5.65624L86.34277,124H16a4,4,0,0,0,0,8H86.34277L61.17188,157.17188a3.99957,3.99957,0,1,0,5.65624,5.65624l31.99756-31.99743a4.02777,4.02777,0,0,0,.50147-.61292c.06445-.09643.1084-.20129.16357-.302A4.00758,4.00758,0,0,0,99.69434,129.52966ZM240,124H169.65723l25.17089-25.17188a3.99957,3.99957,0,1,0-5.65624-5.65624l-31.99756,31.99743a4.02777,4.02777,0,0,0-.50147.61292c-.06445.097-.10889.20239-.16455.30359a2.34888,2.34888,0,0,0-.32861.79162c-.03369.1134-.07715.2218-.10059.33911a4.01026,4.01026,0,0,0,0,1.5669c.02344.11731.06738.22583.10059.33911a2.34963,2.34963,0,0,0,.32861.7915c.05566.1012.1001.20655.16455.30371a4.02777,4.02777,0,0,0,.50147.61292l31.99756,31.99743a3.99957,3.99957,0,0,0,5.65624-5.65624L169.65723,132H240a4,4,0,0,0,0-8Z" /></svg>
+                )}
+              </div>
               {expandedIndexes[i] && (
                 <div className="mt-2 space-y-1 text-xs">
-                  {/* --- ADDITION 3 of 3: USE THE 'AddressDisplay' COMPONENT HERE --- */}
                   <div className="text-black dark:text-white"><strong>From:</strong> <AddressDisplay address={tx.from} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress} /></div>
                   <div className="text-black dark:text-white"><strong>To:</strong> <AddressDisplay address={tx.to} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress} /></div>
-					<div className="text-black dark:text-white">
-					  <strong>Block:</strong> {parseInt(tx.blockNum, 16)}
-					</div>
-					<div className="text-black dark:text-white">
-					  <strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}
-					</div>
+                  <div className="text-black dark:text-white"><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
+                  <div className="text-black dark:text-white"><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
                 </div>
               )}
             </div>
           ))
         )}
       </div>
-		{txs.length > perPage && (
-		  <div className="flex justify-between items-center mt-4 text-sm">
-			<div className="flex gap-2">
-			  <button
-				onClick={() => setPage(1)}
-				disabled={page === 1}
-				className="px-2 py-1 border rounded disabled:opacity-50"
-			  >
-				First
-			  </button>
-			  <button
-				onClick={() => setPage((p) => Math.max(1, p - 1))}
-				disabled={page === 1}
-				className="px-2 py-1 border rounded disabled:opacity-50"
-			  >
-				&lt;
-			  </button>
-			</div>
-
-			<div className="text-gray-700 dark:text-gray-300">
-			  Page {page} / {Math.min(15, Math.ceil(txs.length / 4))}
-			</div>
-
-			<div className="flex gap-2">
-			  <button
-				onClick={() => setPage((p) => Math.min(Math.ceil(txs.length / 4), p + 1))}
-				disabled={page * 4 >= Math.min(txs.length, 60)}
-				className="px-2 py-1 border rounded disabled:opacity-50"
-			  >
-				&gt;
-			  </button>
-			  <button
-				onClick={() => setPage(Math.min(15, Math.ceil(txs.length / 4)))}
-				disabled={page === Math.min(15, Math.ceil(txs.length / 4))}
-				className="px-2 py-1 border rounded disabled:opacity-50"
-			  >
-				Last
-			  </button>
-			</div>
-		  </div>
-		)}
+      {txs.length > perPage && (
+        <div className="flex justify-between items-center mt-4 text-sm">
+          <div className="flex gap-2">
+            <button onClick={() => setPage(1)} disabled={page === 1} className="px-2 py-1 border rounded disabled:opacity-50">First</button>
+            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="px-2 py-1 border rounded disabled:opacity-50">&lt;</button>
+          </div>
+          <div className="text-gray-700 dark:text-gray-300">Page {page} / {Math.min(15, Math.ceil(txs.length / 4))}</div>
+          <div className="flex gap-2">
+            <button onClick={() => setPage((p) => Math.min(Math.ceil(txs.length / 4), p + 1))} disabled={page * 4 >= Math.min(txs.length, 60)} className="px-2 py-1 border rounded disabled:opacity-50">&gt;</button>
+            <button onClick={() => setPage(Math.min(15, Math.ceil(txs.length / 4)))} disabled={page === Math.min(15, Math.ceil(txs.length / 4))} className="px-2 py-1 border rounded disabled:opacity-50">Last</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
