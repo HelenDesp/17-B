@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAccount } from "wagmi";
 import { useDisplayName } from "./useDisplayName";
 
@@ -44,6 +44,8 @@ function TokenTxHistory({ address, chainId, isConnected }) {
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   
+  const fetchController = useRef({ lastFetchedKey: null });
+  
 const { chain } = useAccount();
 
 const getChainLabel = (chainId) => {
@@ -75,6 +77,11 @@ const getExplorerBaseUrl = (chainId) => {
 useEffect(() => {
   if (!address || !chainId || !isConnected) return;
 
+  const currentFetchKey = `${address}-${chainId}`;
+  if (fetchController.current.lastFetchedKey === currentFetchKey) {
+    return;
+  }
+  
   const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
   if (!ALCHEMY_BASE_URL) return;
 
@@ -119,65 +126,68 @@ useEffect(() => {
 
         const sent = await sentRes.json();
         const received = await receivedRes.json();
-        const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
 
-        // Exclude all NFTs (ERC-721 & ERC-1155)
-		const filtered = all.filter(tx =>
-		  tx.category !== "erc721" &&
-		  tx.category !== "erc1155"
-		);
+        if (sent.result && received.result) {
+            const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
 
-        const grouped = [];
-        const seenHashes = new Set();
+            // Exclude all NFTs (ERC-721 & ERC-1155)
+            const filtered = all.filter(tx =>
+            tx.category !== "erc721" &&
+            tx.category !== "erc1155"
+            );
 
-        const hashMap = new Map();
-        for (const tx of filtered) {
-          if (!hashMap.has(tx.hash)) {
-            hashMap.set(tx.hash, []);
-          }
-          hashMap.get(tx.hash).push(tx);
+            const grouped = [];
+            const seenHashes = new Set();
+
+            const hashMap = new Map();
+            for (const tx of filtered) {
+            if (!hashMap.has(tx.hash)) {
+                hashMap.set(tx.hash, []);
+            }
+            hashMap.get(tx.hash).push(tx);
+            }
+
+            const txList = Array.from(hashMap.entries()).sort((a, b) =>
+            new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp)
+            );
+
+            for (const [hash, txGroup] of txList) {
+            if (seenHashes.has(hash)) continue;
+            seenHashes.add(hash);
+
+            const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
+            const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
+            const allTokens = txGroup.map(t => t.asset).filter(Boolean);
+
+            let type = "Unknown";
+
+                if (sentTx && receivedTx) {
+                const swapToken = receivedTx.asset || sentTx.asset;
+                type = `Swapped (${swapToken})`;
+                } else if (
+                sentTx &&
+                txGroup.some(
+                    t =>
+                    t.to?.toLowerCase() === address.toLowerCase() &&
+                    t.from?.toLowerCase() !== address.toLowerCase() &&
+                    t.asset !== sentTx.asset
+                )
+                ) {
+                type = "Sent (Minted)";
+                } else if (sentTx) {
+                type = "Sent";
+                } else if (receivedTx) {
+                type = "Received";
+                }
+
+            grouped.push({
+                ...(sentTx || receivedTx || txGroup[0]),
+                _type: type
+            });
+            }
+            setTxs(grouped);
+            fetchController.current.lastFetchedKey = currentFetchKey;
         }
-
-        const txList = Array.from(hashMap.entries()).sort((a, b) =>
-          new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp)
-        );
-
-        for (const [hash, txGroup] of txList) {
-          if (seenHashes.has(hash)) continue;
-          seenHashes.add(hash);
-
-          const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
-          const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
-          const allTokens = txGroup.map(t => t.asset).filter(Boolean);
-
-          let type = "Unknown";
-
-			if (sentTx && receivedTx) {
-			  const swapToken = receivedTx.asset || sentTx.asset;
-			  type = `Swapped (${swapToken})`;
-			} else if (
-			  sentTx &&
-			  txGroup.some(
-				t =>
-				  t.to?.toLowerCase() === address.toLowerCase() &&
-				  t.from?.toLowerCase() !== address.toLowerCase() &&
-				  t.asset !== sentTx.asset
-			  )
-			) {
-			  type = "Sent (Minted)";
-			} else if (sentTx) {
-			  type = "Sent";
-			} else if (receivedTx) {
-			  type = "Received";
-			}
-
-          grouped.push({
-            ...(sentTx || receivedTx || txGroup[0]),
-            _type: type
-          });
-        }
-
-        setTxs(grouped);
       } catch (err) {
         console.error("Error fetching token tx history:", err);
       }
@@ -210,7 +220,7 @@ useEffect(() => {
 	</div>
       <div className="space-y-2">
         {paginated.length === 0 ? (
-          <p className="text-gray-600 dark:text-white text-sm">No recent transactions.</p>
+          <p className="text-gray-500 dark:text-white text-sm">No recent transactions.</p>
         ) : (
           paginated.map((tx, i) => (
             <div key={i} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
@@ -329,5 +339,6 @@ useEffect(() => {
     </div>
   );
 }
+
 // --- CHANGE 2 of 2: The component is wrapped in React.memo before being exported ---
 export default React.memo(TokenTxHistory);
