@@ -243,7 +243,7 @@ export default function Dashboard() {
               </div>
               {/* Right Column on Large Screens */}
               <div className="space-y-6">
-
+                  <NftTxHistory address={address} chainId={chain?.id} />
                   <TokenActions />
                   <TokenTransfer />
               </div>
@@ -262,7 +262,7 @@ export default function Dashboard() {
                       chainId={8453}
                       fetchNFTs={fetchNFTsRef}
                   />		
-
+                  <NftTxHistory address={address} chainId={chain?.id} />
               </div>
               {/* Right Column on Small Screens */}
               <div className="space-y-6">
