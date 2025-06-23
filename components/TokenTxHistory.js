@@ -36,7 +36,7 @@ function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }
 
 
 // --- CHANGE 1 of 2: Removed 'export default' from this line ---
-function TokenTxHistory({ address, chainId isConnected }) {
+function TokenTxHistory({ address, chainId, isConnected }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 4;
