@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useDisplayName } from "./useDisplayName";
 
@@ -34,56 +34,48 @@ function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }
   );
 }
 
-
-// --- CHANGE 1 of 2: Removed 'export default' from this line ---
-function TokenTxHistory({ address, chainId, isConnected }) {
+// --- CHANGE 1 of 2: Removed 'export default' from the function declaration ---
+function TokenTxHistory({ address, chainId }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 4;
-  const maxTxs = txs.slice(0, 60); // keep only last 60
+  const maxTxs = txs.slice(0, 60);
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   
-  const fetchController = useRef({ lastFetchedKey: null });
-  
-const { chain } = useAccount();
+  const { chain } = useAccount();
 
-const getChainLabel = (chainId) => {
-  switch (chainId) {
-    case 1: return "Ethereum";
-    case 8453: return "Base";
-    case 137: return "Polygon";
-    case 42161: return "Arbitrum";
-    case 10: return "Optimism";
-    case 11155111: return "Sepolia";
-    case 56: return "BNB";
-    default: return "Base";
-  }
-};  
+  const getChainLabel = (chainId) => {
+    switch (chainId) {
+      case 1: return "Ethereum";
+      case 8453: return "Base";
+      case 137: return "Polygon";
+      case 42161: return "Arbitrum";
+      case 10: return "Optimism";
+      case 11155111: return "Sepolia";
+      case 56: return "BNB";
+      default: return "Base";
+    }
+  };  
 
-const getExplorerBaseUrl = (chainId) => {
-  switch (chainId) {
-    case 1: return "https://etherscan.io";
-    case 8453: return "https://basescan.org";
-    case 137: return "https://polygonscan.com";
-    case 42161: return "https://arbiscan.io";
-    case 10: return "https://optimistic.etherscan.io";
-    case 56: return "https://bscscan.com";
-    case 11155111: return "https://sepolia.etherscan.io";
-    default: return "https://etherscan.io";
-  }
-};
+  const getExplorerBaseUrl = (chainId) => {
+    switch (chainId) {
+      case 1: return "https://etherscan.io";
+      case 8453: return "https://basescan.org";
+      case 137: return "https://polygonscan.com";
+      case 42161: return "https://arbiscan.io";
+      case 10: return "https://optimistic.etherscan.io";
+      case 56: return "https://bscscan.com";
+      case 11155111: return "https://sepolia.etherscan.io";
+      default: return "https://etherscan.io";
+    }
+  };
 
-useEffect(() => {
-  if (!address || !chainId || !isConnected) return;
+  useEffect(() => {
+    if (!address || !chainId) return;
 
-  const currentFetchKey = `${address}-${chainId}`;
-  if (fetchController.current.lastFetchedKey === currentFetchKey) {
-    return;
-  }
-  
-  const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
-  if (!ALCHEMY_BASE_URL) return;
+    const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
+    if (!ALCHEMY_BASE_URL) return;
 
     const fetchTxs = async () => {
       try {
@@ -126,75 +118,71 @@ useEffect(() => {
 
         const sent = await sentRes.json();
         const received = await receivedRes.json();
+        const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
 
-        if (sent.result && received.result) {
-            const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
+        const filtered = all.filter(tx =>
+          tx.category !== "erc721" &&
+          tx.category !== "erc1155"
+        );
 
-            // Exclude all NFTs (ERC-721 & ERC-1155)
-            const filtered = all.filter(tx =>
-            tx.category !== "erc721" &&
-            tx.category !== "erc1155"
-            );
+        const grouped = [];
+        const seenHashes = new Set();
+        const hashMap = new Map();
 
-            const grouped = [];
-            const seenHashes = new Set();
-
-            const hashMap = new Map();
-            for (const tx of filtered) {
-            if (!hashMap.has(tx.hash)) {
-                hashMap.set(tx.hash, []);
-            }
-            hashMap.get(tx.hash).push(tx);
-            }
-
-            const txList = Array.from(hashMap.entries()).sort((a, b) =>
-            new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp)
-            );
-
-            for (const [hash, txGroup] of txList) {
-            if (seenHashes.has(hash)) continue;
-            seenHashes.add(hash);
-
-            const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
-            const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
-            const allTokens = txGroup.map(t => t.asset).filter(Boolean);
-
-            let type = "Unknown";
-
-                if (sentTx && receivedTx) {
-                const swapToken = receivedTx.asset || sentTx.asset;
-                type = `Swapped (${swapToken})`;
-                } else if (
-                sentTx &&
-                txGroup.some(
-                    t =>
-                    t.to?.toLowerCase() === address.toLowerCase() &&
-                    t.from?.toLowerCase() !== address.toLowerCase() &&
-                    t.asset !== sentTx.asset
-                )
-                ) {
-                type = "Sent (Minted)";
-                } else if (sentTx) {
-                type = "Sent";
-                } else if (receivedTx) {
-                type = "Received";
-                }
-
-            grouped.push({
-                ...(sentTx || receivedTx || txGroup[0]),
-                _type: type
-            });
-            }
-            setTxs(grouped);
-            fetchController.current.lastFetchedKey = currentFetchKey;
+        for (const tx of filtered) {
+          if (!hashMap.has(tx.hash)) {
+            hashMap.set(tx.hash, []);
+          }
+          hashMap.get(tx.hash).push(tx);
         }
+
+        const txList = Array.from(hashMap.entries()).sort((a, b) =>
+          new Date(b[1][0].metadata.blockTimestamp) - new Date(a[1][0].metadata.blockTimestamp)
+        );
+
+        for (const [hash, txGroup] of txList) {
+          if (seenHashes.has(hash)) continue;
+          seenHashes.add(hash);
+
+          const sentTx = txGroup.find(t => t.from?.toLowerCase() === address.toLowerCase());
+          const receivedTx = txGroup.find(t => t.to?.toLowerCase() === address.toLowerCase());
+          const allTokens = txGroup.map(t => t.asset).filter(Boolean);
+
+          let type = "Unknown";
+
+			if (sentTx && receivedTx) {
+			  const swapToken = receivedTx.asset || sentTx.asset;
+			  type = `Swapped (${swapToken})`;
+			} else if (
+			  sentTx &&
+			  txGroup.some(
+				t =>
+				  t.to?.toLowerCase() === address.toLowerCase() &&
+				  t.from?.toLowerCase() !== address.toLowerCase() &&
+				  t.asset !== sentTx.asset
+			  )
+			) {
+			  type = "Sent (Minted)";
+			} else if (sentTx) {
+			  type = "Sent";
+			} else if (receivedTx) {
+			  type = "Received";
+			}
+
+          grouped.push({
+            ...(sentTx || receivedTx || txGroup[0]),
+            _type: type
+          });
+        }
+
+        setTxs(grouped);
       } catch (err) {
         console.error("Error fetching token tx history:", err);
       }
     };
 
     fetchTxs();
-  }, [address, chainId, isConnected]);
+  }, [address, chainId]);
 
 	const shortenAddress = (addr) => {
 	  if (!addr) return "";
@@ -339,6 +327,3 @@ useEffect(() => {
     </div>
   );
 }
-
-// --- CHANGE 2 of 2: The component is wrapped in React.memo before being exported ---
-export default React.memo(TokenTxHistory);
