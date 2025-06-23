@@ -252,7 +252,7 @@ export default function Dashboard() {
             fetchNFTs={fetchNFTsRef}
         />		
         <WalletCard />
-        <TokenTxHistory address={address} chainId={chain?.id} />
+        <TokenTxHistory address={address} chainId={chain?.id} isConnected={isConnected} />
     </div>
     {/* Right Column on Large Screens */}
     <div className="space-y-6">
@@ -283,7 +283,7 @@ export default function Dashboard() {
         <WalletCard />
         <TokenActions />
         <TokenTransfer />
-        <TokenTxHistory address={address} chainId={chain?.id} />
+        <TokenTxHistory address={address} chainId={chain?.id} isConnected={isConnected} />
     </div>
 </div>
 

@@ -36,7 +36,7 @@ function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }
 
 
 // --- CHANGE 1 of 2: Removed 'export default' from this line ---
-function TokenTxHistory({ address, chainId }) {
+function TokenTxHistory({ address, chainId isConnected }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 4;
@@ -73,7 +73,7 @@ const getExplorerBaseUrl = (chainId) => {
 };
 
 useEffect(() => {
-  if (!address || !chainId) return;
+  if (!address || !chainId || !isConnected) return;
 
   const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
   if (!ALCHEMY_BASE_URL) return;
@@ -184,7 +184,7 @@ useEffect(() => {
     };
 
     fetchTxs();
-  }, [address, chainId]);
+  }, [address, chainId, isConnected]);
 
 	const shortenAddress = (addr) => {
 	  if (!addr) return "";
