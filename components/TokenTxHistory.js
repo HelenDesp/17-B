@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
-// --- ADDITION 1 of 3: IMPORT THE 'useDisplayName' HOOK ---
 import { useDisplayName } from "./useDisplayName";
 
 const ALCHEMY_URLS = {
@@ -13,7 +12,6 @@ const ALCHEMY_URLS = {
   11155111: "https://eth-sepolia.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr", 
 };
 
-// --- ADDITION 2 of 3: ADD THE HELPER COMPONENT TO USE THE HOOK ---
 function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }) {
   const { displayName, isNameLoading } = useDisplayName(address);
 
@@ -36,48 +34,48 @@ function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }
   );
 }
 
-
-export default function TokenTxHistory({ address, chainId }) {
+// --- CHANGE 1 of 2: Removed 'export default' from the function declaration ---
+function TokenTxHistory({ address, chainId }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
   const perPage = 4;
-  const maxTxs = txs.slice(0, 60); // keep only last 60
+  const maxTxs = txs.slice(0, 60);
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   
-const { chain } = useAccount();
+  const { chain } = useAccount();
 
-const getChainLabel = (chainId) => {
-  switch (chainId) {
-    case 1: return "Ethereum";
-    case 8453: return "Base";
-    case 137: return "Polygon";
-    case 42161: return "Arbitrum";
-    case 10: return "Optimism";
-    case 11155111: return "Sepolia";
-    case 56: return "BNB";
-    default: return "Base";
-  }
-};  
+  const getChainLabel = (chainId) => {
+    switch (chainId) {
+      case 1: return "Ethereum";
+      case 8453: return "Base";
+      case 137: return "Polygon";
+      case 42161: return "Arbitrum";
+      case 10: return "Optimism";
+      case 11155111: return "Sepolia";
+      case 56: return "BNB";
+      default: return "Base";
+    }
+  };  
 
-const getExplorerBaseUrl = (chainId) => {
-  switch (chainId) {
-    case 1: return "https://etherscan.io";
-    case 8453: return "https://basescan.org";
-    case 137: return "https://polygonscan.com";
-    case 42161: return "https://arbiscan.io";
-    case 10: return "https://optimistic.etherscan.io";
-    case 56: return "https://bscscan.com";
-    case 11155111: return "https://sepolia.etherscan.io";
-    default: return "https://etherscan.io";
-  }
-};
+  const getExplorerBaseUrl = (chainId) => {
+    switch (chainId) {
+      case 1: return "https://etherscan.io";
+      case 8453: return "https://basescan.org";
+      case 137: return "https://polygonscan.com";
+      case 42161: return "https://arbiscan.io";
+      case 10: return "https://optimistic.etherscan.io";
+      case 56: return "https://bscscan.com";
+      case 11155111: return "https://sepolia.etherscan.io";
+      default: return "https://etherscan.io";
+    }
+  };
 
-useEffect(() => {
-  if (!address || !chainId) return;
+  useEffect(() => {
+    if (!address || !chainId) return;
 
-  const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
-  if (!ALCHEMY_BASE_URL) return;
+    const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
+    if (!ALCHEMY_BASE_URL) return;
 
     const fetchTxs = async () => {
       try {
@@ -122,16 +120,15 @@ useEffect(() => {
         const received = await receivedRes.json();
         const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
 
-        // Exclude all NFTs (ERC-721 & ERC-1155)
-		const filtered = all.filter(tx =>
-		  tx.category !== "erc721" &&
-		  tx.category !== "erc1155"
-		);
+        const filtered = all.filter(tx =>
+          tx.category !== "erc721" &&
+          tx.category !== "erc1155"
+        );
 
         const grouped = [];
         const seenHashes = new Set();
-
         const hashMap = new Map();
+
         for (const tx of filtered) {
           if (!hashMap.has(tx.hash)) {
             hashMap.set(tx.hash, []);
@@ -211,7 +208,7 @@ useEffect(() => {
 	</div>
       <div className="space-y-2">
         {paginated.length === 0 ? (
-          <p className="text-gray-600 dark:text-white text-sm">No recent transactions.</p>
+          <p className="text-gray-500 dark:text-white text-sm">No recent transactions.</p>
         ) : (
           paginated.map((tx, i) => (
             <div key={i} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
@@ -272,7 +269,6 @@ useEffect(() => {
 				</div>
               {expandedIndexes[i] && (
                 <div className="mt-2 space-y-1 text-xs">
-                  {/* --- ADDITION 3 of 3: USE THE 'AddressDisplay' COMPONENT HERE --- */}
                   <div className="text-black dark:text-white"><strong>From:</strong> <AddressDisplay address={tx.from} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress} /></div>
                   <div className="text-black dark:text-white"><strong>To:</strong> <AddressDisplay address={tx.to} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress} /></div>
 					<div className="text-black dark:text-white">
