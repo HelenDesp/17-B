@@ -1,16 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useDisplayName } from "./useDisplayName";
 
-const ALCHEMY_URLS = {
-  1: "https://eth-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
-  8453: "https://base-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
-  42161: "https://arb-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
-  10: "https://opt-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
-  137: "https://polygon-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
-  56: "https://bnb-mainnet.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr",
-  11155111: "https://eth-sepolia.g.alchemy.com/v2/oQKmm0fzZOpDJLTI64W685aWf8j1LvDr", 
-};
+// Moralis API Key provided by you
+const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImE2YWU4Y2E2LWNiNWUtNDJmNi1hYjQ5LWUzZWEwZTM5NTI2MSIsIm9yZ0lkIjoiNDQ1NTcxIiwidXNlcklkIjoiNDU4NDM4IiwidHlwZUlkIjoiMDhiYmI4YTgtMzQxYy00YTJhLTk2NGUtN2FlMGZmMzI2ODUxIiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NDY1NDA1MzgsImV4cCI6NDkwMjMwMDUzOH0._O5uiNnyo2sXnJDbre0_9mDklKTmrj90Yn2HXJJnZRk";
 
 function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }) {
   const { displayName, isNameLoading } = useDisplayName(address);
@@ -22,72 +15,18 @@ function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }
   );
 }
 
-// --- NEW, SMARTER COMPONENT TO FETCH AND CACHE EACH NFT IMAGE ---
-function NftImage({ contractAddress, tokenId, cache }) {
-  const [imageUrl, setImageUrl] = useState('https://placehold.co/40');
-  const [isLoading, setIsLoading] = useState(true);
-  
-  useEffect(() => {
-    const fetchMetadata = async () => {
-      if (!contractAddress || !tokenId) return;
+// Helper function to get a clean image URL from the Moralis metadata
+function getMoralisNftImageUrl(tx) {
+  // Moralis often provides normalized metadata with a direct HTTP link.
+  let imageUrl = tx.metadata?.image || '';
 
-      const cacheKey = `${contractAddress}-${tokenId}`;
-      // 1. Check the cache first
-      if (cache.current.has(cacheKey)) {
-        setImageUrl(cache.current.get(cacheKey));
-        setIsLoading(false);
-        return;
-      }
-
-      // 2. If not in cache, fetch from Alchemy
-      try {
-        const apiKey = "-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m"; // Alchemy API key
-        // The tokenId from getAssetTransfers is in hex, so we convert it to decimal
-        const decimalTokenId = parseInt(tokenId, 16);
-        const res = await fetch(
-          `https://base-mainnet.g.alchemy.com/nft/v3/${apiKey}/getNFTMetadata?contractAddress=${contractAddress}&tokenId=${decimalTokenId}`,
-          { headers: { accept: "application/json" } }
-        );
-        const data = await res.json();
-        
-        let finalImageUrl = 'https://placehold.co/40'; // Default placeholder
-        const rawUrl = data.image?.originalUrl || data.image?.cachedUrl || data.image?.pngUrl || data.raw?.metadata?.image || '';
-        
-        if (typeof rawUrl === 'string' && rawUrl.trim() !== '') {
-          const trimmedUrl = rawUrl.trim();
-          if (trimmedUrl.startsWith("ipfs://")) {
-            finalImageUrl = trimmedUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
-          } else if (trimmedUrl.startsWith("http")) {
-            finalImageUrl = trimmedUrl;
-          }
-        }
-        
-        // 3. Save to cache and set the image URL
-        cache.current.set(cacheKey, finalImageUrl);
-        setImageUrl(finalImageUrl);
-
-      } catch (error) {
-        console.error("Failed to fetch NFT metadata:", error);
-        // Keep the placeholder on error
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMetadata();
-  }, [contractAddress, tokenId, cache]);
-  
-  if (isLoading) {
-    return <div className="w-10 h-10 rounded object-cover bg-gray-200 flex-shrink-0 animate-pulse" />;
+  // As a fallback, handle IPFS links if Moralis hasn't converted them
+  if (typeof imageUrl === 'string' && imageUrl.startsWith("ipfs://")) {
+    return imageUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
   }
-
-  return (
-    <img 
-      src={imageUrl} 
-      alt={`NFT #${parseInt(tokenId,16)}`}
-      className="w-10 h-10 rounded object-cover bg-gray-200 flex-shrink-0"
-    />
-  );
+  
+  // Return the found URL or a placeholder
+  return imageUrl || 'https://placehold.co/40';
 }
 
 
@@ -98,10 +37,6 @@ export default function NftTxHistory({ address, chainId }) {
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   const { chain } = useAccount();
 
-  // --- NEW: A cache to store image URLs so we don't fetch them repeatedly ---
-  const imageUrlCache = useRef(new Map());
-
-
   const getChainLabel = (chainId) => {
     switch (chainId) { case 1: return "Ethereum"; case 8453: return "Base"; case 137: return "Polygon"; case 42161: return "Arbitrum"; case 10: return "Optimism"; case 11155111: return "Sepolia"; case 56: return "BNB"; default: return "Base"; }
   };  
@@ -109,65 +44,76 @@ export default function NftTxHistory({ address, chainId }) {
   const getExplorerBaseUrl = (chainId) => {
     switch (chainId) { case 1: return "https://etherscan.io"; case 8453: return "https://basescan.org"; case 137: return "https://polygonscan.com"; case 42161: return "https://arbiscan.io"; case 10: return "https://optimistic.etherscan.io"; case 56: return "https://bscscan.com"; case 11155111: return "https://sepolia.etherscan.io"; default: return "https://etherscan.io"; }
   };
+  
+  // Helper to convert wagmi chain ID to Moralis chain name
+  const getMoralisChainHex = (cId) => {
+      const mapping = {
+          1: '0x1',
+          137: '0x89',
+          8453: '0x2105',
+          42161: '0xa4b1',
+          10: '0xa',
+          56: '0x38',
+          11155111: '0xaa36a7'
+      };
+      return mapping[cId] || '0x1'; // Default to Ethereum
+  }
 
   useEffect(() => {
     if (!address || !chainId) return;
-    const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
-    if (!ALCHEMY_BASE_URL) return;
 
-    // The logic to fetch transactions remains the same
-    const fetchTxs = async () => {
-        try {
-            const fetchBody = (addrField, addrValue) => ({
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                jsonrpc: "2.0",
-                id: 1,
-                method: "alchemy_getAssetTransfers",
-                params: [{ fromBlock: "0x0", [addrField]: addrValue, category: ["erc721", "erc1155"], withMetadata: true, excludeZeroValue: true, maxCount: "0x64" }]
-              })
-            });
-    
-            const [sentRes, receivedRes] = await Promise.all([
-              fetch(ALCHEMY_BASE_URL, fetchBody("fromAddress", address)),
-              fetch(ALCHEMY_BASE_URL, fetchBody("toAddress", address))
-            ]);
-    
-            const sent = await sentRes.json();
-            const received = await receivedRes.json();
-            const all = [...(sent.result?.transfers || []), ...(received.result?.transfers || [])];
-    
-            const seenTxIdentifiers = new Set();
-            const uniqueTxs = [];
-            for (const tx of all) {
-                const uniqueId = `${tx.hash}-${tx.asset}-${tx.tokenId}-${tx.from}-${tx.to}`;
-                if(!seenTxIdentifiers.has(uniqueId)) {
-                    uniqueTxs.push(tx);
-                    seenTxIdentifiers.add(uniqueId);
-                }
+    const fetchMoralisTxs = async () => {
+        const moralisChain = getMoralisChainHex(chainId);
+        const options = {
+            method: 'GET',
+            headers: {
+                'accept': 'application/json',
+                'X-API-Key': MORALIS_API_KEY
             }
-            
-            const processedTxs = uniqueTxs.map(tx => {
-                let type = "Unknown";
-                const sentByMe = tx.from.toLowerCase() === address.toLowerCase();
-                const receivedByMe = tx.to.toLowerCase() === address.toLowerCase();
-                if (tx.from.toLowerCase() === zeroAddress && receivedByMe) { type = 'Minted'; } 
-                else if (tx.to.toLowerCase() === zeroAddress && sentByMe) { type = 'Burned'; }
-                else if (sentByMe) { type = 'Sent'; } 
-                else if (receivedByMe) { type = 'Received'; }
-                return { ...tx, _type: type };
-            }).filter(tx => tx._type !== "Unknown");
-            
-            const sortedTxs = processedTxs.sort((a,b) => new Date(b.metadata.blockTimestamp) - new Date(a.metadata.blockTimestamp));
-    
-            setTxs(sortedTxs);
-        } catch (err) {
-            console.error("Error fetching NFT transaction history:", err);
-        }
+        };
+
+      try {
+        const res = await fetch(`https://deep-index.moralis.io/api/v2.2/${address}/nft/transfers?chain=${moralisChain}`, options);
+        const data = await res.json();
+        
+        const processedTxs = (data.result || []).map(tx => {
+            let type = "Unknown";
+            // Moralis uses `from_address` and `to_address`
+            const sentByMe = tx.from_address.toLowerCase() === address.toLowerCase();
+            const receivedByMe = tx.to_address.toLowerCase() === address.toLowerCase();
+
+            if (tx.from_address.toLowerCase() === zeroAddress && receivedByMe) {
+                type = 'Minted';
+            } else if (tx.to_address.toLowerCase() === zeroAddress && sentByMe) {
+                type = 'Burned';
+            } else if (sentByMe) {
+                type = 'Sent';
+            } else if (receivedByMe) {
+                type = 'Received';
+            }
+
+            // Return a unified object structure similar to the Alchemy version for consistency
+            return {
+                ...tx,
+                _type: type,
+                asset: tx.name, // Collection name from Moralis
+                rawContract: { address: tx.token_address },
+                tokenId: tx.token_id,
+                from: tx.from_address,
+                to: tx.to_address,
+                hash: tx.transaction_hash,
+                metadata: { blockTimestamp: tx.block_timestamp }
+            };
+        }).filter(tx => tx._type !== "Unknown");
+
+        setTxs(processedTxs);
+
+      } catch (err) {
+        console.error("Error fetching Moralis NFT history:", err);
+      }
     };
 
-    fetchTxs();
+    fetchMoralisTxs();
   }, [address, chainId]);
 
 	const shortenAddress = (addr) => { if (!addr) return ""; return addr.slice(0, 6) + "..." + addr.slice(-4); }; 
@@ -186,20 +132,19 @@ export default function NftTxHistory({ address, chainId }) {
           <p className="text-gray-600 dark:text-white text-sm">No recent NFT transactions.</p>
         ) : (
           paginated.map((tx, i) => (
-            <div key={`${tx.hash}-${i}`} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
+            <div key={`${tx.hash}-${tx.token_id}-${i}`} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  {/* --- USING THE NEW NftImage COMPONENT --- */}
-                  <NftImage 
-                    contractAddress={tx.rawContract.address} 
-                    tokenId={tx.tokenId} 
-                    cache={imageUrlCache}
+                  <img 
+                    src={getMoralisNftImageUrl(tx)} 
+                    alt={tx.asset}
+                    className="w-10 h-10 rounded object-cover bg-gray-200 flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="text-black dark:text-white"><strong>{tx._type}</strong></div>
                     <div className="flex justify-between text-sm mt-1">
-                      <div className="text-black dark:text-white font-medium truncate pr-2" title={`${tx.asset} #${parseInt(tx.tokenId, 16)}`}>
-                        {tx.asset} #{parseInt(tx.tokenId, 16)}
+                      <div className="text-black dark:text-white font-medium truncate pr-2" title={`${tx.asset} #${tx.tokenId}`}>
+                        {tx.asset} #{tx.tokenId}
                       </div>
                     </div>
                   </div>
@@ -221,7 +166,7 @@ export default function NftTxHistory({ address, chainId }) {
                   </div>
                   <div className="text-black dark:text-white"><strong>From:</strong> <AddressDisplay address={tx.from} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress} /></div>
                   <div className="text-black dark:text-white"><strong>To:</strong> <AddressDisplay address={tx.to} chainId={chainId} getExplorerBaseUrl={getExplorerBaseUrl} shortenAddress={shortenAddress} /></div>
-				  <div className="text-black dark:text-white"><strong>Block:</strong> {parseInt(tx.blockNum, 16)}</div>
+				  <div className="text-black dark:text-white"><strong>Block:</strong> {tx.block_number}</div>
 				  <div className="text-black dark:text-white"><strong>Date:</strong> {new Date(tx.metadata.blockTimestamp).toLocaleString()}</div>
                 </div>
               )}
