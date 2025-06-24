@@ -77,6 +77,7 @@ export default function TokenTxHistory({ address, chainId, isConnected }) {
   useEffect(() => {
     // Add isConnected to the initial check
     if (!address || !chainId || !isConnected) return;
+	setPage(1);
 
     // Create a unique key for the current address and chain combination
     const currentFetchKey = `${address}-${chainId}`;
