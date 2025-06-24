@@ -55,7 +55,7 @@ function useNftMetadata({ tx, chainId, cache }) {
       }
       
       try {
-        const apiKey = "oQKmm0fzZOpDJLTI64W685aWf8j1LvDr";
+        const apiKey = "SLNvhiAdM71qDKy7veyeWn9ZD8XO11oY";
         const decimalTokenId = parseInt(tx.tokenId, 16);
         
         const res = await fetch(
