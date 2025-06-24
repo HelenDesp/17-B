@@ -103,12 +103,12 @@ className={`flex flex-col items-center justify-center border rounded text-base h
 			<img
 			  src={
 				btn === "Buy"
-				  ? "/ethereum.svg"
+				  ? "/wallet.svg"
 				  : btn === "Swap"
-				  ? "/usdc.svg"
+				  ? "/swap.svg"
 				  : btn === "Send"
-				  ? "/dai.svg"
-				  : "/wrappedbtc.svg"
+				  ? "/send.svg"
+				  : "/bridge.svg"
 			  }
 			  alt={btn}
 			  className={`w-8 h-8 mb-1 ${btn === "Buy" ? 'dark:invert' : ''}`}
