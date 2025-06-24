@@ -239,63 +239,70 @@ export default function TokenTxHistory({ address, chainId, isConnected }) {
       try {
         console.log(`Fetching transactions for ${address} on chain ${chainId}`);
         
-        // Single batched request to Alchemy
-        const response = await fetch(ALCHEMY_BASE_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify([
-            {
+        // Make separate requests for sent and received transactions
+        const [sentResponse, receivedResponse] = await Promise.all([
+          fetch(ALCHEMY_BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
               jsonrpc: "2.0",
               id: 1,
               method: "alchemy_getAssetTransfers",
               params: [{ 
                 fromBlock: "0x0", 
                 fromAddress: address, 
-                category: ["external", "erc20", "erc721", "erc1155"], 
+                category: ["external", "erc20"], 
                 withMetadata: true, 
                 excludeZeroValue: true, 
                 maxCount: "0x32" 
               }]
-            },
-            {
+            })
+          }),
+          fetch(ALCHEMY_BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
               jsonrpc: "2.0",
               id: 2,
               method: "alchemy_getAssetTransfers",
               params: [{ 
                 fromBlock: "0x0", 
                 toAddress: address, 
-                category: ["external", "erc20", "erc721", "erc1155"], 
+                category: ["external", "erc20"], 
                 withMetadata: true, 
                 excludeZeroValue: true, 
                 maxCount: "0x32" 
               }]
-            }
-          ])
-        });
+            })
+          })
+        ]);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Alchemy response:', data);
-
-        if (!Array.isArray(data) || data.length !== 2) {
-          throw new Error('Invalid response format from Alchemy');
-        }
-
-        const [sentResponse, receivedResponse] = data;
-        
-        if (sentResponse.error) {
-          throw new Error(`Sent transactions error: ${sentResponse.error.message}`);
+        if (!sentResponse.ok) {
+          throw new Error(`HTTP error on sent transactions! status: ${sentResponse.status}`);
         }
         
-        if (receivedResponse.error) {
-          throw new Error(`Received transactions error: ${receivedResponse.error.message}`);
+        if (!receivedResponse.ok) {
+          throw new Error(`HTTP error on received transactions! status: ${receivedResponse.status}`);
         }
 
-        const sentTxs = sentResponse.result?.transfers || [];
-        const receivedTxs = receivedResponse.result?.transfers || [];
+        const [sentData, receivedData] = await Promise.all([
+          sentResponse.json(),
+          receivedResponse.json()
+        ]);
+        
+        console.log('Alchemy sent response:', sentData);
+        console.log('Alchemy received response:', receivedData);
+        
+        if (sentData.error) {
+          throw new Error(`Sent transactions error: ${sentData.error.message}`);
+        }
+        
+        if (receivedData.error) {
+          throw new Error(`Received transactions error: ${receivedData.error.message}`);
+        }
+
+        const sentTxs = sentData.result?.transfers || [];
+        const receivedTxs = receivedData.result?.transfers || [];
         
         console.log(`Found ${sentTxs.length} sent and ${receivedTxs.length} received transactions`);
         
@@ -559,41 +566,42 @@ export default function TokenTxHistory({ address, chainId, isConnected }) {
           ))
         )}
       </div>
-      {txs.length > perPage && (
+      
+      {totalPages > 1 && (
         <div className="flex justify-between items-center mt-4 text-sm">
           <div className="flex gap-2">
             <button
               onClick={() => setPage(1)}
               disabled={page === 1}
-              className="px-2 py-1 border rounded disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               First
             </button>
             <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-2 py-1 border rounded disabled:opacity-50"
+              className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               &lt;
             </button>
           </div>
 
           <div className="text-gray-700 dark:text-gray-300">
-            Page {page} / {Math.min(15, Math.ceil(txs.length / 4))}
+            Page {page} / {totalPages}
           </div>
 
           <div className="flex gap-2">
             <button
-              onClick={() => setPage((p) => Math.min(Math.ceil(txs.length / 4), p + 1))}
-              disabled={page * 4 >= Math.min(txs.length, 60)}
-              className="px-2 py-1 border rounded disabled:opacity-50"
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page >= totalPages}
+              className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               &gt;
             </button>
             <button
-              onClick={() => setPage(Math.min(15, Math.ceil(txs.length / 4)))}
-              disabled={page === Math.min(15, Math.ceil(txs.length / 4))}
-              className="px-2 py-1 border rounded disabled:opacity-50"
+              onClick={() => setPage(totalPages)}
+              disabled={page === totalPages}
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               Last
             </button>
