@@ -22,17 +22,49 @@ function AddressDisplay({ address, chainId, getExplorerBaseUrl, shortenAddress }
   );
 }
 
+function PlaceholderSvg({ className }) {
+  return (
+    <svg 
+      version="1.1" 
+      xmlns="http://www.w3.org/2000/svg" 
+      viewBox="0 0 360 360" 
+      className={className}
+    >
+      <path d="M0 0 C33.66 0 67.32 0 102 0 C102 10.89 102 21.78 102 33 C79.23 33 56.46 33 33 33 C33 44.55 33 56.1 33 68 C55.77 68 78.54 68 102 68 C102 79.22 102 90.44 102 102 C79.23 102 56.46 102 33 102 C33 124.44 33 146.88 33 170 C22.11 170 11.22 170 0 170 C0 113.9 0 57.8 0 0 Z " fill="currentColor" transform="translate(163,180)"/>
+      <path d="M0 0 C33.33 0 66.66 0 101 0 C101 10.89 101 21.78 101 33 C89.78 33 78.56 33 67 33 C67 78.21 67 123.42 67 170 C56.11 170 45.22 170 34 170 C34 124.79 34 79.58 34 33 C22.78 33 11.56 33 0 33 C0 22.11 0 11.22 0 0 Z " fill="currentColor" transform="translate(249,10)"/>
+      <path d="M0 0 C10.89 0 21.78 0 33 0 C33 56.1 33 112.2 33 170 C22.11 170 11.22 170 0 170 C0 147.56 0 125.12 0 102 C-11.22 102 -22.44 102 -34 102 C-34 90.78 -34 79.56 -34 68 C-22.78 68 -11.56 68 0 68 C0 45.56 0 23.12 0 0 Z " fill="currentColor" transform="translate(112,10)"/>
+      <path d="M0 0 C10.89 0 21.78 0 33 0 C33 11.22 33 22.44 33 34 C44.22 34 55.44 34 67 34 C67 45.22 67 56.44 67 68 C55.78 68 44.56 68 33 68 C33 101.66 33 135.32 33 170 C22.11 170 11.22 170 0 170 C0 113.9 0 57.8 0 0 Z " fill="currentColor" transform="translate(10,10)"/>
+    </svg>
+  );
+}
+
 function NftImage({ contractAddress, tokenId, cache }) {
-  const [imageUrl, setImageUrl] = useState('https://placehold.co/40');
+  // Initialize state with null instead of a placeholder URL
+  const [imageUrl, setImageUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchFailed, setFetchFailed] = useState(false);
   
   useEffect(() => {
+    // Reset state on prop change
+    setIsLoading(true);
+    setFetchFailed(false);
+    setImageUrl(null);
+
     const fetchMetadata = async () => {
-      if (!contractAddress || !tokenId) return;
+      if (!contractAddress || !tokenId) {
+        setIsLoading(false);
+        setFetchFailed(true);
+        return;
+      }
 
       const cacheKey = `${contractAddress}-${tokenId}`;
       if (cache.current.has(cacheKey)) {
-        setImageUrl(cache.current.get(cacheKey));
+        const cachedUrl = cache.current.get(cacheKey);
+        if (cachedUrl) {
+            setImageUrl(cachedUrl);
+        } else {
+            setFetchFailed(true);
+        }
         setIsLoading(false);
         return;
       }
@@ -46,7 +78,7 @@ function NftImage({ contractAddress, tokenId, cache }) {
         );
         const data = await res.json();
         
-        let finalImageUrl = 'https://placehold.co/40';
+        let finalImageUrl = null;
         const rawUrl = data.image?.originalUrl || data.image?.cachedUrl || data.image?.pngUrl || data.raw?.metadata?.image || '';
         
         if (typeof rawUrl === 'string' && rawUrl.trim() !== '') {
@@ -59,10 +91,16 @@ function NftImage({ contractAddress, tokenId, cache }) {
         }
         
         cache.current.set(cacheKey, finalImageUrl);
-        setImageUrl(finalImageUrl);
+
+        if (finalImageUrl) {
+            setImageUrl(finalImageUrl);
+        } else {
+            setFetchFailed(true);
+        }
 
       } catch (error) {
         console.error("Failed to fetch NFT metadata:", error);
+        setFetchFailed(true);
       } finally {
         setIsLoading(false);
       }
@@ -71,10 +109,19 @@ function NftImage({ contractAddress, tokenId, cache }) {
     fetchMetadata();
   }, [contractAddress, tokenId, cache]);
   
+  // Render a pulsing placeholder while loading
   if (isLoading) {
-    return <div className="w-10 h-10 rounded object-cover bg-gray-200 flex-shrink-0 animate-pulse" />;
+    return <div className="w-10 h-10 rounded object-cover bg-gray-200 dark:bg-gray-700 flex-shrink-0 animate-pulse" />;
   }
 
+  // If fetching failed or there's no image, render the dynamic SVG placeholder
+  if (fetchFailed || !imageUrl) {
+    return (
+        <PlaceholderSvg className="w-10 h-10 text-black dark:text-white" />
+    );
+  }
+
+  // Otherwise, render the actual image
   return (
     <img 
       src={imageUrl} 
