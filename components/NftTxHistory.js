@@ -117,7 +117,7 @@ function NftImage({ contractAddress, tokenId, cache }) {
   // If fetching failed or there's no image, render the dynamic SVG placeholder
   if (fetchFailed || !imageUrl) {
     return (
-        <PlaceholderSvg className="w-10 h-10 text-black dark:text-white" />
+        <PlaceholderSvg className="w-10 h-10 p-1 text-black dark:text-white border border-black dark:border-white" />
     );
   }
 
