@@ -28,7 +28,7 @@ export default function NFTViewer({
 
   // Collection details for reverse-genesis on Base
   const COLLECTION_SLUG = "reverse-genesis";
-  const COLLECTION_ADDRESS = "reverse-genesis"; // You'll need to provide the actual contract address
+  const COLLECTION_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47"; // You'll need to provide the actual contract address
   const CHAIN_ID = 8453; // Base network
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
