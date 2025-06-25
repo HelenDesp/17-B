@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
 
@@ -14,28 +14,7 @@ export default function NFTViewer({
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
-  const [scatterLoaded, setScatterLoaded] = useState(false);
-
-  // --- Load Scatter.js from CDN ---
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/@scatter/connect@1.0.8/dist/scatter.min.js";
-    script.async = true;
-    script.onload = () => {
-      console.log("Scatter.js loaded from CDN.");
-      setScatterLoaded(true);
-    };
-    script.onerror = () => {
-        console.error("Failed to load Scatter.js from CDN.");
-    }
-    document.body.appendChild(script);
-
-    // Cleanup script on component unmount
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []); // Empty dependency array ensures this runs only once on mount
-
+  const [isMinting, setIsMinting] = useState(false); // State for mint button loading
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -68,23 +47,49 @@ export default function NFTViewer({
     }
   };
 
-  // --- Scatter Minting Handler ---
+  // --- Scatter Minting Handler (Corrected to use Scatter API) ---
   const handleMint = async () => {
-    if (!scatterLoaded || typeof window.scatter === 'undefined') {
-        alert("Scatter is not loaded yet. Please try again in a moment.");
+    if (!address) {
+        alert("Please connect your wallet first.");
         return;
     }
 
+    setIsMinting(true);
     try {
-        // Access scatter from the global window object
-        await window.scatter.mint({
-            collectionAddress: '0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47', // Corrected ReVerse Genesis contract address
-            quantity: 1,
-        });
+        // According to Scatter API docs, we create a checkout session.
+        // We need the collection ID. The slug for the collection is 'reverse-genesis'.
+        // First, get collection details to find the ID.
+        const collectionRes = await axios.get("https://api.scatter.art/v1/collections/reverse-genesis");
+        const collectionId = collectionRes.data.id;
+
+        if (!collectionId) {
+            throw new Error("Could not retrieve collection ID.");
+        }
+
+        // Now, create the checkout session
+        const checkoutPayload = {
+            collectionId: collectionId,
+            mintInfo: {
+                quantity: 1,
+            },
+            recipientAddress: address,
+        };
+
+        const checkoutRes = await axios.post("https://api.scatter.art/v1/checkouts", checkoutPayload);
+        const { checkoutUrl } = checkoutRes.data;
+
+        if (checkoutUrl) {
+            // Redirect user to Scatter to complete the mint
+            window.location.href = checkoutUrl;
+        } else {
+            throw new Error("Could not create checkout session.");
+        }
+
     } catch (error) {
         console.error("Scatter minting error:", error);
-        // Using alert as it's consistent with existing error handling in the component
-        alert("An error occurred during minting. Please check your wallet and the console for more details.");
+        alert("An error occurred while preparing the mint. Please check the console for details.");
+    } finally {
+        setIsMinting(false);
     }
   };
 
@@ -116,10 +121,10 @@ export default function NFTViewer({
                     </p>
                     <button
                         onClick={handleMint}
-                        disabled={!scatterLoaded} // Disable button until script is loaded
+                        disabled={isMinting} // Disable button while creating checkout session
                         className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-md [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wider rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Mint Here
+                        {isMinting ? 'Preparing Mint...' : 'Mint Here'}
                     </button>
                 </div>
             </div>
