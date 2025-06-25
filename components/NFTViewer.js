@@ -255,7 +255,17 @@ function InviteList({ list, collection }) {
     // --- TanStack Mutation for the entire minting process ---
     const { mutate: mint, isPending } = useMutation({
         mutationFn: async (listId) => {
+            
+            // **NEW PRE-FLIGHT CHECK**
+            // This check verifies that your wagmi config file supports the required chain.
+            // This is the most common cause of the "wrong network fee" issue.
+            const isChainConfigured = config.chains.some(c => c.id === collection.chain_id);
+            if (!isChainConfigured) {
+                throw new Error(`Configuration Error: The required network (Chain ID: ${collection.chain_id}) is not configured in your project's wagmi config. Please add the 'base' chain to the config file.`);
+            }
+
             if (!isCorrectChain) {
+                // This error is a fallback, but the button should be disabled anyway.
                 throw new Error(`Please switch to the correct network (Chain ID: ${collection.chain_id})`);
             }
 
