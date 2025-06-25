@@ -108,11 +108,20 @@ export default function NFTViewer({
       alert("Please connect your wallet first.");
       return;
     }
+    
+    // **NEW**: PRE-FLIGHT CHECK
+    // Verify that the required chain is present in the project's wagmi configuration.
+    // This is the most common cause of "wrong network fee" errors.
+    const isChainConfigured = config.chains.some(c => c.id === CHAIN_ID);
+    if (!isChainConfigured) {
+        alert(`Configuration Error: The Base network (Chain ID: ${CHAIN_ID}) is not configured in your project. Please add 'base' to the chains array in your wagmi config file.`);
+        return;
+    }
 
     // If the user is on the wrong network, ask them to switch.
     // The minting logic will proceed only upon a successful switch via the onSuccess callback.
     if (chainId !== CHAIN_ID) {
-      switchChain({ chainId: CHAIN_ID, onSuccess: proceedToMint });
+      switchChain({ chainId: CHAIN_ID }, { onSuccess: proceedToMint });
     } else {
       // If the user is already on the correct network, proceed directly.
       proceedToMint();
