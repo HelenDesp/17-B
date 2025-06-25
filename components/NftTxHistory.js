@@ -298,6 +298,7 @@ export default function NftTxHistory({ address, chainId }) {
           ))
         )}
       </div>
+      </div>
       {txs.length > perPage && (
         <div className="flex justify-between items-center mt-4 text-sm">
           <div className="flex gap-2">
