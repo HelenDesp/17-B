@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
-import { useAccount } from "wagmi";
+import { useAccount, useSwitchChain } from "wagmi";
 import { sendTransaction, writeContract, readContract } from "wagmi/actions";
 import { erc20Abi, maxUint256 } from "viem";
 
@@ -16,6 +16,7 @@ export default function NFTViewer({
   onSelectNFT = () => {},
 }) {
   const { address, isConnected, chainId } = useAccount();
+  const { switchChain } = useSwitchChain();
   const [loading, setLoading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
@@ -35,18 +36,9 @@ export default function NFTViewer({
     // ... (rest of your existing handleSubmit logic)
   };
 
-  // --- Scatter Minting Handler (Corrected to use official Scatter API Flow) ---
-  const handleMint = async () => {
-    if (!address || !isConnected) {
-      alert("Please connect your wallet first.");
-      return;
-    }
-
-    if (chainId !== CHAIN_ID) {
-      alert(`Please switch to the correct network (Base Mainnet, Chain ID: ${CHAIN_ID}).`);
-      return;
-    }
-
+  // This function contains the actual minting logic.
+  // It will be called only when we are certain the user is on the correct network.
+  const proceedToMint = async () => {
     setIsMinting(true);
     try {
       // 1. Fetch eligible invite lists for the user
@@ -59,8 +51,6 @@ export default function NFTViewer({
         return;
       }
       
-      // For simplicity, we'll use the first eligible list.
-      // A more complex UI could let the user choose which list to mint from.
       const listToMint = eligibleLists[0];
 
       // 2. Get the mint transaction data from Scatter's API
@@ -73,7 +63,7 @@ export default function NFTViewer({
 
       const { mintTransaction, erc20s } = mintTxRes.data;
 
-      // 3. (Optional) Approve ERC20 tokens if required by the mint
+      // 3. (Optional) Approve ERC20 tokens if required
       if (erc20s && erc20s.length > 0) {
           for (const erc20 of erc20s) {
               const allowance = await readContract(config, {
@@ -95,7 +85,7 @@ export default function NFTViewer({
           }
       }
 
-      // 4. Send the final transaction using wagmi
+      // 4. Send the final transaction
       await sendTransaction(config, {
         to: mintTransaction.to,
         value: BigInt(mintTransaction.value),
@@ -109,6 +99,23 @@ export default function NFTViewer({
       alert(`Error: ${errorMessage}`);
     } finally {
       setIsMinting(false);
+    }
+  };
+
+  // --- Main handler for the "Mint Here" button ---
+  const handleMint = async () => {
+    if (!address || !isConnected) {
+      alert("Please connect your wallet first.");
+      return;
+    }
+
+    // If the user is on the wrong network, ask them to switch.
+    // The minting logic will proceed only upon a successful switch via the onSuccess callback.
+    if (chainId !== CHAIN_ID) {
+      switchChain({ chainId: CHAIN_ID, onSuccess: proceedToMint });
+    } else {
+      // If the user is already on the correct network, proceed directly.
+      proceedToMint();
     }
   };
 
