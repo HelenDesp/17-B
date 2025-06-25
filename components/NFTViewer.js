@@ -5,12 +5,10 @@ import { useAccount } from "wagmi";
 import { sendTransaction, writeContract, readContract } from "wagmi/actions";
 import { erc20Abi, maxUint256 } from "viem";
 
-// You must import your project's wagmi config file.
-// The path may be different in your project structure.
-// import { config } from "@/config";
-// For this example, we'll assume a config object is passed or available globally.
-// In a real app, ensure the config is properly imported and passed to wagmi actions.
-const wagmiConfig = {}; // Placeholder for your wagmi config
+// IMPORTANT: You must import your project's wagmi config file.
+// The path "@config" is a common convention but might be different in your project.
+// Please update the path to point to your actual wagmi config file.
+import { config } from "@/config";
 
 export default function NFTViewer({
   nfts,
@@ -78,14 +76,14 @@ export default function NFTViewer({
       // 3. (Optional) Approve ERC20 tokens if required by the mint
       if (erc20s && erc20s.length > 0) {
           for (const erc20 of erc20s) {
-              const allowance = await readContract(wagmiConfig, {
+              const allowance = await readContract(config, {
                   abi: erc20Abi,
                   address: erc20.address,
                   functionName: "allowance",
                   args: [address, COLLECTION_ADDRESS],
               });
               if (allowance < BigInt(erc20.amount)) {
-                  await writeContract(wagmiConfig, {
+                  await writeContract(config, {
                       abi: erc20Abi,
                       address: erc20.address,
                       functionName: "approve",
@@ -96,7 +94,7 @@ export default function NFTViewer({
       }
 
       // 4. Send the final transaction using wagmi
-      await sendTransaction(wagmiConfig, {
+      await sendTransaction(config, {
         to: mintTransaction.to,
         value: BigInt(mintTransaction.value),
         data: mintTransaction.data,
