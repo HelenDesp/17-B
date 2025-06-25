@@ -1,8 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
-import { scatter } from "@scatter/connect"; // Corrected Scatter import
 
 export default function NFTViewer({
   nfts,
@@ -15,6 +14,28 @@ export default function NFTViewer({
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
+  const [scatterLoaded, setScatterLoaded] = useState(false);
+
+  // --- Load Scatter.js from CDN ---
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/@scatter/connect@1.0.8/dist/scatter.min.js";
+    script.async = true;
+    script.onload = () => {
+      console.log("Scatter.js loaded from CDN.");
+      setScatterLoaded(true);
+    };
+    script.onerror = () => {
+        console.error("Failed to load Scatter.js from CDN.");
+    }
+    document.body.appendChild(script);
+
+    // Cleanup script on component unmount
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []); // Empty dependency array ensures this runs only once on mount
+
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -49,9 +70,14 @@ export default function NFTViewer({
 
   // --- Scatter Minting Handler ---
   const handleMint = async () => {
+    if (!scatterLoaded || typeof window.scatter === 'undefined') {
+        alert("Scatter is not loaded yet. Please try again in a moment.");
+        return;
+    }
+
     try {
-        // Initiates the minting process for the ReVerse Genesis collection
-        await scatter.mint({
+        // Access scatter from the global window object
+        await window.scatter.mint({
             collectionAddress: '0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47', // Corrected ReVerse Genesis contract address
             quantity: 1,
         });
@@ -90,7 +116,8 @@ export default function NFTViewer({
                     </p>
                     <button
                         onClick={handleMint}
-                        className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-md [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wider rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+                        disabled={!scatterLoaded} // Disable button until script is loaded
+                        className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-md [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wider rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Mint Here
                     </button>
