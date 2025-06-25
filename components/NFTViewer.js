@@ -2,7 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
-import { scatter } from "scatter-js"; // Import Scatter API
+import { scatter } from "@scatter/connect"; // Corrected Scatter import
 
 export default function NFTViewer({
   nfts,
@@ -52,7 +52,7 @@ export default function NFTViewer({
     try {
         // Initiates the minting process for the ReVerse Genesis collection
         await scatter.mint({
-            collectionAddress: '0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47', // ReVerse Genesis contract address
+            collectionAddress: '0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47', // Corrected ReVerse Genesis contract address
             quantity: 1,
         });
     } catch (error) {
