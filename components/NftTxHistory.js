@@ -38,153 +38,90 @@ function PlaceholderSvg({ className }) {
   );
 }
 
-// Optimized batch metadata fetcher
-const batchFetchNFTMetadata = async (nftRequests, chainId, cache) => {
-  const apiKey = "SLNvhiAdM71qDKy7veyeWn9ZD8XO11oY";
-  const ALCHEMY_URL = ALCHEMY_URLS[chainId] || ALCHEMY_URLS[8453];
-  const baseUrl = ALCHEMY_URL.replace('/v2/', '/nft/v3/');
-  
-  // Filter out already cached items
-  const uncachedRequests = nftRequests.filter(req => {
-    const cacheKey = `${req.contractAddress}-${req.tokenId}`;
-    return !cache.current.has(cacheKey);
-  });
-
-  if (uncachedRequests.length === 0) return;
-
-  // Batch requests in groups of 10 to avoid rate limits
-  const batchSize = 10;
-  const batches = [];
-  for (let i = 0; i < uncachedRequests.length; i += batchSize) {
-    batches.push(uncachedRequests.slice(i, i + batchSize));
-  }
-
-  for (const batch of batches) {
-    try {
-      // Use Promise.allSettled to handle individual failures gracefully
-      const promises = batch.map(async (req) => {
-        const decimalTokenId = parseInt(req.tokenId, 16);
-        const response = await fetch(
-          `${baseUrl}/getNFTMetadata?contractAddress=${req.contractAddress}&tokenId=${decimalTokenId}`,
-          { 
-            headers: { accept: "application/json" },
-            // Add timeout to prevent hanging requests
-            signal: AbortSignal.timeout(5000)
-          }
-        );
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        return { ...req, data };
-      });
-
-      const results = await Promise.allSettled(promises);
-      
-      results.forEach((result, index) => {
-        const req = batch[index];
-        const cacheKey = `${req.contractAddress}-${req.tokenId}`;
-        
-        if (result.status === 'fulfilled') {
-          const data = result.value.data;
-          
-          // Cache image URL
-          let imageUrl = null;
-          const rawUrl = data.image?.originalUrl || data.image?.cachedUrl || data.image?.pngUrl || data.raw?.metadata?.image || '';
-          
-          if (typeof rawUrl === 'string' && rawUrl.trim() !== '') {
-            const trimmedUrl = rawUrl.trim();
-            if (trimmedUrl.startsWith("ipfs://")) {
-              imageUrl = trimmedUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
-            } else if (trimmedUrl.startsWith("http")) {
-              imageUrl = trimmedUrl;
-            }
-          }
-          
-          // Cache name
-          const nftName = data.name || 
-                          data.title || 
-                          data.raw?.metadata?.name || 
-                          data.raw?.metadata?.title ||
-                          `${data.contract?.name || 'Unknown'} #${parseInt(req.tokenId, 16)}` ||
-                          "Unknown NFT";
-          
-          // Store both image and name in cache
-          cache.current.set(cacheKey, {
-            imageUrl,
-            name: nftName,
-            fetched: true
-          });
-        } else {
-          // Cache failure to avoid refetching
-          cache.current.set(cacheKey, {
-            imageUrl: null,
-            name: `Token #${parseInt(req.tokenId, 16)}`,
-            fetched: true,
-            error: true
-          });
-        }
-      });
-      
-      // Small delay between batches to be respectful to the API
-      if (batches.indexOf(batch) < batches.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    } catch (error) {
-      console.error("Batch fetch error:", error);
-      // Cache failures for this batch
-      batch.forEach(req => {
-        const cacheKey = `${req.contractAddress}-${req.tokenId}`;
-        cache.current.set(cacheKey, {
-          imageUrl: null,
-          name: `Token #${parseInt(req.tokenId, 16)}`,
-          fetched: true,
-          error: true
-        });
-      });
-    }
-  }
-};
-
-function NftImage({ contractAddress, tokenId, cache, onMetadataUpdate }) {
+function NftImage({ contractAddress, tokenId, cache }) {
+  // Initialize state with null instead of a placeholder URL
   const [imageUrl, setImageUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchFailed, setFetchFailed] = useState(false);
   
   useEffect(() => {
-    const cacheKey = `${contractAddress}-${tokenId}`;
-    const cachedData = cache.current.get(cacheKey);
-    
-    if (cachedData && cachedData.fetched) {
-      setImageUrl(cachedData.imageUrl);
-      setFetchFailed(cachedData.error || !cachedData.imageUrl);
-      setIsLoading(false);
-      
-      // Notify parent component about the metadata
-      if (onMetadataUpdate && cachedData.name) {
-        onMetadataUpdate(cachedData.name);
-      }
-      return;
-    }
-    
-    // If not cached, the parent component should handle batching
+    // Reset state on prop change
     setIsLoading(true);
     setFetchFailed(false);
     setImageUrl(null);
-  }, [contractAddress, tokenId, cache, onMetadataUpdate]);
+
+    const fetchMetadata = async () => {
+      if (!contractAddress || !tokenId) {
+        setIsLoading(false);
+        setFetchFailed(true);
+        return;
+      }
+
+      const cacheKey = `${contractAddress}-${tokenId}`;
+      if (cache.current.has(cacheKey)) {
+        const cachedUrl = cache.current.get(cacheKey);
+        if (cachedUrl) {
+            setImageUrl(cachedUrl);
+        } else {
+            setFetchFailed(true);
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const apiKey = "SLNvhiAdM71qDKy7veyeWn9ZD8XO11oY";
+        const decimalTokenId = parseInt(tokenId, 16);
+        const res = await fetch(
+          `https://base-mainnet.g.alchemy.com/nft/v3/${apiKey}/getNFTMetadata?contractAddress=${contractAddress}&tokenId=${decimalTokenId}`,
+          { headers: { accept: "application/json" } }
+        );
+        const data = await res.json();
+        
+        let finalImageUrl = null;
+        const rawUrl = data.image?.originalUrl || data.image?.cachedUrl || data.image?.pngUrl || data.raw?.metadata?.image || '';
+        
+        if (typeof rawUrl === 'string' && rawUrl.trim() !== '') {
+          const trimmedUrl = rawUrl.trim();
+          if (trimmedUrl.startsWith("ipfs://")) {
+            finalImageUrl = trimmedUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
+          } else if (trimmedUrl.startsWith("http")) {
+            finalImageUrl = trimmedUrl;
+          }
+        }
+        
+        cache.current.set(cacheKey, finalImageUrl);
+
+        if (finalImageUrl) {
+            setImageUrl(finalImageUrl);
+        } else {
+            setFetchFailed(true);
+        }
+
+      } catch (error) {
+        console.error("Failed to fetch NFT metadata:", error);
+        setFetchFailed(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMetadata();
+  }, [contractAddress, tokenId, cache]);
   
+  // Render a pulsing placeholder while loading
   if (isLoading) {
     return <div className="w-10 h-10 rounded object-cover bg-gray-200 dark:bg-gray-700 flex-shrink-0 animate-pulse" />;
   }
 
+  // If fetching failed or there's no image, render the dynamic SVG placeholder
   if (fetchFailed || !imageUrl) {
     return (
-      <PlaceholderSvg className="w-10 h-10 p-1 text-black dark:text-white border border-black dark:border-white" />
+        <PlaceholderSvg className="w-10 h-10 p-1 text-black dark:text-white border border-black dark:border-white" />
     );
   }
 
+  // Otherwise, render the actual image
   return (
     <img 
       src={imageUrl} 
@@ -194,20 +131,71 @@ function NftImage({ contractAddress, tokenId, cache, onMetadataUpdate }) {
   );
 }
 
-// Simplified NFT name component that uses cached data
-function NftName({ contractAddress, tokenId, cache, fallbackName }) {
+// New component to fetch and display NFT name
+function NftName({ contractAddress, tokenId, cache, chainId, fallbackName }) {
   const [nftName, setNftName] = useState(fallbackName || "Loading...");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const cacheKey = `${contractAddress}-${tokenId}`;
-    const cachedData = cache.current.get(cacheKey);
-    
-    if (cachedData && cachedData.fetched) {
-      setNftName(cachedData.name || fallbackName || "Unknown NFT");
-    } else {
-      setNftName(fallbackName || "Loading...");
-    }
-  }, [contractAddress, tokenId, cache, fallbackName]);
+    const fetchNftName = async () => {
+      if (!contractAddress || !tokenId) {
+        setNftName(fallbackName || "Unknown NFT");
+        setIsLoading(false);
+        return;
+      }
+
+      const cacheKey = `name-${contractAddress}-${tokenId}`;
+      if (cache.current.has(cacheKey)) {
+        const cachedName = cache.current.get(cacheKey);
+        setNftName(cachedName || fallbackName || "Unknown NFT");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Use the same API key as in the original component
+        const apiKey = "SLNvhiAdM71qDKy7veyeWn9ZD8XO11oY";
+        const decimalTokenId = parseInt(tokenId, 16);
+        
+        // Get the appropriate Alchemy URL for the chain
+        const ALCHEMY_URL = ALCHEMY_URLS[chainId] || ALCHEMY_URLS[8453]; // Default to Base
+        const baseUrl = ALCHEMY_URL.replace('/v2/', '/nft/v3/');
+        
+        const res = await fetch(
+          `${baseUrl}/getNFTMetadata?contractAddress=${contractAddress}&tokenId=${decimalTokenId}`,
+          { headers: { accept: "application/json" } }
+        );
+        
+        const data = await res.json();
+        
+        // Extract name from metadata - similar to NFTViewer.js logic
+        let nftName = data.name || 
+                     data.title || 
+                     data.raw?.metadata?.name || 
+                     data.raw?.metadata?.title ||
+                     `${data.contract?.name || 'Unknown'} #${decimalTokenId}` ||
+                     fallbackName ||
+                     "Unknown NFT";
+
+        cache.current.set(cacheKey, nftName);
+        setNftName(nftName);
+
+      } catch (error) {
+        console.error("Failed to fetch NFT name:", error);
+        const fallback = fallbackName || `Token #${parseInt(tokenId, 16)}`;
+        cache.current.set(cacheKey, fallback);
+        setNftName(fallback);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNftName();
+  }, [contractAddress, tokenId, chainId, fallbackName, cache]);
+
+  if (isLoading) {
+    return <span className="text-gray-500">Loading...</span>;
+  }
 
   return <span title={nftName}>{nftName}</span>;
 }
@@ -215,12 +203,11 @@ function NftName({ contractAddress, tokenId, cache, fallbackName }) {
 export default function NftTxHistory({ address, chainId }) {
   const [txs, setTxs] = useState([]);
   const [page, setPage] = useState(1);
-  const [metadataLoading, setMetadataLoading] = useState(false);
   const perPage = 4;
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   const { chain } = useAccount();
-  const metadataCache = useRef(new Map()); // Combined cache for both image and name
-  const [nftMetadata, setNftMetadata] = useState({}); // State to trigger re-renders
+  const imageUrlCache = useRef(new Map());
+  const nftNameCache = useRef(new Map()); // Add separate cache for names
 
   const getChainLabel = (chainId) => {
     switch (chainId) { case 1: return "Ethereum"; case 8453: return "Base"; case 137: return "Polygon"; case 42161: return "Arbitrum"; case 10: return "Optimism"; case 11155111: return "Sepolia"; case 56: return "BNB"; default: return "Base"; }
@@ -283,29 +270,8 @@ export default function NftTxHistory({ address, chainId }) {
             const sortedTxs = processedTxs.sort((a,b) => new Date(b.metadata.blockTimestamp) - new Date(a.metadata.blockTimestamp));
     
             setTxs(sortedTxs);
-            
-            // Batch fetch metadata for all unique NFTs
-            const uniqueNFTs = new Map();
-            sortedTxs.forEach(tx => {
-              const key = `${tx.rawContract.address}-${tx.tokenId}`;
-              if (!uniqueNFTs.has(key)) {
-                uniqueNFTs.set(key, {
-                  contractAddress: tx.rawContract.address,
-                  tokenId: tx.tokenId
-                });
-              }
-            });
-            
-            if (uniqueNFTs.size > 0) {
-              setMetadataLoading(true);
-              await batchFetchNFTMetadata(Array.from(uniqueNFTs.values()), chainId, metadataCache);
-              setMetadataLoading(false);
-              // Trigger re-render to show loaded metadata
-              setNftMetadata(prev => ({ ...prev, timestamp: Date.now() }));
-            }
         } catch (err) {
             console.error("Error fetching NFT transaction history:", err);
-            setMetadataLoading(false);
         }
     };
 
@@ -315,30 +281,7 @@ export default function NftTxHistory({ address, chainId }) {
 	const shortenAddress = (addr) => { if (!addr) return ""; return addr.slice(0, 6) + "..." + addr.slice(-4); }; 
 	const formatShortDate = (dateStr) => { const d = new Date(dateStr); return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + ", " + d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }); };
 	const [expandedIndexes, setExpandedIndexes] = useState({});
-  const paginated = txs.slice((page - 1) * perPage, page * perPage);
-
-  // Batch fetch metadata for currently visible items if not already cached
-  useEffect(() => {
-    if (paginated.length > 0) {
-      const visibleNFTs = paginated.map(tx => ({
-        contractAddress: tx.rawContract.address,
-        tokenId: tx.tokenId
-      }));
-      
-      const needsFetch = visibleNFTs.some(nft => {
-        const cacheKey = `${nft.contractAddress}-${nft.tokenId}`;
-        return !metadataCache.current.has(cacheKey);
-      });
-      
-      if (needsFetch && !metadataLoading) {
-        setMetadataLoading(true);
-        batchFetchNFTMetadata(visibleNFTs, chainId, metadataCache).then(() => {
-          setMetadataLoading(false);
-          setNftMetadata(prev => ({ ...prev, timestamp: Date.now() }));
-        });
-      }
-    }
-  }, [paginated, chainId, metadataLoading]);
+    const paginated = txs.slice((page - 1) * perPage, page * perPage);
 
   return (
     <div className="p-4 bg-white border-b2 dark:bg-dark-200 shadow">
@@ -360,7 +303,7 @@ export default function NftTxHistory({ address, chainId }) {
                 <NftImage 
                   contractAddress={tx.rawContract.address} 
                   tokenId={tx.tokenId} 
-                  cache={metadataCache}
+                  cache={imageUrlCache}
                 />
               </div>
 
@@ -388,7 +331,8 @@ export default function NftTxHistory({ address, chainId }) {
                     <NftName
                       contractAddress={tx.rawContract.address}
                       tokenId={tx.tokenId}
-                      cache={metadataCache}
+                      cache={nftNameCache}
+                      chainId={chainId}
                       fallbackName={`${tx.asset} #${parseInt(tx.tokenId, 16)}`}
                     />
                   </div>
