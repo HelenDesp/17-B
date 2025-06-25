@@ -81,6 +81,7 @@ export default function NFTViewer({
                   address: erc20.address,
                   functionName: "allowance",
                   args: [address, COLLECTION_ADDRESS],
+                  chainId: CHAIN_ID,
               });
               if (allowance < BigInt(erc20.amount)) {
                   await writeContract(config, {
@@ -88,6 +89,7 @@ export default function NFTViewer({
                       address: erc20.address,
                       functionName: "approve",
                       args: [COLLECTION_ADDRESS, maxUint256],
+                      chainId: CHAIN_ID,
                   });
               }
           }
@@ -98,6 +100,7 @@ export default function NFTViewer({
         to: mintTransaction.to,
         value: BigInt(mintTransaction.value),
         data: mintTransaction.data,
+        chainId: CHAIN_ID,
       });
 
     } catch (error) {
