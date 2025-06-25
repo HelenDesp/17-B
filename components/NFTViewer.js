@@ -28,7 +28,7 @@ export default function NFTViewer({
   // --- Collection Details ---
   const COLLECTION_SLUG = "reverse-genesis";
   const COLLECTION_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const CHAIN_ID = 1; // Assuming Ethereum Mainnet, as per the example
+  const CHAIN_ID = 8453; // Corrected Chain ID for Base Mainnet
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -45,7 +45,7 @@ export default function NFTViewer({
     }
 
     if (chainId !== CHAIN_ID) {
-      alert(`Please switch to the correct network (Ethereum Mainnet, Chain ID: ${CHAIN_ID}).`);
+      alert(`Please switch to the correct network (Base Mainnet, Chain ID: ${CHAIN_ID}).`);
       return;
     }
 
