@@ -225,12 +225,10 @@ export default function NftTxHistory({ address, chainId }) {
         ) : (
           paginated.map((tx, i) => (
             <div key={`${tx.hash}-${i}`} className="text-sm text-gray-200 dark:text-gray-100 border-b border-gray-200 dark:border-gray-100 pb-2">
-              {/* Row 1: Status and Icon */}
-              <div className="flex justify-between items-center">
-            {/* --- Main Flex Container --- */}
+            {/* --- Main Flex Container Starts Here --- */}
             <div className="flex items-center gap-3 w-full">
 
-              {/* Left Side: Image */}
+              {/* 1. The NftImage component is moved here to be on the left */}
               <div className="flex-shrink-0">
                 <NftImage 
                   contractAddress={tx.rawContract.address} 
@@ -239,9 +237,10 @@ export default function NftTxHistory({ address, chainId }) {
                 />
               </div>
 
-              {/* Right Side: Container for the two text rows */}
+              {/* 2. A new container holds the two text rows on the right */}
               <div className="flex-grow min-w-0">
-                {/* Row 1: Status and Icon */}
+
+                {/* Row 1: Status and Icon (Unchanged from your original) */}
                 <div className="flex justify-between items-center">
                   <div className="text-black dark:text-white"><strong>{tx._type}</strong></div>
                   <div className="flex items-center">
@@ -256,15 +255,15 @@ export default function NftTxHistory({ address, chainId }) {
                   </div>
                 </div>
 
-                {/* Row 2: Name and Date */}
+                {/* Row 2: Name and Date (The NftImage component is removed from here) */}
                 <div className="flex justify-between items-center text-sm mt-1">
                   <div className="text-black dark:text-white font-medium truncate" title={`${tx.asset} #${parseInt(tx.tokenId, 16)}`}>
                     {tx.asset} #{parseInt(tx.tokenId, 16)}
                   </div>
                   <div className="text-black dark:text-white">{formatShortDate(tx.metadata.blockTimestamp)}</div>
                 </div>
-              </div>
 
+              </div>
             </div>
 
               {/* Row 3: Explorer Link and Details Button */}
@@ -297,7 +296,6 @@ export default function NftTxHistory({ address, chainId }) {
             </div>
           ))
         )}
-      </div>
       </div>
       {txs.length > perPage && (
         <div className="flex justify-between items-center mt-4 text-sm">
