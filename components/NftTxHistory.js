@@ -276,7 +276,7 @@ export default function NftTxHistory({ address, chainId }) {
                 </div>
               )}
             </div>
-          )}
+          })
         )}
       </div>
       {txs.length > perPage && (
