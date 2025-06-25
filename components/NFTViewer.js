@@ -2,6 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
+import { scatter } from "scatter-js"; // Import Scatter API
 
 export default function NFTViewer({
   nfts,
@@ -46,6 +47,22 @@ export default function NFTViewer({
     }
   };
 
+  // --- Scatter Minting Handler ---
+  const handleMint = async () => {
+    try {
+        // Initiates the minting process for the ReVerse Genesis collection
+        await scatter.mint({
+            collectionAddress: '0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47', // ReVerse Genesis contract address
+            quantity: 1,
+        });
+    } catch (error) {
+        console.error("Scatter minting error:", error);
+        // Using alert as it's consistent with existing error handling in the component
+        alert("An error occurred during minting. Please check your wallet and the console for more details.");
+    }
+  };
+
+
   return (
     <>
       <div className="p-6 bg-white border-b2 dark:bg-gray-800 rounded-lg shadow-md">
@@ -56,7 +73,29 @@ export default function NFTViewer({
         {loading ? (
           <p className="text-gray-500 dark:text-white">Loading NFTs...</p>
         ) : nfts.length === 0 ? (
-          <p className="text-gray-500 dark:text-white">No NFTs found for this wallet.</p>
+           // --- This is the new section for when no NFTs are found ---
+           <div className="text-center text-gray-500 dark:text-white py-6">
+                <p>No NFTs found for this wallet.</p>
+                <div className="mt-4">
+                    <p className="mb-3">
+                        Don't have RVG NFTs? Mint from{" "}
+                        <a
+                            href="https://www.scatter.art/collection/reverse-genesis"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-blue-500 hover:text-blue-400"
+                        >
+                            scatter.art
+                        </a>, or you can mint directly below.
+                    </p>
+                    <button
+                        onClick={handleMint}
+                        className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-md [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wider rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+                    >
+                        Mint Here
+                    </button>
+                </div>
+            </div>
         ) : (
           <div className="nft-grid gap-4">
             {nfts.map((nft, i) => (
