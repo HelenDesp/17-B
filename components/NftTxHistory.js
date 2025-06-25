@@ -38,7 +38,7 @@ function PlaceholderSvg({ className }) {
   );
 }
 
-function NftImage({ contractAddress, tokenId, cache }) {
+function NftImage({ contractAddress, tokenId, cache, chainId, onNameLoaded = () => {} }) {
   // Initialize state with null instead of a placeholder URL
   const [imageUrl, setImageUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,21 +51,32 @@ function NftImage({ contractAddress, tokenId, cache }) {
     setImageUrl(null);
 
     const fetchMetadata = async () => {
-      if (!contractAddress || !tokenId) {
+      if (!contractAddress || !tokenId || !chainId) { // Check for chainId
         setIsLoading(false);
         setFetchFailed(true);
         return;
       }
 
-      const cacheKey = `${contractAddress}-${tokenId}`;
+      const cacheKey = `${chainId}-${contractAddress}-${tokenId}`; // Make cache key chain-specific
       if (cache.current.has(cacheKey)) {
-        const cachedUrl = cache.current.get(cacheKey);
-        if (cachedUrl) {
-            setImageUrl(cachedUrl);
+        const cachedData = cache.current.get(cacheKey);
+        if (cachedData.imageUrl) {
+            setImageUrl(cachedData.imageUrl);
         } else {
             setFetchFailed(true);
         }
+        if (cachedData.name) {
+          onNameLoaded(cachedData.name);
+        }
         setIsLoading(false);
+        return;
+      }
+
+      // FIX: Use the correct, dynamic URL for the current chain
+      const ALCHEMY_BASE_URL = ALCHEMY_URLS[chainId];
+      if (!ALCHEMY_BASE_URL) {
+        setIsLoading(false);
+        setFetchFailed(true);
         return;
       }
 
@@ -73,7 +84,7 @@ function NftImage({ contractAddress, tokenId, cache }) {
         const apiKey = "SLNvhiAdM71qDKy7veyeWn9ZD8XO11oY";
         const decimalTokenId = parseInt(tokenId, 16);
         const res = await fetch(
-          `https://base-mainnet.g.alchemy.com/nft/v3/${apiKey}/getNFTMetadata?contractAddress=${contractAddress}&tokenId=${decimalTokenId}`,
+          `${ALCHEMY_BASE_URL}/getNFTMetadata?contractAddress=${contractAddress}&tokenId=${decimalTokenId}`,
           { headers: { accept: "application/json" } }
         );
         const data = await res.json();
@@ -90,7 +101,14 @@ function NftImage({ contractAddress, tokenId, cache }) {
           }
         }
         
-        cache.current.set(cacheKey, finalImageUrl);
+        // FIX: Get the full collection name and send it to the parent component
+        const collectionName = data.collection?.name || data.contract?.name;
+        if (collectionName) {
+            onNameLoaded(collectionName);
+        }
+        
+        // Store both image and name in the cache
+        cache.current.set(cacheKey, { imageUrl: finalImageUrl, name: collectionName });
 
         if (finalImageUrl) {
             setImageUrl(finalImageUrl);
@@ -107,7 +125,7 @@ function NftImage({ contractAddress, tokenId, cache }) {
     };
 
     fetchMetadata();
-  }, [contractAddress, tokenId, cache]);
+  }, [contractAddress, tokenId, cache, chainId, onNameLoaded]);
   
   // Render a pulsing placeholder while loading
   if (isLoading) {
