@@ -2,7 +2,6 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
-// UPDATED: Added encodeFunctionData to the import
 import { erc20Abi, maxUint256, createPublicClient, http, encodeFunctionData } from "viem";
 import { base } from "viem/chains";
 
@@ -21,74 +20,40 @@ export default function NFTViewer({
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
   
-  // Mint-related state
   const [mintLoading, setMintLoading] = useState(false);
   const [inviteLists, setInviteLists] = useState([]);
   const [showMintModal, setShowMintModal] = useState(false);
   const [selectedInviteList, setSelectedInviteList] = useState(null);
   const [mintQuantity, setMintQuantity] = useState(1);
-  // ADDED: State to hold and display errors in the modal
   const [mintError, setMintError] = useState("");
 
-  // Collection details for reverse-genesis on Base
   const COLLECTION_SLUG = "reverse-genesis";
   const COLLECTION_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
   const CHAIN_ID = 8453; // Base network
 
-  // Create public client for Base network
   const client = createPublicClient({
     chain: base,
     transport: http()
   });
 
-  // REPLACED: New function for more accurate gas estimation on Base
-  const getBaseGasFee = async (transactionRequest = null) => {
+  // REPLACED: Simplified gas function to only provide the L2 priority fee.
+  // This lets the wallet and wagmi estimate the other gas parameters automatically,
+  // preventing conflicts and "insufficient funds" errors in MetaMask.
+  const getBaseGasFee = async () => {
     try {
-      // On L2s like Base, the priority fee can be extremely low.
-      // We set a nominal priority fee (1,000 wei) to ensure quick processing.
-      const maxPriorityFeePerGas = BigInt(1_000); // 1,000 wei = 0.000001 Gwei
+      // For L2s like Base, we only need to suggest a very small priority fee (the "tip").
+      // 1 Gwei is more than enough to ensure the transaction is processed quickly.
+      const maxPriorityFeePerGas = BigInt(1_000_000_000); // 1 Gwei
 
-      // viem's getGasPrice on L2s provides a good estimate that includes L1 security fees.
-      const suggestedGasPrice = await client.getGasPrice();
-      
-      // Set maxFeePerGas to be the suggested price plus our tiny priority fee.
-      // This ensures we slightly overbid the current price to get included.
-      const maxFeePerGas = suggestedGasPrice + maxPriorityFeePerGas;
+      console.log('Providing L2 Priority Fee:', { maxPriorityFeePerGas: maxPriorityFeePerGas.toString() });
 
-      const result = {
-        maxPriorityFeePerGas,
-        maxFeePerGas
-      };
-
-      // Estimate the gas limit (gas units) for the specific transaction
-      if (transactionRequest) {
-        try {
-          const gasLimit = await client.estimateGas(transactionRequest);
-          // Add a 20% buffer to the estimated gas limit for safety.
-          result.gas = (gasLimit * 12n) / 10n;
-        } catch (error) {
-          console.warn('Gas estimation failed; using a default limit:', error);
-          // Fallback to a safe, general limit for contract interactions if estimation fails.
-          result.gas = 300000n;
-        }
-      }
-
-      console.log('Revised Base Gas Estimation:', {
-        maxPriorityFeePerGas: result.maxPriorityFeePerGas.toString(),
-        maxFeePerGas: result.maxFeePerGas.toString(),
-        gas: result.gas?.toString()
-      });
-
-      return result;
+      // We only return this. The wallet will automatically calculate maxFeePerGas and the gas limit.
+      return { maxPriorityFeePerGas };
 
     } catch (error) {
-      console.error('Gas estimation error:', error);
-      // Fallback to safe, low values for Base network if the RPC fails.
-      return {
-        maxPriorityFeePerGas: BigInt(1_000),
-        maxFeePerGas: BigInt(10_000_000), // 0.01 Gwei, a safe upper bound
-        gas: 300000n
-      };
+      console.error('Gas fee suggestion failed:', error);
+      // If there's an issue, we re-throw to let the calling function handle it.
+      throw error;
     }
   };
 
@@ -123,11 +88,9 @@ export default function NFTViewer({
     }
   };
 
-  // UPDATED: fetchInviteLists now handles errors gracefully and always opens the modal
   const fetchInviteLists = async () => {
     setMintLoading(true);
-    setMintError(""); // Clear previous errors
-    // Reset lists to ensure clean state
+    setMintError("");
     setInviteLists([]); 
     
     try {
@@ -146,16 +109,13 @@ export default function NFTViewer({
       setMintError(error.message);
     } finally {
       setMintLoading(false);
-      // Always show the modal to display results or an error
       setShowMintModal(true);
     }
   };
 
-  // REPLACED: Updated approveErc20s function to use new gas logic
   const approveErc20s = async (erc20s) => {
     for (const erc20 of erc20s) {
       try {
-        // Check current allowance
         const allowanceResponse = await fetch("/api/check-allowance", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -170,19 +130,8 @@ export default function NFTViewer({
         const { allowance } = await allowanceResponse.json();
         
         if (BigInt(allowance) < BigInt(erc20.amount)) {
-          // Prepare transaction request for gas estimation
-          const txRequest = {
-            to: erc20.address,
-            data: encodeFunctionData({
-              abi: erc20Abi,
-              functionName: "approve",
-              args: [COLLECTION_ADDRESS, maxUint256],
-            }),
-            from: address,
-          };
-          
-          // Get gas estimation including gas limit
-          const gasConfig = await getBaseGasFee(txRequest);
+          // Get the L2-specific priority fee.
+          const gasConfig = await getBaseGasFee();
           
           await writeContractAsync({
             abi: erc20Abi,
@@ -195,14 +144,12 @@ export default function NFTViewer({
         }
       } catch (error) {
         console.error("Error approving ERC20:", error);
-        throw error; // Rethrow to be caught by executeMint
+        throw error;
       }
     }
   };
 
-  // REPLACED: Updated executeMint function to use new gas logic and error handling
   const executeMint = async () => {
-    // Clear previous errors before starting
     setMintError("");
 
     if (!selectedInviteList) {
@@ -217,7 +164,6 @@ export default function NFTViewer({
     try {
       setMintLoading(true);
 
-      // Get mint transaction from Scatter API
       const response = await fetch("https://api.scatter.art/v1/mint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -235,19 +181,18 @@ export default function NFTViewer({
         throw new Error(mintData.error || "Failed to generate mint transaction");
       }
 
-      // Approve ERC20s if needed
       if (mintData.erc20s && mintData.erc20s.length > 0) {
         await approveErc20s(mintData.erc20s);
       }
 
-      // Prepare mint transaction for gas estimation
       const { to, value, data } = mintData.mintTransaction;
-      const mintTxRequest = { to, value: BigInt(value), data, from: address };
-
-      // Get proper gas estimation for the mint transaction
-      const gasConfig = await getBaseGasFee(mintTxRequest);
       
-      // Send the mint transaction with proper gas settings
+      // Get the L2-specific priority fee. The wallet will handle the rest.
+      const gasConfig = await getBaseGasFee();
+      
+      // The `sendTransactionAsync` function will now automatically estimate the gas limit.
+      // If it fails (e.g., due to insufficient funds for the mint *value*), it will throw an error
+      // which we catch below, providing a clear message to the user.
       await sendTransactionAsync({
         to,
         value: BigInt(value),
@@ -366,7 +311,6 @@ export default function NFTViewer({
               </button>
               <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">MINT REVERSE GENESIS NFT</h3>
               
-              {/* UPDATED: Logic to display error, loading, or content */}
               {mintLoading && !mintError ? (
                 <div className="text-center py-4 text-gray-600 dark:text-gray-400">Loading options...</div>
               ) : mintError ? (
@@ -409,7 +353,7 @@ export default function NFTViewer({
                           }`}
                           onClick={() => {
                             setSelectedInviteList(list);
-                            setMintError(""); // Clear error on selection
+                            setMintError("");
                           }}
                         >
                           <div className="text-sm font-medium text-gray-800 dark:text-white">
