@@ -27,6 +27,8 @@ export default function NFTViewer({
   const [showMintModal, setShowMintModal] = useState(false);
   const [selectedInviteList, setSelectedInviteList] = useState(null);
   const [mintQuantity, setMintQuantity] = useState(1);
+  // ADDED: State to hold and display errors in the modal
+  const [mintError, setMintError] = useState("");
 
   // Collection details for reverse-genesis on Base
   const COLLECTION_SLUG = "reverse-genesis";
@@ -150,22 +152,31 @@ export default function NFTViewer({
     }
   };
 
+  // UPDATED: fetchInviteLists now handles errors gracefully and always opens the modal
   const fetchInviteLists = async () => {
+    setMintLoading(true);
+    setMintError(""); // Clear previous errors
+    // Reset lists to ensure clean state
+    setInviteLists([]); 
+    
     try {
-      setMintLoading(true);
       const response = await fetch(
         `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists${
           address ? `?walletAddress=${address}` : ""
         }`
       );
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch mint options from API.");
+      }
       setInviteLists(data);
-      setShowMintModal(true);
     } catch (error) {
       console.error("Error fetching invite lists:", error);
-      alert("Failed to fetch mint options. Please try again.");
+      setMintError(error.message);
     } finally {
       setMintLoading(false);
+      // Always show the modal to display results or an error
+      setShowMintModal(true);
     }
   };
 
@@ -213,14 +224,24 @@ export default function NFTViewer({
         }
       } catch (error) {
         console.error("Error approving ERC20:", error);
-        throw error;
+        throw error; // Rethrow to be caught by executeMint
       }
     }
   };
 
-  // REPLACED: Updated executeMint function to use new gas logic
+  // REPLACED: Updated executeMint function to use new gas logic and error handling
   const executeMint = async () => {
-    if (!selectedInviteList || !address) return;
+    // Clear previous errors before starting
+    setMintError("");
+
+    if (!selectedInviteList) {
+        setMintError("Please select a mint option first.");
+        return;
+    }
+    if (!address) {
+        setMintError("Please connect your wallet to mint.");
+        return;
+    }
 
     try {
       setMintLoading(true);
@@ -228,9 +249,7 @@ export default function NFTViewer({
       // Get mint transaction from Scatter API
       const response = await fetch("https://api.scatter.art/v1/mint", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           collectionAddress: COLLECTION_ADDRESS,
           chainId: CHAIN_ID,
@@ -252,12 +271,7 @@ export default function NFTViewer({
 
       // Prepare mint transaction for gas estimation
       const { to, value, data } = mintData.mintTransaction;
-      const mintTxRequest = {
-        to,
-        value: BigInt(value),
-        data,
-        from: address,
-      };
+      const mintTxRequest = { to, value: BigInt(value), data, from: address };
 
       // Get proper gas estimation for the mint transaction
       const gasConfig = await getBaseGasFee(mintTxRequest);
@@ -276,10 +290,8 @@ export default function NFTViewer({
       
     } catch (error) {
       console.error("Mint error:", error);
-      // Avoid using alert() for better user experience in modern apps
-      // Consider using a toast notification library or an on-screen error message
-      // For now, logging the specific error message is better
-      console.error(`Failed to mint NFT: ${error.message}`);
+      const friendlyError = error.shortMessage || error.message || "An unknown error occurred during minting.";
+      setMintError(friendlyError);
     } finally {
       setMintLoading(false);
     }
@@ -382,7 +394,22 @@ export default function NFTViewer({
                 <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
               </button>
               <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">MINT REVERSE GENESIS NFT</h3>
-              {inviteLists.length === 0 ? (
+              
+              {/* UPDATED: Logic to display error, loading, or content */}
+              {mintLoading && !mintError ? (
+                <div className="text-center py-4 text-gray-600 dark:text-gray-400">Loading options...</div>
+              ) : mintError ? (
+                <div className="text-center py-4">
+                  <p className="text-red-500 dark:text-red-400 mb-4 font-semibold">Error</p>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 break-words">{mintError}</p>
+                   <button
+                    onClick={() => setShowMintModal(false)}
+                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+                  >
+                    CLOSE
+                  </button>
+                </div>
+              ) : inviteLists.length === 0 ? (
                 <div className="text-center py-4">
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
                     No mint options available for your wallet at this time.
@@ -409,7 +436,10 @@ export default function NFTViewer({
                               ? "border-gray-900 dark:border-white bg-gray-100 dark:bg-gray-700"
                               : "border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400"
                           }`}
-                          onClick={() => setSelectedInviteList(list)}
+                          onClick={() => {
+                            setSelectedInviteList(list);
+                            setMintError(""); // Clear error on selection
+                          }}
                         >
                           <div className="text-sm font-medium text-gray-800 dark:text-white">
                             {list.name}
