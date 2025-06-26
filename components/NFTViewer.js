@@ -42,8 +42,9 @@ export default function NFTViewer({
   const getBaseGasFee = async () => {
     try {
       // For L2s like Base, we only need to suggest a very small priority fee (the "tip").
-      // 1 Gwei is more than enough to ensure the transaction is processed quickly.
-      const maxPriorityFeePerGas = BigInt(1_000_000_000); // 1 Gwei
+      // A value of 1,000 wei (0.000001 Gwei) is sufficient for fast processing on Base
+      // without causing wallet alerts about high fees.
+      const maxPriorityFeePerGas = BigInt(1000); // 1,000 wei
 
       console.log('Providing L2 Priority Fee:', { maxPriorityFeePerGas: maxPriorityFeePerGas.toString() });
 
