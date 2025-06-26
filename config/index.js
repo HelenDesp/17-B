@@ -41,19 +41,6 @@ export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
   projectId,
   networks,
-  // ADD THIS BLOCK:
-  // This explicitly tells wagmi how to connect to each network,
-  // ensuring the correct L2 fee logic is used for Base.
-  transports: {
-    [mainnet.id]: http(),
-    [base.id]: http(),
-    [sepolia.id]: http(),
-    [polygon.id]: http(),
-    [optimism.id]: http(),
-    [arbitrum.id]: http(),
-    [holesky.id]: http(),
-    [bsc.id]: http(),
-  },
 });
 
 export const config = wagmiAdapter.wagmiConfig;
