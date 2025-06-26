@@ -1,4 +1,4 @@
-import { cookieStorage, createStorage, http } from "@wagmi/core";
+import { http, createStorage, cookieStorage } from "wagmi";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import {
   mainnet,
@@ -33,6 +33,14 @@ export const networks = [
   bsc,
 ];
 
+// Create a mapping of network IDs to transports
+// This ensures your app uses reliable RPC endpoints for each chain
+const transports = {};
+networks.forEach(network => {
+  transports[network.id] = http();
+});
+
+
 // Set up the Wagmi Adapter (Config)
 export const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
@@ -41,6 +49,8 @@ export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
   projectId,
   networks,
+  // ADD THIS LINE: Explicitly define the transport for each network
+  transports,
 });
 
 export const config = wagmiAdapter.wagmiConfig;
