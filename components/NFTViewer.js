@@ -36,27 +36,9 @@ export default function NFTViewer({
     transport: http()
   });
 
-  // REPLACED: Simplified gas function to only provide the L2 priority fee.
-  // This lets the wallet and wagmi estimate the other gas parameters automatically,
-  // preventing conflicts and "insufficient funds" errors in MetaMask.
-  const getBaseGasFee = async () => {
-    try {
-      // For L2s like Base, we only need to suggest a very small priority fee (the "tip").
-      // A value of 1,000 wei (0.000001 Gwei) is sufficient for fast processing on Base
-      // without causing wallet alerts about high fees.
-      const maxPriorityFeePerGas = BigInt(1000); // 1,000 wei
-
-      console.log('Providing L2 Priority Fee:', { maxPriorityFeePerGas: maxPriorityFeePerGas.toString() });
-
-      // We only return this. The wallet will automatically calculate maxFeePerGas and the gas limit.
-      return { maxPriorityFeePerGas };
-
-    } catch (error) {
-      console.error('Gas fee suggestion failed:', error);
-      // If there's an issue, we re-throw to let the calling function handle it.
-      throw error;
-    }
-  };
+  // REMOVED: The getBaseGasFee function has been removed.
+  // We will let wagmi/viem and the wallet handle gas estimation automatically,
+  // which is the correct and most reliable approach for L2 networks like Base.
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -131,16 +113,13 @@ export default function NFTViewer({
         const { allowance } = await allowanceResponse.json();
         
         if (BigInt(allowance) < BigInt(erc20.amount)) {
-          // Get the L2-specific priority fee.
-          const gasConfig = await getBaseGasFee();
-          
+          // UPDATED: No manual gas config is passed.
           await writeContractAsync({
             abi: erc20Abi,
             address: erc20.address,
             functionName: "approve",
             args: [COLLECTION_ADDRESS, maxUint256],
             chainId: CHAIN_ID,
-            ...gasConfig
           });
         }
       } catch (error) {
@@ -188,18 +167,14 @@ export default function NFTViewer({
 
       const { to, value, data } = mintData.mintTransaction;
       
-      // Get the L2-specific priority fee. The wallet will handle the rest.
-      const gasConfig = await getBaseGasFee();
-      
-      // The `sendTransactionAsync` function will now automatically estimate the gas limit.
-      // If it fails (e.g., due to insufficient funds for the mint *value*), it will throw an error
-      // which we catch below, providing a clear message to the user.
+      // UPDATED: No manual gas config is passed.
+      // wagmi will now correctly estimate all required fees for Base network.
+      // This will resolve the "insufficient funds" and high fee warnings in MetaMask.
       await sendTransactionAsync({
         to,
         value: BigInt(value),
         data,
         chainId: CHAIN_ID,
-        ...gasConfig
       });
 
       setShowMintModal(false);
