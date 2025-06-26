@@ -51,26 +51,26 @@ export default function NFTViewer({
       // Get gas price suggestion from the network
       const gasPrice = await client.getGasPrice();
       
-      // For EIP-1559 transactions on Base, we need proper fee calculation
-      let maxPriorityFeePerGas;
-      let maxFeePerGas;
-      
+      // This object will hold the final gas configuration.
+      const result = {};
+
       if (baseFeePerGas > 0n) {
         // EIP-1559 transaction
         // Use a small priority fee (e.g., 1 gwei) which is typical for Base
-        maxPriorityFeePerGas = BigInt(Math.max(1_000_000_000, Number(gasPrice) / 10)); // At least 1 gwei
+        const maxPriorityFeePerGas = BigInt(Math.max(1_000_000_000, Number(gasPrice) / 10)); // At least 1 gwei
         
         // Max fee should be base fee + priority fee with some buffer (1.2x multiplier)
-        maxFeePerGas = (baseFeePerGas * 12n) / 10n + maxPriorityFeePerGas;
+        let maxFeePerGas = (baseFeePerGas * 12n) / 10n + maxPriorityFeePerGas;
         
         // Ensure maxFeePerGas is not lower than current gas price
         if (maxFeePerGas < gasPrice) {
           maxFeePerGas = gasPrice;
         }
+        result.maxPriorityFeePerGas = maxPriorityFeePerGas;
+        result.maxFeePerGas = maxFeePerGas;
       } else {
         // Legacy transaction or network doesn't support EIP-1559
-        maxFeePerGas = gasPrice;
-        maxPriorityFeePerGas = gasPrice;
+        result.gasPrice = gasPrice;
       }
       
       // Optional: Estimate gas limit if transaction request is provided
@@ -87,35 +87,22 @@ export default function NFTViewer({
         }
       }
       
-      console.log('Base gas estimation:', {
-        baseFeePerGas: baseFeePerGas.toString(),
-        maxPriorityFeePerGas: maxPriorityFeePerGas.toString(),
-        maxFeePerGas: maxFeePerGas.toString(),
-        gasPrice: gasPrice.toString(),
-        gasLimit: gasLimit?.toString()
-      });
-      
-      const result = { 
-        maxPriorityFeePerGas, 
-        maxFeePerGas,
-        gasPrice // Include legacy gas price as fallback
-      };
-      
       if (gasLimit) {
         result.gas = gasLimit;
       }
+      
+      console.log('Base gas estimation:', result);
       
       return result;
       
     } catch (error) {
       console.error('Gas estimation error:', error);
       
-      // Fallback to a reasonable default for Base network
+      // Fallback to a reasonable default for Base network (EIP-1559)
       const fallbackGasPrice = BigInt(1_000_000_000); // 1 gwei
       return {
         maxPriorityFeePerGas: fallbackGasPrice,
         maxFeePerGas: fallbackGasPrice * 2n, // 2 gwei max
-        gasPrice: fallbackGasPrice,
         gas: 300000n // Default gas limit
       };
     }
