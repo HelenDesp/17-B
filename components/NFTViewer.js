@@ -1,18 +1,18 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
-import { useAccount, useSendTransaction, useWriteContract, useSwitchChain } from "wagmi";
-import { erc20Abi, maxUint256 } from "viem";
+import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
+import { erc20Abi, maxUint256, createPublicClient, http } from "viem";
+import { base } from "viem/chains";
 
 export default function NFTViewer({
   nfts,
   selectedNFTs = [],
   onSelectNFT = () => {},
 }) {
-  const { address, isConnected, chainId } = useAccount();
-  const { sendTransaction } = useSendTransaction();
-  const { writeContract } = useWriteContract();
-  const { switchChain } = useSwitchChain();
+  const { address, isConnected } = useAccount();
+  const { sendTransactionAsync } = useSendTransaction();
+  const { writeContractAsync } = useWriteContract();
   
   const [loading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
@@ -31,7 +31,21 @@ export default function NFTViewer({
   const COLLECTION_SLUG = "reverse-genesis";
   const COLLECTION_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
   const CHAIN_ID = 8453; // Base network
-  const CHAIN_NAME = "Base";
+
+  // Create public client for Base network
+  const client = createPublicClient({
+    chain: base,
+    transport: http()
+  });
+
+  // Get low gas fee for Base network (same as nftTransfer.js)
+  const getLowGasFee = async () => {
+    const block = await client.getBlock();
+    const baseFeePerGas = block.baseFeePerGas ?? 0n;
+    const maxPriorityFeePerGas = 1_000_000n; // 0.000001 gwei
+    const maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas;
+    return { maxPriorityFeePerGas, maxFeePerGas };
+  };
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -64,30 +78,8 @@ export default function NFTViewer({
     }
   };
 
-  // Check if user is on the correct network
-  const isOnCorrectNetwork = () => {
-    return chainId === CHAIN_ID;
-  };
-
-  // Switch to Base network
-  const switchToBaseNetwork = async () => {
-    try {
-      await switchChain({ chainId: CHAIN_ID });
-      return true;
-    } catch (error) {
-      console.error("Error switching network:", error);
-      alert(`Please switch to ${CHAIN_NAME} network in your wallet to continue.`);
-      return false;
-    }
-  };
-
   // Fetch eligible invite lists
   const fetchInviteLists = async () => {
-    if (!isOnCorrectNetwork()) {
-      const switched = await switchToBaseNetwork();
-      if (!switched) return;
-    }
-
     try {
       setMintLoading(true);
       const response = await fetch(
@@ -108,6 +100,8 @@ export default function NFTViewer({
 
   // Approve ERC20 tokens if needed
   const approveErc20s = async (erc20s) => {
+    const gas = await getLowGasFee();
+    
     for (const erc20 of erc20s) {
       try {
         // Check current allowance
@@ -125,12 +119,13 @@ export default function NFTViewer({
         const { allowance } = await allowanceResponse.json();
         
         if (BigInt(allowance) < BigInt(erc20.amount)) {
-          await writeContract({
+          await writeContractAsync({
             abi: erc20Abi,
             address: erc20.address,
             functionName: "approve",
             args: [COLLECTION_ADDRESS, maxUint256],
             chainId: CHAIN_ID,
+            ...gas
           });
         }
       } catch (error) {
@@ -143,12 +138,6 @@ export default function NFTViewer({
   // Execute the mint
   const executeMint = async () => {
     if (!selectedInviteList || !address) return;
-
-    // Ensure user is on the correct network
-    if (!isOnCorrectNetwork()) {
-      const switched = await switchToBaseNetwork();
-      if (!switched) return;
-    }
 
     try {
       setMintLoading(true);
@@ -178,33 +167,26 @@ export default function NFTViewer({
         await approveErc20s(mintData.erc20s);
       }
 
-      // Send the mint transaction
+      // Get Base network gas configuration
+      const gas = await getLowGasFee();
+
+      // Send the mint transaction with proper gas settings
       const { to, value, data } = mintData.mintTransaction;
       
-      const txHash = await sendTransaction({
+      await sendTransactionAsync({
         to,
         value: BigInt(value),
         data,
         chainId: CHAIN_ID,
+        ...gas
       });
-
-      // Wait for transaction confirmation (optional)
-      console.log("Transaction sent:", txHash);
 
       setShowMintModal(false);
       setShowThankYou(true);
       
     } catch (error) {
       console.error("Mint error:", error);
-      
-      // More specific error messages
-      if (error.message.includes("User rejected")) {
-        alert("Transaction was cancelled by user.");
-      } else if (error.message.includes("insufficient funds")) {
-        alert("Insufficient funds to complete the transaction.");
-      } else {
-        alert(`Failed to mint NFT: ${error.message}`);
-      }
+      alert(`Failed to mint NFT: ${error.message}`);
     } finally {
       setMintLoading(false);
     }
@@ -217,22 +199,6 @@ export default function NFTViewer({
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.
         </p>
-        
-        {/* Network status indicator */}
-        {isConnected && !isOnCorrectNetwork() && (
-          <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900 border border-yellow-300 dark:border-yellow-700 rounded">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              ⚠️ Please switch to {CHAIN_NAME} network to mint NFTs.
-              <button 
-                onClick={switchToBaseNetwork}
-                className="ml-2 underline hover:no-underline"
-              >
-                Switch Network
-              </button>
-            </p>
-          </div>
-        )}
-
         {loading ? (
           <p className="text-gray-500 dark:text-white">Loading NFTs...</p>
         ) : nfts.length === 0 ? (
@@ -241,10 +207,10 @@ export default function NFTViewer({
             {isConnected && (
               <button
                 onClick={fetchInviteLists}
-                disabled={mintLoading || !isOnCorrectNetwork()}
+                disabled={mintLoading}
                 className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {mintLoading ? "Loading..." : `Mint ReVerse Genesis NFT${!isOnCorrectNetwork() ? ` (Switch to ${CHAIN_NAME})` : ""}`}
+                {mintLoading ? "Loading..." : "Mint ReVerse Genesis NFT"}
               </button>
             )}
           </div>
@@ -339,15 +305,6 @@ export default function NFTViewer({
               
               <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">MINT REVERSE GENESIS NFT</h3>
               
-              {/* Network warning in mint modal */}
-              {!isOnCorrectNetwork() && (
-                <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700 rounded">
-                  <p className="text-sm text-red-800 dark:text-red-200">
-                    ⚠️ Wrong network! Please switch to {CHAIN_NAME} to mint.
-                  </p>
-                </div>
-              )}
-              
               {inviteLists.length === 0 ? (
                 <div className="text-center py-4">
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
@@ -412,10 +369,10 @@ export default function NFTViewer({
                   <div className="flex justify-between mt-6 space-x-4">
                     <button
                       onClick={executeMint}
-                      disabled={!selectedInviteList || mintLoading || !isOnCorrectNetwork()}
+                      disabled={!selectedInviteList || mintLoading}
                       className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {mintLoading ? "MINTING..." : !isOnCorrectNetwork() ? `SWITCH TO ${CHAIN_NAME}` : "MINT NFT"}
+                      {mintLoading ? "MINTING..." : "MINT NFT"}
                     </button>
                     <button
                       onClick={() => setShowMintModal(false)}
