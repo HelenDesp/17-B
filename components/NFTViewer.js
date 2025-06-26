@@ -38,13 +38,39 @@ export default function NFTViewer({
     transport: http()
   });
 
-  // Get low gas fee for Base network (same as nftTransfer.js)
-  const getLowGasFee = async () => {
-    const block = await client.getBlock();
-    const baseFeePerGas = block.baseFeePerGas ?? 0n;
-    const maxPriorityFeePerGas = 1_000_000n; // 0.000001 gwei
-    const maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas;
-    return { maxPriorityFeePerGas, maxFeePerGas };
+  // Optimized gas fee calculation for Base network
+  const getOptimizedGasFee = async () => {
+    try {
+      const block = await client.getBlock();
+      const baseFeePerGas = block.baseFeePerGas ?? 1000000n; // 0.001 gwei fallback
+      
+      // Much lower priority fee for Base (Base is cheaper than mainnet)
+      const maxPriorityFeePerGas = 100000n; // 0.0001 gwei (very low)
+      
+      // Keep total fee reasonable
+      const maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas;
+      
+      console.log('Gas settings:', {
+        baseFeePerGas: baseFeePerGas.toString(),
+        maxPriorityFeePerGas: maxPriorityFeePerGas.toString(),
+        maxFeePerGas: maxFeePerGas.toString()
+      });
+      
+      return { 
+        maxPriorityFeePerGas, 
+        maxFeePerGas,
+        // Add gas limit for better control
+        gas: 200000n // Standard limit for most operations
+      };
+    } catch (error) {
+      console.error('Error getting gas fee:', error);
+      // Fallback to very conservative values
+      return {
+        maxPriorityFeePerGas: 100000n, // 0.0001 gwei
+        maxFeePerGas: 1100000n, // 0.0011 gwei
+        gas: 200000n
+      };
+    }
   };
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
@@ -98,9 +124,9 @@ export default function NFTViewer({
     }
   };
 
-  // Approve ERC20 tokens if needed
+  // Approve ERC20 tokens with optimized gas
   const approveErc20s = async (erc20s) => {
-    const gas = await getLowGasFee();
+    const gasConfig = await getOptimizedGasFee();
     
     for (const erc20 of erc20s) {
       try {
@@ -119,13 +145,15 @@ export default function NFTViewer({
         const { allowance } = await allowanceResponse.json();
         
         if (BigInt(allowance) < BigInt(erc20.amount)) {
+          console.log('Approving ERC20 with gas config:', gasConfig);
+          
           await writeContractAsync({
             abi: erc20Abi,
             address: erc20.address,
             functionName: "approve",
             args: [COLLECTION_ADDRESS, maxUint256],
             chainId: CHAIN_ID,
-            ...gas
+            ...gasConfig
           });
         }
       } catch (error) {
@@ -135,7 +163,7 @@ export default function NFTViewer({
     }
   };
 
-  // Execute the mint
+  // Execute the mint with optimized gas
   const executeMint = async () => {
     if (!selectedInviteList || !address) return;
 
@@ -167,26 +195,37 @@ export default function NFTViewer({
         await approveErc20s(mintData.erc20s);
       }
 
-      // Get Base network gas configuration
-      const gas = await getLowGasFee();
+      // Get optimized Base network gas configuration
+      const gasConfig = await getOptimizedGasFee();
+      console.log('Mint transaction gas config:', gasConfig);
 
-      // Send the mint transaction with proper gas settings
+      // Send the mint transaction with optimized gas settings
       const { to, value, data } = mintData.mintTransaction;
       
-      await sendTransactionAsync({
+      const txHash = await sendTransactionAsync({
         to,
         value: BigInt(value),
         data,
         chainId: CHAIN_ID,
-        ...gas
+        ...gasConfig
       });
 
+      console.log('Mint transaction sent:', txHash);
+      
       setShowMintModal(false);
       setShowThankYou(true);
       
     } catch (error) {
       console.error("Mint error:", error);
-      alert(`Failed to mint NFT: ${error.message}`);
+      
+      // More specific error handling
+      if (error.message?.includes('insufficient funds')) {
+        alert('Insufficient ETH balance. Please ensure you have enough ETH for gas fees.');
+      } else if (error.message?.includes('gas')) {
+        alert('Transaction failed due to gas estimation. Please try again.');
+      } else {
+        alert(`Failed to mint NFT: ${error.message}`);
+      }
     } finally {
       setMintLoading(false);
     }
@@ -493,7 +532,7 @@ export default function NFTViewer({
             >
               CLOSE
             </button>
-          </div>
+            </div>
         </div>
       )}
     </>
