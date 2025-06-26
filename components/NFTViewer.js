@@ -2,7 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
-import { erc20Abi, maxUint256, createPublicClient, http } from "viem";
+import { erc20Abi, maxUint256, createPublicClient, http, encodeFunctionData } from "viem";
 import { base } from "viem/chains";
 
 export default function NFTViewer({
@@ -38,13 +38,85 @@ export default function NFTViewer({
     transport: http()
   });
 
-  // Get low gas fee for Base network (same as nftTransfer.js)
-  const getLowGasFee = async () => {
-    const block = await client.getBlock();
-    const baseFeePerGas = block.baseFeePerGas ?? 0n;
-    const maxPriorityFeePerGas = 1_000_000n; // 0.000001 gwei
-    const maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas;
-    return { maxPriorityFeePerGas, maxFeePerGas };
+  // Get optimal gas fee for Base network with proper estimation
+  const getBaseGasFee = async (transactionRequest = null) => {
+    try {
+      // Get the latest block to understand current network conditions
+      const block = await client.getBlock({ blockTag: 'latest' });
+      const baseFeePerGas = block.baseFeePerGas || 0n;
+      
+      // Base network typically has very low fees, but we need to be more dynamic
+      // Get gas price suggestion from the network
+      const gasPrice = await client.getGasPrice();
+      
+      // For EIP-1559 transactions on Base, we need proper fee calculation
+      // Base has low congestion, so we can use a small multiplier
+      let maxPriorityFeePerGas;
+      let maxFeePerGas;
+      
+      if (baseFeePerGas > 0n) {
+        // EIP-1559 transaction
+        // Use a small priority fee (1-10 gwei) which is typical for Base
+        maxPriorityFeePerGas = BigInt(Math.max(1_000_000_000, Number(gasPrice) / 10)); // At least 1 gwei
+        
+        // Max fee should be base fee + priority fee with some buffer (1.2x multiplier)
+        maxFeePerGas = (baseFeePerGas * 12n) / 10n + maxPriorityFeePerGas;
+        
+        // Ensure maxFeePerGas is not lower than current gas price
+        if (maxFeePerGas < gasPrice) {
+          maxFeePerGas = gasPrice;
+        }
+      } else {
+        // Legacy transaction or network doesn't support EIP-1559
+        maxFeePerGas = gasPrice;
+        maxPriorityFeePerGas = gasPrice;
+      }
+      
+      // Optional: Estimate gas limit if transaction request is provided
+      let gasLimit;
+      if (transactionRequest) {
+        try {
+          gasLimit = await client.estimateGas(transactionRequest);
+          // Add 20% buffer to gas limit
+          gasLimit = (gasLimit * 12n) / 10n;
+        } catch (error) {
+          console.warn('Gas estimation failed, using default:', error);
+          gasLimit = 21000n; // Default for simple transfer
+        }
+      }
+      
+      console.log('Base gas estimation:', {
+        baseFeePerGas: baseFeePerGas.toString(),
+        maxPriorityFeePerGas: maxPriorityFeePerGas.toString(),
+        maxFeePerGas: maxFeePerGas.toString(),
+        gasPrice: gasPrice.toString(),
+        gasLimit: gasLimit?.toString()
+      });
+      
+      const result = { 
+        maxPriorityFeePerGas, 
+        maxFeePerGas,
+        gasPrice // Include legacy gas price as fallback
+      };
+      
+      if (gasLimit) {
+        result.gas = gasLimit;
+      }
+      
+      return result;
+      
+    } catch (error) {
+      console.error('Gas estimation error:', error);
+      
+      // Fallback to a reasonable default for Base network
+      const fallbackGasPrice = BigInt(1_000_000_000); // 1 gwei
+      return {
+        maxPriorityFeePerGas: fallbackGasPrice,
+        maxFeePerGas: fallbackGasPrice * 2n, // 2 gwei max
+        gasPrice: fallbackGasPrice,
+        gas: 21000n // Default gas limit
+      };
+    }
   };
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
@@ -98,10 +170,8 @@ export default function NFTViewer({
     }
   };
 
-  // Approve ERC20 tokens if needed
+  // Updated approveErc20s function with improved gas estimation
   const approveErc20s = async (erc20s) => {
-    const gas = await getLowGasFee();
-    
     for (const erc20 of erc20s) {
       try {
         // Check current allowance
@@ -119,13 +189,27 @@ export default function NFTViewer({
         const { allowance } = await allowanceResponse.json();
         
         if (BigInt(allowance) < BigInt(erc20.amount)) {
+          // Prepare transaction request for gas estimation
+          const txRequest = {
+            to: erc20.address,
+            data: encodeFunctionData({
+              abi: erc20Abi,
+              functionName: "approve",
+              args: [COLLECTION_ADDRESS, maxUint256],
+            }),
+            from: address,
+          };
+          
+          // Get gas estimation including gas limit
+          const gasConfig = await getBaseGasFee(txRequest);
+          
           await writeContractAsync({
             abi: erc20Abi,
             address: erc20.address,
             functionName: "approve",
             args: [COLLECTION_ADDRESS, maxUint256],
             chainId: CHAIN_ID,
-            ...gas
+            ...gasConfig
           });
         }
       } catch (error) {
@@ -135,7 +219,7 @@ export default function NFTViewer({
     }
   };
 
-  // Execute the mint
+  // Updated executeMint function with improved gas estimation
   const executeMint = async () => {
     if (!selectedInviteList || !address) return;
 
@@ -167,18 +251,25 @@ export default function NFTViewer({
         await approveErc20s(mintData.erc20s);
       }
 
-      // Get Base network gas configuration
-      const gas = await getLowGasFee();
-
-      // Send the mint transaction with proper gas settings
+      // Prepare mint transaction for gas estimation
       const { to, value, data } = mintData.mintTransaction;
+      const mintTxRequest = {
+        to,
+        value: BigInt(value),
+        data,
+        from: address,
+      };
+
+      // Get proper gas estimation for the mint transaction
+      const gasConfig = await getBaseGasFee(mintTxRequest);
       
+      // Send the mint transaction with proper gas settings
       await sendTransactionAsync({
         to,
         value: BigInt(value),
         data,
         chainId: CHAIN_ID,
-        ...gas
+        ...gasConfig
       });
 
       setShowMintModal(false);
