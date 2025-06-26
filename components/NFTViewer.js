@@ -44,66 +44,50 @@ export default function NFTViewer({
   // REPLACED: New function for more accurate gas estimation on Base
   const getBaseGasFee = async (transactionRequest = null) => {
     try {
-      // Get the latest block to understand current network conditions
-      const block = await client.getBlock({ blockTag: 'latest' });
-      const baseFeePerGas = block.baseFeePerGas || 0n;
-      
-      // Get gas price suggestion from the network
-      const gasPrice = await client.getGasPrice();
-      
-      // This object will hold the final gas configuration.
-      const result = {};
+      // On L2s like Base, the priority fee can be extremely low.
+      // We set a nominal priority fee (1,000 wei) to ensure quick processing.
+      const maxPriorityFeePerGas = BigInt(1_000); // 1,000 wei = 0.000001 Gwei
 
-      if (baseFeePerGas > 0n) {
-        // EIP-1559 transaction
-        // Use a small priority fee (e.g., 1 gwei) which is typical for Base
-        const maxPriorityFeePerGas = BigInt(Math.max(1_000_000_000, Number(gasPrice) / 10)); // At least 1 gwei
-        
-        // Max fee should be base fee + priority fee with some buffer (1.2x multiplier)
-        let maxFeePerGas = (baseFeePerGas * 12n) / 10n + maxPriorityFeePerGas;
-        
-        // Ensure maxFeePerGas is not lower than current gas price
-        if (maxFeePerGas < gasPrice) {
-          maxFeePerGas = gasPrice;
-        }
-        result.maxPriorityFeePerGas = maxPriorityFeePerGas;
-        result.maxFeePerGas = maxFeePerGas;
-      } else {
-        // Legacy transaction or network doesn't support EIP-1559
-        result.gasPrice = gasPrice;
-      }
+      // viem's getGasPrice on L2s provides a good estimate that includes L1 security fees.
+      const suggestedGasPrice = await client.getGasPrice();
       
-      // Optional: Estimate gas limit if transaction request is provided
-      let gasLimit;
+      // Set maxFeePerGas to be the suggested price plus our tiny priority fee.
+      // This ensures we slightly overbid the current price to get included.
+      const maxFeePerGas = suggestedGasPrice + maxPriorityFeePerGas;
+
+      const result = {
+        maxPriorityFeePerGas,
+        maxFeePerGas
+      };
+
+      // Estimate the gas limit (gas units) for the specific transaction
       if (transactionRequest) {
         try {
-          gasLimit = await client.estimateGas(transactionRequest);
-          // Add 20% buffer to gas limit
-          gasLimit = (gasLimit * 12n) / 10n;
+          const gasLimit = await client.estimateGas(transactionRequest);
+          // Add a 20% buffer to the estimated gas limit for safety.
+          result.gas = (gasLimit * 12n) / 10n;
         } catch (error) {
-          console.warn('Gas estimation failed, using default:', error);
-          // Fallback to a generous default for contract interactions
-          gasLimit = 300000n; 
+          console.warn('Gas estimation failed; using a default limit:', error);
+          // Fallback to a safe, general limit for contract interactions if estimation fails.
+          result.gas = 300000n;
         }
       }
-      
-      if (gasLimit) {
-        result.gas = gasLimit;
-      }
-      
-      console.log('Base gas estimation:', result);
-      
+
+      console.log('Revised Base Gas Estimation:', {
+        maxPriorityFeePerGas: result.maxPriorityFeePerGas.toString(),
+        maxFeePerGas: result.maxFeePerGas.toString(),
+        gas: result.gas?.toString()
+      });
+
       return result;
-      
+
     } catch (error) {
       console.error('Gas estimation error:', error);
-      
-      // Fallback to a reasonable default for Base network (EIP-1559)
-      const fallbackGasPrice = BigInt(1_000_000_000); // 1 gwei
+      // Fallback to safe, low values for Base network if the RPC fails.
       return {
-        maxPriorityFeePerGas: fallbackGasPrice,
-        maxFeePerGas: fallbackGasPrice * 2n, // 2 gwei max
-        gas: 300000n // Default gas limit
+        maxPriorityFeePerGas: BigInt(1_000),
+        maxFeePerGas: BigInt(10_000_000), // 0.01 Gwei, a safe upper bound
+        gas: 300000n
       };
     }
   };
