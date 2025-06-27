@@ -29,7 +29,6 @@ export default function NFTViewer({
 
   const COLLECTION_SLUG = "reverse-genesis";
   const COLLECTION_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  // REMOVED: The CHAIN_ID constant is no longer needed here.
   // We will rely on the wagmi provider's connected chain.
 
   const client = createPublicClient({
@@ -37,7 +36,7 @@ export default function NFTViewer({
     transport: http()
   });
 
-  // REMOVED: All manual gas functions. We let wagmi handle estimation.
+  // Let wagmi/viem and the wallet handle gas estimation automatically.
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -105,7 +104,6 @@ export default function NFTViewer({
             tokenAddress: erc20.address,
             owner: address,
             spender: COLLECTION_ADDRESS,
-            // Pass the chain ID to the API, but not the transaction hook.
             chainId: base.id, 
           }),
         });
@@ -113,7 +111,7 @@ export default function NFTViewer({
         const { allowance } = await allowanceResponse.json();
         
         if (BigInt(allowance) < BigInt(erc20.amount)) {
-          // UPDATED: Removed `chainId`. `wagmi` will use the wallet's connected chain.
+          // Rely on wagmi to handle chain context
           await writeContractAsync({
             abi: erc20Abi,
             address: erc20.address,
@@ -148,7 +146,6 @@ export default function NFTViewer({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           collectionAddress: COLLECTION_ADDRESS,
-          // Pass the chain ID to the API, but not the transaction hook.
           chainId: base.id,
           minterAddress: address,
           lists: [{ id: selectedInviteList.id, quantity: mintQuantity }],
@@ -158,7 +155,7 @@ export default function NFTViewer({
       const mintData = await response.json();
 
       if (!response.ok) {
-        throw new Error(mintData.error || "Failed to generate mint transaction");
+        throw new Error(`API Error: ${mintData.error || "Failed to get mint data"}`);
       }
       
       if (!mintData.mintTransaction || !mintData.mintTransaction.to || !mintData.mintTransaction.data) {
@@ -171,8 +168,7 @@ export default function NFTViewer({
 
       const { to, value, data } = mintData.mintTransaction;
       
-      // UPDATED: Removed `chainId`. This is the key change.
-      // wagmi will now correctly estimate all required fees for the wallet's connected chain (Base).
+      // wagmi will now correctly estimate all fees and the wallet's connected chain.
       await sendTransactionAsync({
         to,
         value: BigInt(value),
@@ -183,8 +179,25 @@ export default function NFTViewer({
       setShowThankYou(true);
       
     } catch (error) {
-      console.error("Mint error:", error);
-      const friendlyError = error.shortMessage || error.message || "An unknown error occurred during minting.";
+      // UPDATED: More robust error handling to find the true cause of failure.
+      console.error("MINT FAILED:", error);
+      let friendlyError = "An unknown error occurred. Please check the console for details.";
+
+      // Dig into the error object to find the most specific message.
+      if (error.cause && typeof error.cause.shortMessage === 'string') {
+        friendlyError = error.cause.shortMessage;
+      } else if (typeof error.shortMessage === 'string') {
+        friendlyError = error.shortMessage;
+      } else if (error.message) {
+        friendlyError = error.message;
+      }
+      
+      // Provide a more helpful message for the common "gas estimation" failure,
+      // which usually hides the real contract revert reason.
+      if (friendlyError.includes("gas required exceeds allowance") || friendlyError.includes("execution reverted")) {
+        friendlyError = "The transaction is predicted to fail. This may be because you are not eligible for this mint (e.g., not on the allowlist), the mint is not active, or you have reached your minting limit. Please verify the collection's requirements.";
+      }
+
       setMintError(friendlyError);
     } finally {
       setMintLoading(false);
