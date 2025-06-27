@@ -7,8 +7,8 @@ import "../styles/globals.css";
 // and the necessary providers from one central place.
 import { config, queryClient } from '../config'; // Ensure this path is correct
 import { QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider } from "wagmi";
-import { cookieToInitialState } from "wagmi/cookie";
+// UPDATED: 'cookieToInitialState' is now a top-level export from 'wagmi'
+import { WagmiProvider, cookieToInitialState } from "wagmi";
 import Layout from "../components/Layout"; // Assuming Layout.js is in /components
 
 function MyApp({ Component, pageProps }) {
@@ -22,9 +22,20 @@ function MyApp({ Component, pageProps }) {
   // For cookie handling in pages router
   const [cookieString, setCookieString] = useState(null);
   useEffect(() => {
-    setCookieString(document.cookie);
+    // This hook should only run on the client side where document is available
+    if (typeof window !== 'undefined') {
+      setCookieString(document.cookie);
+    }
   }, []);
-  const initialState = cookieToInitialState(config, cookieString);
+  
+  // The initialState should also be computed on the client
+  const [initialState, setInitialState] = useState(undefined);
+  useEffect(() => {
+    if (cookieString !== null) {
+      setInitialState(cookieToInitialState(config, cookieString));
+    }
+  }, [cookieString]);
+
 
   if (!mounted) {
     // Render nothing on the server to avoid SSR issues.
