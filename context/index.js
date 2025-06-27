@@ -1,20 +1,64 @@
-// This file is likely located at something like `providers/ContextProvider.js` or `pages/_app.js`
-
-// Import everything from your new, central config file
-import { config, queryClient } from "../config"; // Adjust the path if your config file is elsewhere
-import { QueryClientProvider } from "@tanstack/react-query";
+import { wagmiAdapter, projectId } from "../config";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createAppKit } from "@reown/appkit/react";
+import {
+  mainnet,
+  base,
+  sepolia,
+  polygon,
+  optimism,
+  arbitrum,
+  bsc,
+} from "@reown/appkit/networks";
 import React from "react";
 import { cookieToInitialState, WagmiProvider } from "wagmi";
 
-// This component is now much simpler. It only 'provides' the context.
+// Set up queryClient
+const queryClient = new QueryClient();
+
+// Set up metadata
+const metadata = {
+  name: "Web3 Wallet App",
+  description: "A simple dApp for transferring tokens and viewing balances",
+  url: "https://web3-wallet-app.com",
+  icons: ["https://example.com/icon.png"],
+};
+
+// Create the modal
+export const modal = createAppKit({
+  adapters: [wagmiAdapter],
+  projectId,
+  networks: [mainnet, base, sepolia, polygon, optimism, arbitrum, bsc],
+  defaultNetwork: base,
+  metadata: metadata,
+  features: {
+    analytics: true,
+  },
+  themeMode: "auto",
+themeVariables: {
+  "--w3m-accent": "#7F7F7F",
+  "--w3m-font-family": "'Cygnito Mono', sans-serif",
+
+  // ✅ Fix the accent glass background and text color
+  "--wui-color-accent-glass-010": "#ffffff", // light background for light theme
+  "--wui-color-accent-100": "#000000",       // text color for light theme
+
+  "--wui-color-accent-glass-010-dark": "#000000", // dark background for dark theme
+  "--wui-color-accent-100-dark": "#ffffff",       // text color for dark theme
+}
+});
+
 function ContextProvider({ children, cookies }) {
-  // Handle cookies for Server-Side Rendering (SSR)
+  // In pages router, we need to handle cookies differently
   const initialState = cookies
-    ? cookieToInitialState(config, cookies)
+    ? cookieToInitialState(wagmiAdapter.wagmiConfig, cookies)
     : undefined;
 
   return (
-    <WagmiProvider config={config} initialState={initialState}>
+    <WagmiProvider
+      config={wagmiAdapter.wagmiConfig}
+      initialState={initialState}
+    >
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );
