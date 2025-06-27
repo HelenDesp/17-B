@@ -2,6 +2,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
+// UPDATED: Added useQuery for proper data fetching
+import { useQuery } from "@tanstack/react-query";
 // UPDATED: Added formatEther for better error messages
 import { erc20Abi, maxUint256, createPublicClient, http, encodeFunctionData, formatEther } from "viem";
 import { base } from "viem/chains";
@@ -21,23 +23,41 @@ export default function NFTViewer({
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
   
-  const [mintLoading, setMintLoading] = useState(false);
-  const [inviteLists, setInviteLists] = useState([]);
+  // State for the minting modal and user selections
   const [showMintModal, setShowMintModal] = useState(false);
   const [selectedInviteList, setSelectedInviteList] = useState(null);
   const [mintQuantity, setMintQuantity] = useState(1);
-  const [mintError, setMintError] = useState("");
+  const [executeMintError, setExecuteMintError] = useState("");
+  const [isMinting, setIsMinting] = useState(false);
 
   const COLLECTION_SLUG = "reverse-genesis";
   const COLLECTION_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  // We will rely on the wagmi provider's connected chain.
 
-  const client = createPublicClient({
-    chain: base,
-    transport: http()
+  // --- REFACTORED DATA FETCHING ---
+  // This `useQuery` hook automatically fetches invite lists when the modal is opened
+  // and re-fetches if the user's address changes. This is the correct pattern.
+  const { 
+    data: inviteLists, 
+    isPending: isInviteListsPending, 
+    error: inviteListsError 
+  } = useQuery({
+    // The query will only run when `showMintModal` and `address` are true.
+    enabled: showMintModal && !!address,
+    // The query key includes the user's address, so it automatically refetches
+    // if the address changes while the modal is open.
+    queryKey: ["eligibleInviteLists", COLLECTION_SLUG, address],
+    queryFn: async () => {
+      // The `enabled` flag ensures address is available here.
+      const response = await fetch(
+        `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists?walletAddress=${address}`
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch mint options.");
+      }
+      return data;
+    },
   });
-
-  // Let wagmi/viem and the wallet handle gas estimation automatically.
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -46,11 +66,9 @@ export default function NFTViewer({
     if (!formData.name.trim()) {
       setNameError("Name is required.");
       return;
-    } else {
-      setNameError("");
     }
     try {
-      await axios.post("https://reversegenesis.org/edata/meta.php", {
+      await axios.post("https://reversegenesis.org/edata/meta.php", { 
         original: selectedNFT.name,
         owner: address,
         name: formData.name,
@@ -61,45 +79,8 @@ export default function NFTViewer({
       setSelectedNFT(null);
       setShowThankYou(true);
     } catch (error) {
-      if (error.response?.status === 400 && error.response.data?.error === "Name is required.") {
-        setNameError("Name is required.");
-      } else {
         console.error("Submission error:", error);
-        alert("Failed to submit form. Please try again.");
-      }
-    }
-  };
-
-  // UPDATED: This function now explicitly checks for the address
-  // to prevent a race condition where the API is called before the address is available.
-  const fetchInviteLists = async () => {
-    // This guard is the key fix. It ensures we don't proceed without an address.
-    if (!address) {
-      setMintError("Could not get wallet address. Please try reconnecting.");
-      setShowMintModal(true);
-      return;
-    }
-
-    setMintLoading(true);
-    setMintError("");
-    setInviteLists([]); 
-    
-    try {
-      // Now the URL will always include the walletAddress parameter correctly.
-      const response = await fetch(
-        `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists?walletAddress=${address}`
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch mint options from API.");
-      }
-      setInviteLists(data);
-    } catch (error) {
-      console.error("Error fetching invite lists:", error);
-      setMintError(error.message);
-    } finally {
-      setMintLoading(false);
-      setShowMintModal(true);
+        alert("Failed to submit form.");
     }
   };
 
@@ -107,20 +88,18 @@ export default function NFTViewer({
     for (const erc20 of erc20s) {
       try {
         const allowanceResponse = await fetch("/api/check-allowance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tokenAddress: erc20.address,
-            owner: address,
-            spender: COLLECTION_ADDRESS,
-            chainId: base.id, 
-          }),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              tokenAddress: erc20.address,
+              owner: address,
+              spender: COLLECTION_ADDRESS,
+              chainId: base.id, 
+            }),
         });
-        
         const { allowance } = await allowanceResponse.json();
         
         if (BigInt(allowance) < BigInt(erc20.amount)) {
-          // Rely on wagmi to handle chain context
           await writeContractAsync({
             abi: erc20Abi,
             address: erc20.address,
@@ -136,20 +115,19 @@ export default function NFTViewer({
   };
 
   const executeMint = async () => {
-    setMintError("");
+    setExecuteMintError("");
 
     if (!selectedInviteList) {
-        setMintError("Please select a mint option first.");
+        setExecuteMintError("Please select a mint option first.");
         return;
     }
     if (!address) {
-        setMintError("Please connect your wallet to mint.");
+        setExecuteMintError("Please connect your wallet to mint.");
         return;
     }
 
     try {
-      setMintLoading(true);
-
+      setIsMinting(true);
       const response = await fetch("https://api.scatter.art/v1/mint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -162,53 +140,30 @@ export default function NFTViewer({
       });
 
       const mintData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${mintData.error || "Failed to get mint data"}`);
-      }
-      
-      if (!mintData.mintTransaction || !mintData.mintTransaction.to || !mintData.mintTransaction.data) {
-        throw new Error("Invalid transaction data received from the API.");
-      }
-
-      if (mintData.erc20s && mintData.erc20s.length > 0) {
-        await approveErc20s(mintData.erc20s);
-      }
+      if (!response.ok) { throw new Error(mintData.error || "Failed to get mint data"); }
+      if (!mintData.mintTransaction) { throw new Error("Invalid transaction data from API."); }
+      if (mintData.erc20s?.length > 0) { await approveErc20s(mintData.erc20s); }
 
       const { to, value, data } = mintData.mintTransaction;
-      
-      await sendTransactionAsync({
-        to,
-        value: BigInt(value),
-        data,
-      });
-
-      setShowModal(false);
+      await sendTransactionAsync({ to, value: BigInt(value), data });
+      setShowMintModal(false);
       setShowThankYou(true);
       
     } catch (error) {
-      // UPDATED: This error handling is now much more specific.
       console.error("MINT FAILED:", error);
-      let friendlyError = "An unknown error occurred. Please check the console for details.";
-
-      // Dig into the error object to find the most specific message.
-      const cause = error.cause || {};
-      const shortMessage = cause.shortMessage || error.shortMessage || error.message || "";
-      
+      let friendlyError = "An unknown error occurred. Please check the console.";
+      const shortMessage = error.cause?.shortMessage || error.shortMessage || error.message || "";
       if (shortMessage.includes("insufficient funds")) {
-          // This is the most important case, based on your Trust Wallet error.
           const requiredValue = selectedInviteList?.token_price ? parseFloat(selectedInviteList.token_price) * mintQuantity : 0;
-          friendlyError = `Insufficient funds. Your wallet reported that you do not have enough ETH to pay for the mint price of ${requiredValue.toFixed(4)} ETH plus network fees. Please add funds to your wallet and try again.`;
-      } else if (shortMessage.includes("gas required exceeds allowance") || shortMessage.includes("execution reverted")) {
-        friendlyError = "The transaction is predicted to fail. This may be because you are not eligible for this mint (e.g., not on the allowlist), the mint is not active, or you have reached your minting limit. Please verify the collection's requirements.";
+          friendlyError = `Insufficient funds. Your wallet reported that you do not have enough ETH to pay for the mint price of ${requiredValue.toFixed(4)} ETH plus network fees.`;
+      } else if (shortMessage.includes("execution reverted")) {
+        friendlyError = "The transaction is predicted to fail. This may be because you are not eligible for this mint, the mint is not active, or you have reached your minting limit.";
       } else {
-        // Fallback for any other errors.
         friendlyError = shortMessage;
       }
-      
-      setMintError(friendlyError);
+      setExecuteMintError(friendlyError);
     } finally {
-      setMintLoading(false);
+      setIsMinting(false);
     }
   };
 
@@ -220,17 +175,17 @@ export default function NFTViewer({
           View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.
         </p>
         {loading ? (
-          <p className="text-gray-500 dark:text-white">Loading NFTs...</p>
+          <p>Loading NFTs...</p>
         ) : nfts.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-white mb-6">No NFTs found for this wallet.</p>
+            <p className="mb-6">No NFTs found for this wallet.</p>
             {isConnected && (
               <button
-                onClick={fetchInviteLists}
-                disabled={mintLoading}
-                className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
+                // UPDATED: This now simply opens the modal. The useQuery hook handles the fetching.
+                onClick={() => setShowMintModal(true)}
+                className="px-6 py-2 border-2 border-gray-900 dark:border-white text-sm"
               >
-                {mintLoading ? "Loading..." : "Mint ReVerse Genesis NFT"}
+                Mint ReVerse Genesis NFT
               </button>
             )}
           </div>
@@ -297,112 +252,63 @@ export default function NFTViewer({
 
       {/* ===== MINT MODAL ===== */}
       {showMintModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" />
-          <div className="relative z-[10000] flex items-center justify-center min-h-screen w-full px-4 py-10">
-            <div className="relative bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
-              <button
-                className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
-                onClick={() => setShowMintModal(false)}
-                aria-label="Close"
-              >
-                <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
-              </button>
-              <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">MINT REVERSE GENESIS NFT</h3>
-              
-              {mintLoading && !mintError ? (
-                <div className="text-center py-4 text-gray-600 dark:text-gray-400">Loading options...</div>
-              ) : mintError ? (
-                <div className="text-center py-4">
-                  <p className="text-red-500 dark:text-red-400 mb-4 font-semibold">Error</p>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 break-words">{mintError}</p>
-                   <button
-                    onClick={() => setShowMintModal(false)}
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                  >
-                    CLOSE
-                  </button>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-60">
+          <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 max-w-md w-full">
+            <button
+              className="absolute top-3 right-3"
+              onClick={() => setShowMintModal(false)}
+            >
+              &#215;
+            </button>
+            <h3 className="mb-4 text-center">MINT REVERSE GENESIS NFT</h3>
+            
+            {/* UPDATED: UI now reflects the state from the useQuery hook */}
+            {isInviteListsPending ? (
+              <div className="text-center py-4">Loading options...</div>
+            ) : inviteListsError ? (
+              <div className="text-center py-4 text-red-500">Error: {inviteListsError.message}</div>
+            ) : executeMintError ? (
+                 <div className="text-center py-4 text-red-500">Error: {executeMintError}</div>
+            ) : !inviteLists || inviteLists.length === 0 ? (
+              <div className="text-center py-4">No mint options available for your wallet.</div>
+            ) : (
+              <div className="space-y-4">
+                <label>Select Mint Option:</label>
+                <div className="space-y-2">
+                  {inviteLists.map((list) => (
+                    <div
+                      key={list.id}
+                      className={`p-3 border-2 cursor-pointer ${selectedInviteList?.id === list.id ? 'border-gray-900' : 'border-gray-300'}`}
+                      onClick={() => setSelectedInviteList(list)}
+                    >
+                      <div>{list.name}</div>
+                      <div className="text-xs">Price: {list.token_price} {list.currency_symbol}</div>
+                      {list.wallet_limit < 4294967295 && <div className="text-xs">Limit: {list.wallet_limit}</div>}
+                    </div>
+                  ))}
                 </div>
-              ) : inviteLists.length === 0 ? (
-                <div className="text-center py-4">
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    No mint options available for your wallet at this time.
-                  </p>
-                  <button
-                    onClick={() => setShowMintModal(false)}
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                  >
-                    CLOSE
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-4">
+                {selectedInviteList && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
-                      Select Mint Option:
-                    </label>
-                    <div className="space-y-2">
-                      {inviteLists.map((list) => (
-                        <div
-                          key={list.id}
-                          className={`p-3 border-2 cursor-pointer transition-colors ${
-                            selectedInviteList?.id === list.id
-                              ? "border-gray-900 dark:border-white bg-gray-100 dark:bg-gray-700"
-                              : "border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400"
-                          }`}
-                          onClick={() => {
-                            setSelectedInviteList(list);
-                            setMintError("");
-                          }}
-                        >
-                          <div className="text-sm font-medium text-gray-800 dark:text-white">
-                            {list.name}
-                          </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">
-                            Price: {list.token_price} {list.currency_symbol}
-                          </div>
-                          {list.wallet_limit < 4294967295 && (
-                            <div className="text-xs text-gray-600 dark:text-gray-400">
-                              Limit: {list.wallet_limit} per wallet
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    <label>Quantity:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max={Math.min(selectedInviteList.wallet_limit, 10)}
+                      value={mintQuantity}
+                      onChange={(e) => setMintQuantity(parseInt(e.target.value) || 1)}
+                      className="w-full p-2 border"
+                    />
                   </div>
-                  {selectedInviteList && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
-                        Quantity:
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max={Math.min(selectedInviteList.wallet_limit, 10)}
-                        value={mintQuantity}
-                        onChange={(e) => setMintQuantity(parseInt(e.target.value) || 1)}
-                        className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
-                      />
-                    </div>
-                  )}
-                  <div className="flex justify-between mt-6 space-x-4">
-                    <button
-                      onClick={executeMint}
-                      disabled={!selectedInviteList || mintLoading}
-                      className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {mintLoading ? "MINTING..." : "MINT NFT"}
-                    </button>
-                    <button
-                      onClick={() => setShowMintModal(false)}
-                      className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                    >
-                      CANCEL
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+                <button
+                  onClick={executeMint}
+                  disabled={!selectedInviteList || isMinting}
+                  className="w-full p-2 border-2"
+                >
+                  {isMinting ? "MINTING..." : "MINT NFT"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
