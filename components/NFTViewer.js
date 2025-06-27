@@ -29,16 +29,15 @@ export default function NFTViewer({
 
   const COLLECTION_SLUG = "reverse-genesis";
   const COLLECTION_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const CHAIN_ID = 8453; // Base network
+  // REMOVED: The CHAIN_ID constant is no longer needed here.
+  // We will rely on the wagmi provider's connected chain.
 
   const client = createPublicClient({
     chain: base,
     transport: http()
   });
 
-  // REMOVED: The getBaseGasFee function has been removed.
-  // We will let wagmi/viem and the wallet handle gas estimation automatically,
-  // which is the correct and most reliable approach for L2 networks like Base.
+  // REMOVED: All manual gas functions. We let wagmi handle estimation.
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -106,20 +105,20 @@ export default function NFTViewer({
             tokenAddress: erc20.address,
             owner: address,
             spender: COLLECTION_ADDRESS,
-            chainId: CHAIN_ID,
+            // Pass the chain ID to the API, but not the transaction hook.
+            chainId: base.id, 
           }),
         });
         
         const { allowance } = await allowanceResponse.json();
         
         if (BigInt(allowance) < BigInt(erc20.amount)) {
-          // UPDATED: No manual gas config is passed.
+          // UPDATED: Removed `chainId`. `wagmi` will use the wallet's connected chain.
           await writeContractAsync({
             abi: erc20Abi,
             address: erc20.address,
             functionName: "approve",
             args: [COLLECTION_ADDRESS, maxUint256],
-            chainId: CHAIN_ID,
           });
         }
       } catch (error) {
@@ -149,7 +148,8 @@ export default function NFTViewer({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           collectionAddress: COLLECTION_ADDRESS,
-          chainId: CHAIN_ID,
+          // Pass the chain ID to the API, but not the transaction hook.
+          chainId: base.id,
           minterAddress: address,
           lists: [{ id: selectedInviteList.id, quantity: mintQuantity }],
         }),
@@ -160,6 +160,10 @@ export default function NFTViewer({
       if (!response.ok) {
         throw new Error(mintData.error || "Failed to generate mint transaction");
       }
+      
+      if (!mintData.mintTransaction || !mintData.mintTransaction.to || !mintData.mintTransaction.data) {
+        throw new Error("Invalid transaction data received from the API.");
+      }
 
       if (mintData.erc20s && mintData.erc20s.length > 0) {
         await approveErc20s(mintData.erc20s);
@@ -167,14 +171,12 @@ export default function NFTViewer({
 
       const { to, value, data } = mintData.mintTransaction;
       
-      // UPDATED: No manual gas config is passed.
-      // wagmi will now correctly estimate all required fees for Base network.
-      // This will resolve the "insufficient funds" and high fee warnings in MetaMask.
+      // UPDATED: Removed `chainId`. This is the key change.
+      // wagmi will now correctly estimate all required fees for the wallet's connected chain (Base).
       await sendTransactionAsync({
         to,
         value: BigInt(value),
         data,
-        chainId: CHAIN_ID,
       });
 
       setShowMintModal(false);
