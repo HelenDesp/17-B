@@ -78,21 +78,81 @@ export default function NFTViewer({
     }
   };
 
-  // Fetch eligible invite lists
+  // Fetch eligible invite lists - FIXED VERSION
   const fetchInviteLists = async () => {
     try {
       setMintLoading(true);
-      const response = await fetch(
-        `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists${
-          address ? `?walletAddress=${address}` : ""
-        }`
-      );
+      
+      // Construct the API URL with proper query parameters
+      const apiUrl = new URL(`https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists`);
+      
+      // Only add walletAddress if address exists
+      if (address) {
+        apiUrl.searchParams.set('walletAddress', address);
+      }
+      
+      console.log('Fetching invite lists from:', apiUrl.toString());
+      
+      const response = await fetch(apiUrl.toString(), {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+      
       const data = await response.json();
-      setInviteLists(data);
+      console.log('Received invite lists:', data);
+      
+      // Handle different response formats
+      let lists = [];
+      if (Array.isArray(data)) {
+        lists = data;
+      } else if (data.lists && Array.isArray(data.lists)) {
+        lists = data.lists;
+      } else if (data.inviteLists && Array.isArray(data.inviteLists)) {
+        lists = data.inviteLists;
+      } else {
+        console.warn('Unexpected API response format:', data);
+        lists = [];
+      }
+      
+      // Filter out any invalid entries and ensure we have the required fields
+      const validLists = lists.filter(list => 
+        list && 
+        typeof list.id !== 'undefined' && 
+        list.name && 
+        typeof list.token_price !== 'undefined'
+      );
+      
+      console.log('Valid invite lists:', validLists);
+      setInviteLists(validLists);
       setShowMintModal(true);
+      
     } catch (error) {
       console.error("Error fetching invite lists:", error);
-      alert("Failed to fetch mint options. Please try again.");
+      
+      // More detailed error handling
+      let errorMessage = "Failed to fetch mint options. Please try again.";
+      if (error.message.includes('404')) {
+        errorMessage = "Collection not found. Please check the collection slug.";
+      } else if (error.message.includes('403')) {
+        errorMessage = "Access denied. Please make sure your wallet is connected.";
+      } else if (error.message.includes('500')) {
+        errorMessage = "Server error. Please try again later.";
+      }
+      
+      alert(errorMessage);
     } finally {
       setMintLoading(false);
     }
@@ -135,12 +195,19 @@ export default function NFTViewer({
     }
   };
 
-  // Execute the mint
+  // Execute the mint - IMPROVED VERSION
   const executeMint = async () => {
     if (!selectedInviteList || !address) return;
 
     try {
       setMintLoading(true);
+
+      console.log('Executing mint with:', {
+        collectionAddress: COLLECTION_ADDRESS,
+        chainId: CHAIN_ID,
+        minterAddress: address,
+        lists: [{ id: selectedInviteList.id, quantity: mintQuantity }]
+      });
 
       // Get mint transaction from Scatter API
       const response = await fetch("https://api.scatter.art/v1/mint", {
@@ -157,13 +224,16 @@ export default function NFTViewer({
       });
 
       const mintData = await response.json();
+      console.log('Mint API response:', mintData);
 
       if (!response.ok) {
-        throw new Error(mintData.error || "Failed to generate mint transaction");
+        console.error('Mint API error:', mintData);
+        throw new Error(mintData.error || mintData.message || "Failed to generate mint transaction");
       }
 
       // Approve ERC20s if needed
       if (mintData.erc20s && mintData.erc20s.length > 0) {
+        console.log('Approving ERC20 tokens:', mintData.erc20s);
         await approveErc20s(mintData.erc20s);
       }
 
@@ -173,7 +243,9 @@ export default function NFTViewer({
       // Send the mint transaction with proper gas settings
       const { to, value, data } = mintData.mintTransaction;
       
-      await sendTransactionAsync({
+      console.log('Sending mint transaction:', { to, value, data, chainId: CHAIN_ID, ...gas });
+      
+      const txHash = await sendTransactionAsync({
         to,
         value: BigInt(value),
         data,
@@ -181,12 +253,25 @@ export default function NFTViewer({
         ...gas
       });
 
+      console.log('Mint transaction sent:', txHash);
+
       setShowMintModal(false);
       setShowThankYou(true);
       
     } catch (error) {
       console.error("Mint error:", error);
-      alert(`Failed to mint NFT: ${error.message}`);
+      
+      // More detailed error messages
+      let errorMessage = error.message;
+      if (error.message.includes('insufficient funds')) {
+        errorMessage = "Insufficient funds to complete the mint.";
+      } else if (error.message.includes('user rejected')) {
+        errorMessage = "Transaction was rejected by user.";
+      } else if (error.message.includes('already minted')) {
+        errorMessage = "You have already minted the maximum allowed amount.";
+      }
+      
+      alert(`Failed to mint NFT: ${errorMessage}`);
     } finally {
       setMintLoading(false);
     }
@@ -321,7 +406,7 @@ export default function NFTViewer({
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
-                      Select Mint Option:
+                      Select Mint Option ({inviteLists.length} available):
                     </label>
                     <div className="space-y-2">
                       {inviteLists.map((list) => (
@@ -338,11 +423,16 @@ export default function NFTViewer({
                             {list.name}
                           </div>
                           <div className="text-xs text-gray-600 dark:text-gray-400">
-                            Price: {list.token_price} {list.currency_symbol}
+                            Price: {list.token_price} {list.currency_symbol || 'ETH'}
                           </div>
-                          {list.wallet_limit < 4294967295 && (
+                          {list.wallet_limit && list.wallet_limit < 4294967295 && (
                             <div className="text-xs text-gray-600 dark:text-gray-400">
                               Limit: {list.wallet_limit} per wallet
+                            </div>
+                          )}
+                          {list.list_type && (
+                            <div className="text-xs text-blue-600 dark:text-blue-400">
+                              Type: {list.list_type}
                             </div>
                           )}
                         </div>
@@ -358,7 +448,7 @@ export default function NFTViewer({
                       <input
                         type="number"
                         min="1"
-                        max={Math.min(selectedInviteList.wallet_limit, 10)}
+                        max={Math.min(selectedInviteList.wallet_limit || 10, 10)}
                         value={mintQuantity}
                         onChange={(e) => setMintQuantity(parseInt(e.target.value) || 1)}
                         className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
