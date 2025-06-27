@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
-import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
+import { useAccount, useSendTransaction, useWriteContract, useSignMessage } from "wagmi";
 import { erc20Abi, maxUint256, createPublicClient, http } from "viem";
 import { base } from "viem/chains";
 
@@ -13,6 +13,7 @@ export default function NFTViewer({
   const { address, isConnected } = useAccount();
   const { sendTransactionAsync } = useSendTransaction();
   const { writeContractAsync } = useWriteContract();
+  const { signMessageAsync } = useSignMessage();
   
   const [loading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
@@ -22,7 +23,7 @@ export default function NFTViewer({
   
   // Mint-related state
   const [mintLoading, setMintLoading] = useState(false);
-  const [inviteLists, setInviteLists] = useState([]);
+  const [eligibleInviteLists, setEligibleInviteLists] = useState([]);
   const [showMintModal, setShowMintModal] = useState(false);
   const [selectedInviteList, setSelectedInviteList] = useState(null);
   const [mintQuantity, setMintQuantity] = useState(1);
@@ -38,7 +39,7 @@ export default function NFTViewer({
     transport: http()
   });
 
-  // Get low gas fee for Base network (same as nftTransfer.js)
+  // Get low gas fee for Base network
   const getLowGasFee = async () => {
     const block = await client.getBlock();
     const baseFeePerGas = block.baseFeePerGas ?? 0n;
@@ -78,81 +79,189 @@ export default function NFTViewer({
     }
   };
 
-  // Fetch eligible invite lists - FIXED VERSION
-  const fetchInviteLists = async () => {
+  // Get wallet signature for authentication
+  const getWalletSignature = async () => {
+    try {
+      const message = `Verify wallet ownership for ${address} at ${Date.now()}`;
+      const signature = await signMessageAsync({ message });
+      return { message, signature };
+    } catch (error) {
+      console.error("Error signing message:", error);
+      throw new Error("Wallet signature required for eligibility check");
+    }
+  };
+
+  // Fetch eligible invite lists - CORRECTED VERSION based on scatter-api-example
+  const fetchEligibleInviteLists = async () => {
+    if (!address || !isConnected) {
+      alert("Please connect your wallet first");
+      return;
+    }
+
     try {
       setMintLoading(true);
       
-      // Construct the API URL with proper query parameters
-      const apiUrl = new URL(`https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists`);
+      console.log('Fetching eligible invite lists for wallet:', address);
       
-      // Only add walletAddress if address exists
-      if (address) {
-        apiUrl.searchParams.set('walletAddress', address);
+      // Method 1: Try the direct eligible endpoint first
+      let response;
+      try {
+        const apiUrl = `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists/${address}`;
+        console.log('Trying direct eligible endpoint:', apiUrl);
+        
+        response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Direct endpoint response:', data);
+          
+          // Handle the response format
+          const lists = Array.isArray(data) ? data : (data.eligibleInviteLists || data.lists || []);
+          setEligibleInviteLists(lists);
+          setShowMintModal(true);
+          return;
+        }
+      } catch (error) {
+        console.log('Direct endpoint failed, trying alternative method:', error.message);
       }
+
+      // Method 2: Get all invite lists and check eligibility
+      console.log('Fetching all invite lists and checking eligibility...');
       
-      console.log('Fetching invite lists from:', apiUrl.toString());
-      
-      const response = await fetch(apiUrl.toString(), {
+      const allListsUrl = `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/invite-lists`;
+      response = await fetch(allListsUrl, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText
-        });
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch invite lists: ${response.status} ${response.statusText}`);
       }
+
+      const allListsData = await response.json();
+      console.log('All invite lists:', allListsData);
       
-      const data = await response.json();
-      console.log('Received invite lists:', data);
+      const allLists = Array.isArray(allListsData) ? allListsData : (allListsData.inviteLists || allListsData.lists || []);
       
-      // Handle different response formats
-      let lists = [];
-      if (Array.isArray(data)) {
-        lists = data;
-      } else if (data.lists && Array.isArray(data.lists)) {
-        lists = data.lists;
-      } else if (data.inviteLists && Array.isArray(data.inviteLists)) {
-        lists = data.inviteLists;
-      } else {
-        console.warn('Unexpected API response format:', data);
-        lists = [];
+      // Method 3: Check eligibility for each list
+      const eligibleLists = [];
+      
+      for (const list of allLists) {
+        try {
+          // Check if wallet is eligible for this specific list
+          const eligibilityUrl = `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/invite-lists/${list.id}/eligible/${address}`;
+          console.log('Checking eligibility for list:', list.id, eligibilityUrl);
+          
+          const eligibilityResponse = await fetch(eligibilityUrl, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (eligibilityResponse.ok) {
+            const eligibilityData = await eligibilityResponse.json();
+            console.log(`Eligibility for list ${list.id}:`, eligibilityData);
+            
+            // Check if eligible (different API responses might have different formats)
+            const isEligible = eligibilityData === true || 
+                             eligibilityData.eligible === true || 
+                             eligibilityData.isEligible === true ||
+                             eligibilityData.status === 'eligible';
+            
+            if (isEligible) {
+              eligibleLists.push({
+                ...list,
+                eligibilityInfo: eligibilityData
+              });
+            }
+          }
+        } catch (error) {
+          console.log(`Error checking eligibility for list ${list.id}:`, error.message);
+          // Continue checking other lists
+        }
       }
-      
-      // Filter out any invalid entries and ensure we have the required fields
-      const validLists = lists.filter(list => 
-        list && 
-        typeof list.id !== 'undefined' && 
-        list.name && 
-        typeof list.token_price !== 'undefined'
-      );
-      
-      console.log('Valid invite lists:', validLists);
-      setInviteLists(validLists);
+
+      console.log('Final eligible lists:', eligibleLists);
+      setEligibleInviteLists(eligibleLists);
       setShowMintModal(true);
       
+      if (eligibleLists.length === 0) {
+        console.log('No eligible lists found for wallet:', address);
+      }
+      
     } catch (error) {
-      console.error("Error fetching invite lists:", error);
+      console.error("Error fetching eligible invite lists:", error);
       
       // More detailed error handling
       let errorMessage = "Failed to fetch mint options. Please try again.";
       if (error.message.includes('404')) {
-        errorMessage = "Collection not found. Please check the collection slug.";
+        errorMessage = "Collection not found or no mint options available.";
       } else if (error.message.includes('403')) {
-        errorMessage = "Access denied. Please make sure your wallet is connected.";
+        errorMessage = "Access denied. Please make sure your wallet is connected and eligible.";
       } else if (error.message.includes('500')) {
         errorMessage = "Server error. Please try again later.";
       }
       
       alert(errorMessage);
+    } finally {
+      setMintLoading(false);
+    }
+  };
+
+  // Alternative method using POST with wallet signature (if required by API)
+  const fetchEligibleInviteListsWithAuth = async () => {
+    if (!address || !isConnected) {
+      alert("Please connect your wallet first");
+      return;
+    }
+
+    try {
+      setMintLoading(true);
+      
+      // Get wallet signature for authentication
+      const { message, signature } = await getWalletSignature();
+      
+      console.log('Fetching eligible invite lists with authentication for:', address);
+      
+      const response = await fetch(`https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          walletAddress: address,
+          message: message,
+          signature: signature,
+          chainId: CHAIN_ID
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Authenticated eligible lists response:', data);
+      
+      const lists = Array.isArray(data) ? data : (data.eligibleInviteLists || data.lists || []);
+      setEligibleInviteLists(lists);
+      setShowMintModal(true);
+      
+    } catch (error) {
+      console.error("Error fetching eligible invite lists with auth:", error);
+      alert(`Failed to fetch mint options: ${error.message}`);
     } finally {
       setMintLoading(false);
     }
@@ -195,7 +304,7 @@ export default function NFTViewer({
     }
   };
 
-  // Execute the mint - IMPROVED VERSION
+  // Execute the mint
   const executeMint = async () => {
     if (!selectedInviteList || !address) return;
 
@@ -290,13 +399,22 @@ export default function NFTViewer({
           <div className="text-center py-8">
             <p className="text-gray-500 dark:text-white mb-6">No NFTs found for this wallet.</p>
             {isConnected && (
-              <button
-                onClick={fetchInviteLists}
-                disabled={mintLoading}
-                className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {mintLoading ? "Loading..." : "Mint ReVerse Genesis NFT"}
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={fetchEligibleInviteLists}
+                  disabled={mintLoading}
+                  className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed mr-3"
+                >
+                  {mintLoading ? "Checking Eligibility..." : "Check Mint Eligibility"}
+                </button>
+                <button
+                  onClick={fetchEligibleInviteListsWithAuth}
+                  disabled={mintLoading}
+                  className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {mintLoading ? "Authenticating..." : "Check with Signature"}
+                </button>
+              </div>
             )}
           </div>
         ) : (
@@ -388,12 +506,15 @@ export default function NFTViewer({
                 <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
               </button>
               
-              <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">MINT REVERSE GENESIS NFT</h3>
+              <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">ELIGIBLE MINT OPTIONS</h3>
               
-              {inviteLists.length === 0 ? (
+              {eligibleInviteLists.length === 0 ? (
                 <div className="text-center py-4">
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    No mint options available for your wallet at this time.
+                    No eligible mint options found for your wallet at this time.
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
+                    Make sure you're connected with the correct wallet and that you're eligible for minting.
                   </p>
                   <button
                     onClick={() => setShowMintModal(false)}
@@ -406,10 +527,10 @@ export default function NFTViewer({
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
-                      Select Mint Option ({inviteLists.length} available):
+                      Select Eligible Mint Option ({eligibleInviteLists.length} available):
                     </label>
                     <div className="space-y-2">
-                      {inviteLists.map((list) => (
+                      {eligibleInviteLists.map((list) => (
                         <div
                           key={list.id}
                           className={`p-3 border-2 cursor-pointer transition-colors ${
@@ -431,8 +552,8 @@ export default function NFTViewer({
                             </div>
                           )}
                           {list.list_type && (
-                            <div className="text-xs text-blue-600 dark:text-blue-400">
-                              Type: {list.list_type}
+                            <div className="text-xs text-green-600 dark:text-green-400">
+                              ✓ Eligible - {list.list_type}
                             </div>
                           )}
                         </div>
