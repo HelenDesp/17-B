@@ -2,7 +2,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
-import { erc20Abi, maxUint256, createPublicClient, http, encodeFunctionData } from "viem";
+// UPDATED: Added formatEther for better error messages
+import { erc20Abi, maxUint256, createPublicClient, http, encodeFunctionData, formatEther } from "viem";
 import { base } from "viem/chains";
 
 export default function NFTViewer({
@@ -69,16 +70,24 @@ export default function NFTViewer({
     }
   };
 
+  // UPDATED: This function now explicitly checks for the address
+  // to prevent a race condition where the API is called before the address is available.
   const fetchInviteLists = async () => {
+    // This guard is the key fix. It ensures we don't proceed without an address.
+    if (!address) {
+      setMintError("Could not get wallet address. Please try reconnecting.");
+      setShowMintModal(true);
+      return;
+    }
+
     setMintLoading(true);
     setMintError("");
     setInviteLists([]); 
     
     try {
+      // Now the URL will always include the walletAddress parameter correctly.
       const response = await fetch(
-        `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists${
-          address ? `?walletAddress=${address}` : ""
-        }`
+        `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists?walletAddress=${address}`
       );
       const data = await response.json();
       if (!response.ok) {
@@ -168,36 +177,35 @@ export default function NFTViewer({
 
       const { to, value, data } = mintData.mintTransaction;
       
-      // wagmi will now correctly estimate all fees and the wallet's connected chain.
       await sendTransactionAsync({
         to,
         value: BigInt(value),
         data,
       });
 
-      setShowMintModal(false);
+      setShowModal(false);
       setShowThankYou(true);
       
     } catch (error) {
-      // UPDATED: More robust error handling to find the true cause of failure.
+      // UPDATED: This error handling is now much more specific.
       console.error("MINT FAILED:", error);
       let friendlyError = "An unknown error occurred. Please check the console for details.";
 
       // Dig into the error object to find the most specific message.
-      if (error.cause && typeof error.cause.shortMessage === 'string') {
-        friendlyError = error.cause.shortMessage;
-      } else if (typeof error.shortMessage === 'string') {
-        friendlyError = error.shortMessage;
-      } else if (error.message) {
-        friendlyError = error.message;
+      const cause = error.cause || {};
+      const shortMessage = cause.shortMessage || error.shortMessage || error.message || "";
+      
+      if (shortMessage.includes("insufficient funds")) {
+          // This is the most important case, based on your Trust Wallet error.
+          const requiredValue = selectedInviteList?.token_price ? parseFloat(selectedInviteList.token_price) * mintQuantity : 0;
+          friendlyError = `Insufficient funds. Your wallet reported that you do not have enough ETH to pay for the mint price of ${requiredValue.toFixed(4)} ETH plus network fees. Please add funds to your wallet and try again.`;
+      } else if (shortMessage.includes("gas required exceeds allowance") || shortMessage.includes("execution reverted")) {
+        friendlyError = "The transaction is predicted to fail. This may be because you are not eligible for this mint (e.g., not on the allowlist), the mint is not active, or you have reached your minting limit. Please verify the collection's requirements.";
+      } else {
+        // Fallback for any other errors.
+        friendlyError = shortMessage;
       }
       
-      // Provide a more helpful message for the common "gas estimation" failure,
-      // which usually hides the real contract revert reason.
-      if (friendlyError.includes("gas required exceeds allowance") || friendlyError.includes("execution reverted")) {
-        friendlyError = "The transaction is predicted to fail. This may be because you are not eligible for this mint (e.g., not on the allowlist), the mint is not active, or you have reached your minting limit. Please verify the collection's requirements.";
-      }
-
       setMintError(friendlyError);
     } finally {
       setMintLoading(false);
