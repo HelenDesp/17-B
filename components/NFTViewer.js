@@ -1,712 +1,254 @@
 "use client";
-import { useState } from "react";
-import axios from "axios";
-import { useAccount, useSendTransaction, useWriteContract, useSignMessage } from "wagmi";
-import { erc20Abi, maxUint256, createPublicClient, http } from "viem";
-import { base } from "viem/chains";
 
-export default function NFTViewer({
-  nfts,
-  selectedNFTs = [],
-  onSelectNFT = () => {},
-}) {
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { config } from "@/config";
+import { useAppKit } from "@reown/appkit/react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { erc20Abi, maxUint256 } from "viem";
+import { useAccount, useReadContract } from "wagmi";
+import { readContract, sendTransaction, writeContract } from "wagmi/actions";
+
+const SCATTER_API_URL = "https://api.scatter.art/v1";
+
+// You likely want to change this to your own collection's slug
+const COLLECTION_SLUG = "tribe-of-girl";
+
+export default function Home() {
   const { address, isConnected } = useAccount();
-  const { sendTransactionAsync } = useSendTransaction();
-  const { writeContractAsync } = useWriteContract();
-  const { signMessageAsync } = useSignMessage();
-  
-  const [loading] = useState(false);
-  const [selectedNFT, setSelectedNFT] = useState(null);
-  const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
-  const [nameError, setNameError] = useState("");
-  const [showThankYou, setShowThankYou] = useState(false);
-  
-  // Mint-related state
-  const [mintLoading, setMintLoading] = useState(false);
-  const [eligibleInviteLists, setEligibleInviteLists] = useState([]);
-  const [showMintModal, setShowMintModal] = useState(false);
-  const [selectedInviteList, setSelectedInviteList] = useState(null);
-  const [mintQuantity, setMintQuantity] = useState(1);
 
-  // Collection details for reverse-genesis on Base
-  const COLLECTION_SLUG = "reverse-genesis";
-  const COLLECTION_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-  const CHAIN_ID = 8453; // Base network
-
-  // Create public client for Base network
-  const client = createPublicClient({
-    chain: base,
-    transport: http()
+  // Fetching collection data from Scatter API
+  const { data: collection, isPending: isCollectionPending } = useQuery({
+    queryKey: ["collection", COLLECTION_SLUG],
+    queryFn: async () => {
+      const response = await fetch(
+        `${SCATTER_API_URL}/collection/${COLLECTION_SLUG}`
+      );
+      // ABI comes back as a string, parsing it here to use with wagmi
+      const data = await response.json();
+      return { ...data, abi: JSON.parse(data.abi) };
+    },
   });
 
-  // Get low gas fee for Base network
-  const getLowGasFee = async () => {
-    const block = await client.getBlock();
-    const baseFeePerGas = block.baseFeePerGas ?? 0n;
-    const maxPriorityFeePerGas = 1_000_000n; // 0.000001 gwei
-    const maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas;
-    return { maxPriorityFeePerGas, maxFeePerGas };
+  // Fetching eligible invite lists from Scatter API
+  // if no minterAddress is provided, this will return public lists only
+  const { data: inviteLists, isPending: isInviteListsPending } = useQuery({
+    queryKey: ["eligibleInviteLists", COLLECTION_SLUG, address],
+    queryFn: async () => {
+      const response = await fetch(
+        `${SCATTER_API_URL}/collection/${COLLECTION_SLUG}/eligible-invite-lists${
+          isConnected ? `?minterAddress=${address}` : ""
+        }`
+      );
+      return response.json();
+    },
+  });
+
+  const isPending = isCollectionPending || isInviteListsPending;
+
+  return (
+    <div className="flex flex-col items-center justify-items-center min-h-screen p-4 pb-20 gap-4 sm:p-12 font-[family-name:var(--font-geist-sans)]">
+      <WalletConnect />
+      <main className="flex lg:w-xl w-full flex-col gap-8 pt-4">
+        <div className="flex flex-col gap-2">
+          {!isCollectionPending && (
+            <>
+              {/* Mint out progress bar */}
+              <Progress
+                value={(collection.num_items / collection.max_items) * 100}
+              />
+              <p className="text-center">
+                {collection?.num_items} / {collection?.max_items}
+              </p>
+            </>
+          )}
+        </div>
+        <div className="flex flex-col gap-4">
+          {/* Displaying invite lists */}
+          {!isPending &&
+            inviteLists?.map((list: any) => (
+              <InviteList key={list.id} list={list} collection={collection} />
+            ))}
+          {isPending && <p className="text-center">LOADING...</p>}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function InviteList({
+  list,
+  collection,
+}: {
+  list: {
+    id: string;
+    name: string;
+    root: string;
+    currency_symbol: string;
+    token_price: string;
+    wallet_limit: number;
+    list_limit: number;
   };
-
-  const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.name.trim()) {
-      setNameError("Name is required.");
-      return;
-    } else {
-      setNameError("");
-    }
-    try {
-      await axios.post("https://reversegenesis.org/edata/meta.php", {
-        original: selectedNFT.name,
-        owner: address,
-        name: formData.name,
-        manifesto: formData.manifesto,
-        friend: formData.friend,
-        weapon: formData.weapon,
-      });
-      setSelectedNFT(null);
-      setShowThankYou(true);
-    } catch (error) {
-      if (error.response?.status === 400 && error.response.data?.error === "Name is required.") {
-        setNameError("Name is required.");
-      } else {
-        console.error("Submission error:", error);
-        alert("Failed to submit form. Please try again.");
-      }
-    }
+  collection: {
+    chain_id: number;
+    address: string;
+    abi: any;
+    max_items: number;
+    num_items: number;
   };
+}) {
+  const { address, isConnected } = useAccount();
 
-  // Get wallet signature for authentication
-  const getWalletSignature = async () => {
-    try {
-      const message = `Verify wallet ownership for ${address} at ${Date.now()}`;
-      const signature = await signMessageAsync({ message });
-      return { message, signature };
-    } catch (error) {
-      console.error("Error signing message:", error);
-      throw new Error("Wallet signature required for eligibility check");
-    }
-  };
+  // Technically the max limit on our contract is 4294967295, we treat this as unlimited
+  const MAX_LIMIT = 4294967295;
+  const hasWalletLimit = list.wallet_limit !== MAX_LIMIT;
+  const hasListLimit = list.list_limit !== MAX_LIMIT;
 
-  // Fetch eligible invite lists - CORRECTED VERSION based on scatter-api-example
-  const fetchEligibleInviteLists = async () => {
-    if (!address || !isConnected) {
-      alert("Please connect your wallet first");
-      return;
-    }
+  const price =
+    list.token_price === "0"
+      ? "FREE"
+      : `${list.token_price} ${list.currency_symbol}`;
 
-    try {
-      setMintLoading(true);
-      
-      console.log('Fetching eligible invite lists for wallet:', address);
-      
-      // Method 1: Try the direct eligible endpoint first
-      let response;
-      try {
-        const apiUrl = `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists/${address}`;
-        console.log('Trying direct eligible endpoint:', apiUrl);
-        
-        response = await fetch(apiUrl, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Direct endpoint response:', data);
-          
-          // Handle the response format
-          const lists = Array.isArray(data) ? data : (data.eligibleInviteLists || data.lists || []);
-          setEligibleInviteLists(lists);
-          setShowMintModal(true);
-          return;
-        }
-      } catch (error) {
-        console.log('Direct endpoint failed, trying alternative method:', error.message);
-      }
+  // To check how much is minted on particular lists, we can read from the contract directly
+  // This is the mint limit for the entire list
+  const { data: listMinted } = useReadContract({
+    abi: collection.abi,
+    address: collection.address as `0x${string}`,
+    functionName: "listSupply",
+    chainId: collection.chain_id,
+    args: [list.root],
+  }) as { data: number };
 
-      // Method 2: Get all invite lists and check eligibility
-      console.log('Fetching all invite lists and checking eligibility...');
-      
-      const allListsUrl = `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/invite-lists`;
-      response = await fetch(allListsUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
+  // This is the limit for individual wallets on the list
+  const { data: walletMinted } = useReadContract({
+    abi: collection.abi,
+    address: collection.address as `0x${string}`,
+    functionName: "minted",
+    chainId: collection.chain_id,
+    args: [address as `0x${string}`, list.root],
+    query: {
+      enabled: isConnected,
+    },
+  }) as { data: number };
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch invite lists: ${response.status} ${response.statusText}`);
-      }
+  const isListMintedOut =
+    listMinted >= list.list_limit ||
+    walletMinted >= list.wallet_limit ||
+    collection.num_items >= collection.max_items; // if max supply is reached no lists will work
 
-      const allListsData = await response.json();
-      console.log('All invite lists:', allListsData);
-      
-      const allLists = Array.isArray(allListsData) ? allListsData : (allListsData.inviteLists || allListsData.lists || []);
-      
-      // Method 3: Check eligibility for each list
-      const eligibleLists = [];
-      
-      for (const list of allLists) {
-        try {
-          // Check if wallet is eligible for this specific list
-          const eligibilityUrl = `https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/invite-lists/${list.id}/eligible/${address}`;
-          console.log('Checking eligibility for list:', list.id, eligibilityUrl);
-          
-          const eligibilityResponse = await fetch(eligibilityUrl, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (eligibilityResponse.ok) {
-            const eligibilityData = await eligibilityResponse.json();
-            console.log(`Eligibility for list ${list.id}:`, eligibilityData);
-            
-            // Check if eligible (different API responses might have different formats)
-            const isEligible = eligibilityData === true || 
-                             eligibilityData.eligible === true || 
-                             eligibilityData.isEligible === true ||
-                             eligibilityData.status === 'eligible';
-            
-            if (isEligible) {
-              eligibleLists.push({
-                ...list,
-                eligibilityInfo: eligibilityData
-              });
-            }
-          }
-        } catch (error) {
-          console.log(`Error checking eligibility for list ${list.id}:`, error.message);
-          // Continue checking other lists
-        }
-      }
-
-      console.log('Final eligible lists:', eligibleLists);
-      setEligibleInviteLists(eligibleLists);
-      setShowMintModal(true);
-      
-      if (eligibleLists.length === 0) {
-        console.log('No eligible lists found for wallet:', address);
-      }
-      
-    } catch (error) {
-      console.error("Error fetching eligible invite lists:", error);
-      
-      // More detailed error handling
-      let errorMessage = "Failed to fetch mint options. Please try again.";
-      if (error.message.includes('404')) {
-        errorMessage = "Collection not found or no mint options available.";
-      } else if (error.message.includes('403')) {
-        errorMessage = "Access denied. Please make sure your wallet is connected and eligible.";
-      } else if (error.message.includes('500')) {
-        errorMessage = "Server error. Please try again later.";
-      }
-      
-      alert(errorMessage);
-    } finally {
-      setMintLoading(false);
-    }
-  };
-
-  // Alternative method using POST with wallet signature (if required by API)
-  const fetchEligibleInviteListsWithAuth = async () => {
-    if (!address || !isConnected) {
-      alert("Please connect your wallet first");
-      return;
-    }
-
-    try {
-      setMintLoading(true);
-      
-      // Get wallet signature for authentication
-      const { message, signature } = await getWalletSignature();
-      
-      console.log('Fetching eligible invite lists with authentication for:', address);
-      
-      const response = await fetch(`https://api.scatter.art/v1/collection/${COLLECTION_SLUG}/eligible-invite-lists`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
+  // Minting function
+  const { mutate: mint, isPending } = useMutation({
+    mutationFn: async (listId: string) => {
+      // First we can hit the Scatter API to generate the mint transaction data for us
+      const response = await fetch(`${SCATTER_API_URL}/mint`, {
+        method: "POST",
         body: JSON.stringify({
-          walletAddress: address,
-          message: message,
-          signature: signature,
-          chainId: CHAIN_ID
-        })
-      });
+          collectionAddress: collection.address,
+          chainId: collection.chain_id,
+          minterAddress: address,
+          // Hardcoded quantities to 1 for this example, you could expand this to take any amount
+          // or support minting from multiple lists at once
+          lists: [{ id: listId, quantity: 1 }],
+        }),
+      }).then((res) => res.json());
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
-      }
+      const mintTransaction = response.mintTransaction;
 
-      const data = await response.json();
-      console.log('Authenticated eligible lists response:', data);
-      
-      const lists = Array.isArray(data) ? data : (data.eligibleInviteLists || data.lists || []);
-      setEligibleInviteLists(lists);
-      setShowMintModal(true);
-      
-    } catch (error) {
-      console.error("Error fetching eligible invite lists with auth:", error);
-      alert(`Failed to fetch mint options: ${error.message}`);
-    } finally {
-      setMintLoading(false);
-    }
-  };
-
-  // Approve ERC20 tokens if needed
-  const approveErc20s = async (erc20s) => {
-    const gas = await getLowGasFee();
-    
-    for (const erc20 of erc20s) {
-      try {
-        // Check current allowance
-        const allowanceResponse = await fetch("/api/check-allowance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tokenAddress: erc20.address,
-            owner: address,
-            spender: COLLECTION_ADDRESS,
-            chainId: CHAIN_ID,
-          }),
+      // If the mint costs ERC20s, we need to approve them first or the mint will fail
+      // if the mint is just with the native token (eg. ETH), we can ignore this step
+      for (const erc20 of response.erc20s) {
+        // Check if the user has enough allowance for the mint already
+        const allowance = await readContract(config, {
+          abi: erc20Abi,
+          address: erc20.address,
+          functionName: "allowance",
+          chainId: collection.chain_id,
+          args: [address as `0x${string}`, collection.address as `0x${string}`],
         });
-        
-        const { allowance } = await allowanceResponse.json();
-        
-        if (BigInt(allowance) < BigInt(erc20.amount)) {
-          await writeContractAsync({
+
+        // If not, approve the max amount before minting
+        if (allowance < BigInt(erc20.amount)) {
+          await writeContract(config, {
             abi: erc20Abi,
             address: erc20.address,
             functionName: "approve",
-            args: [COLLECTION_ADDRESS, maxUint256],
-            chainId: CHAIN_ID,
-            ...gas
+            chainId: collection.chain_id,
+            args: [collection.address as `0x${string}`, maxUint256],
           });
         }
-      } catch (error) {
-        console.error("Error approving ERC20:", error);
-        throw error;
       }
-    }
-  };
 
-  // Execute the mint
-  const executeMint = async () => {
-    if (!selectedInviteList || !address) return;
-
-    try {
-      setMintLoading(true);
-
-      console.log('Executing mint with:', {
-        collectionAddress: COLLECTION_ADDRESS,
-        chainId: CHAIN_ID,
-        minterAddress: address,
-        lists: [{ id: selectedInviteList.id, quantity: mintQuantity }]
+      // Now we trigger the mint transaction
+      await sendTransaction(config, {
+        account: address,
+        to: mintTransaction.to as `0x${string}`, // For batch mints this address will be the batch contract, so use the `to` field from the response here instead of collection address. API will return the correct address for the type of mint.
+        value: BigInt(mintTransaction.value),
+        data: mintTransaction.data,
+        chainId: collection.chain_id,
       });
-
-      // Get mint transaction from Scatter API
-      const response = await fetch("https://api.scatter.art/v1/mint", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          collectionAddress: COLLECTION_ADDRESS,
-          chainId: CHAIN_ID,
-          minterAddress: address,
-          lists: [{ id: selectedInviteList.id, quantity: mintQuantity }],
-        }),
-      });
-
-      const mintData = await response.json();
-      console.log('Mint API response:', mintData);
-
-      if (!response.ok) {
-        console.error('Mint API error:', mintData);
-        throw new Error(mintData.error || mintData.message || "Failed to generate mint transaction");
-      }
-
-      // Approve ERC20s if needed
-      if (mintData.erc20s && mintData.erc20s.length > 0) {
-        console.log('Approving ERC20 tokens:', mintData.erc20s);
-        await approveErc20s(mintData.erc20s);
-      }
-
-      // Get Base network gas configuration
-      const gas = await getLowGasFee();
-
-      // Send the mint transaction with proper gas settings
-      const { to, value, data } = mintData.mintTransaction;
-      
-      console.log('Sending mint transaction:', { to, value, data, chainId: CHAIN_ID, ...gas });
-      
-      const txHash = await sendTransactionAsync({
-        to,
-        value: BigInt(value),
-        data,
-        chainId: CHAIN_ID,
-        ...gas
-      });
-
-      console.log('Mint transaction sent:', txHash);
-
-      setShowMintModal(false);
-      setShowThankYou(true);
-      
-    } catch (error) {
-      console.error("Mint error:", error);
-      
-      // More detailed error messages
-      let errorMessage = error.message;
-      if (error.message.includes('insufficient funds')) {
-        errorMessage = "Insufficient funds to complete the mint.";
-      } else if (error.message.includes('user rejected')) {
-        errorMessage = "Transaction was rejected by user.";
-      } else if (error.message.includes('already minted')) {
-        errorMessage = "You have already minted the maximum allowed amount.";
-      }
-      
-      alert(`Failed to mint NFT: ${errorMessage}`);
-    } finally {
-      setMintLoading(false);
-    }
-  };
+    },
+    onError: (error) => {
+      console.error("Mint mutation failed:", error);
+    },
+  });
 
   return (
-    <>
-      <div className="p-6 bg-white border-b2 dark:bg-gray-800 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">ReVerse Genesis NFTs</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.
-        </p>
-        {loading ? (
-          <p className="text-gray-500 dark:text-white">Loading NFTs...</p>
-        ) : nfts.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-white mb-6">No NFTs found for this wallet.</p>
-            {isConnected && (
-              <div className="space-y-3">
-                <button
-                  onClick={fetchEligibleInviteLists}
-                  disabled={mintLoading}
-                  className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed mr-3"
-                >
-                  {mintLoading ? "Checking Eligibility..." : "Check Mint Eligibility"}
-                </button>
-                <button
-                  onClick={fetchEligibleInviteListsWithAuth}
-                  disabled={mintLoading}
-                  className="px-6 py-2 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {mintLoading ? "Authenticating..." : "Check with Signature"}
-                </button>
-              </div>
-            )}
+    <Card className={isListMintedOut ? "opacity-50 cursor-not-allowed" : ""}>
+      <CardContent>
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-col max-w-64">
+            <h2 className="font-bold">{list.name}</h2>
+            <p className="text-sm text-gray-500">{price}</p>
           </div>
-        ) : (
-          <div className="nft-grid gap-4">
-            {nfts.map((nft, i) => (
-              <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
-                {/* Checkbox always at bottom left with tooltip */}
-                <div className="absolute left-2 bottom-2 z-10">
-                  <div className="relative flex flex-col items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedNFTs.includes(nft.tokenId)}
-                      onChange={() => onSelectNFT(nft.tokenId)}
-                      className="peer w-5 h-5 appearance-none rvg-checkbox"
-                      id={`select-nft-${nft.tokenId}`}
-                    />
-                    <div
-                      className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-0 left-1/2 -translate-x-1/2 z-50"
-                      style={{ width: 24, height: 24 }}
-                    >
-                      {/* Auto-dark/light plane icon */}
-                      <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
-                        width="24" height="24" viewBox="0 0 512 512"
-                        className="w-6 h-6 fill-black dark:fill-white"
-                        preserveAspectRatio="xMidYMid meet"
-                      >
-                        <g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
-                          <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
-                          -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
-                          31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
-                          23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460
-                          l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774
-                          368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795
-                          c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003
-                          1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
-                        </g>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-                {nft.image ? (
-                  <img
-                    src={nft.image}
-                    alt={nft.name}
-                    className="w-full aspect-square object-cover border-b1"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = "";
-                    }}
-                  />
-                ) : (
-                  <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
-                    No Image
-                  </div>
-                )}
-                <div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
-                  {nft.name}
-                </div>
-                <div className="flex justify-center mt-3">
-                  <button
-                    onClick={() => setSelectedNFT(nft)}
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                  >
-                    UPGRADE NFT
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* ===== MINT MODAL ===== */}
-      {showMintModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          {/* Overlay */}
-          <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" />
-
-          {/* Modal */}
-          <div className="relative z-[10000] flex items-center justify-center min-h-screen w-full px-4 py-10">
-            <div className="relative bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
-              
-              {/* Close Button */}
-              <button
-                className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
-                onClick={() => setShowMintModal(false)}
-                aria-label="Close"
-              >
-                <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
-              </button>
-              
-              <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">ELIGIBLE MINT OPTIONS</h3>
-              
-              {eligibleInviteLists.length === 0 ? (
-                <div className="text-center py-4">
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    No eligible mint options found for your wallet at this time.
+          <div className="flex flex-row gap-4">
+            <div className="flex flex-row gap-2 items-center">
+              {hasWalletLimit && (
+                <div className="h-full flex items-center flex-col gap-1">
+                  <p className="text-xs opacity-50">WAL. LIMIT</p>
+                  <p>
+                    {walletMinted ?? "?"}/{list.wallet_limit}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
-                    Make sure you're connected with the correct wallet and that you're eligible for minting.
-                  </p>
-                  <button
-                    onClick={() => setShowMintModal(false)}
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                  >
-                    CLOSE
-                  </button>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
-                      Select Eligible Mint Option ({eligibleInviteLists.length} available):
-                    </label>
-                    <div className="space-y-2">
-                      {eligibleInviteLists.map((list) => (
-                        <div
-                          key={list.id}
-                          className={`p-3 border-2 cursor-pointer transition-colors ${
-                            selectedInviteList?.id === list.id
-                              ? "border-gray-900 dark:border-white bg-gray-100 dark:bg-gray-700"
-                              : "border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400"
-                          }`}
-                          onClick={() => setSelectedInviteList(list)}
-                        >
-                          <div className="text-sm font-medium text-gray-800 dark:text-white">
-                            {list.name}
-                          </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">
-                            Price: {list.token_price} {list.currency_symbol || 'ETH'}
-                          </div>
-                          {list.wallet_limit && list.wallet_limit < 4294967295 && (
-                            <div className="text-xs text-gray-600 dark:text-gray-400">
-                              Limit: {list.wallet_limit} per wallet
-                            </div>
-                          )}
-                          {list.list_type && (
-                            <div className="text-xs text-green-600 dark:text-green-400">
-                              ✓ Eligible - {list.list_type}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              )}
+              {hasListLimit && (
+                <div className="h-full flex items-center flex-col gap-1">
+                  <p className="text-xs opacity-50">LIMIT</p>
 
-                  {selectedInviteList && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-100 mb-2">
-                        Quantity:
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max={Math.min(selectedInviteList.wallet_limit || 10, 10)}
-                        value={mintQuantity}
-                        onChange={(e) => setMintQuantity(parseInt(e.target.value) || 1)}
-                        className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
-                      />
-                    </div>
-                  )}
-
-                  <div className="flex justify-between mt-6 space-x-4">
-                    <button
-                      onClick={executeMint}
-                      disabled={!selectedInviteList || mintLoading}
-                      className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {mintLoading ? "MINTING..." : "MINT NFT"}
-                    </button>
-                    <button
-                      onClick={() => setShowMintModal(false)}
-                      className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                    >
-                      CANCEL
-                    </button>
-                  </div>
+                  <p>
+                    {listMinted}/{list.list_limit}
+                  </p>
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ===== UPGRADE MODAL ===== */}
-      {selectedNFT && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          {/* Overlay */}
-          <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" />
-
-          {/* Modal */}
-          <div className="relative z-[10000] flex items-center justify-center min-h-screen w-full px-4 py-10">
-            <div className="relative bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
-              
-              {/* Close Button */}
-              <button
-                className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
-                onClick={() => setSelectedNFT(null)}
-                aria-label="Close"
-              >
-                <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
-              </button>
-              
-              <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
-              
-              {/* Border around image */}
-              <div className="mb-4 border-b1 border-2 border-black dark:border-white">
-                <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover" />
-              </div>
-              
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
-                <div>
-                  <label className="block text-base font-medium text-gray-700 dark:text-gray-100 capitalize">name <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={e => handleChange("name", e.target.value)}
-                    placeholder={selectedNFT.name}
-                    className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
-                    style={{ boxShadow: 'none' }}
-                  />
-                  {nameError && (
-                    <p className="text-sm text-red-600 mt-1 flex items-center">
-                      <svg className="w-4 h-4 mr-1 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10A8 8 0 11 2 10a8 8 0 0116 0zm-7-4a1 1 0 10-2 0v4a1 1 0 002 0V6zm-1 8a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z" clipRule="evenodd" />
-                      </svg>
-                      {nameError}
-                    </p>
-                  )}
-                </div>
-                {["manifesto", "friend", "weapon"].map(field => (
-                  <div key={field}>
-                    <label className="block text-base font-medium text-gray-700 dark:text-gray-100 capitalize">{field}</label>
-                    <input
-                      type="text"
-                      name={field}
-                      value={formData[field]}
-                      onChange={e => handleChange(field, e.target.value)}
-                      placeholder={selectedNFT.traits[field]}
-                      className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
-                      style={{ boxShadow: 'none' }}
-                    />
-                  </div>
-                ))}
-                <div className="flex justify-between mt-6 space-x-4">
-                  <button
-                    type="submit"
-                    className=" px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                  >
-                    <span>UPGRADE</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedNFT(null)}
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                  >
-                    CANCEL
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ===== THANK YOU MODAL ===== */}
-      {showThankYou && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
-          <div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
-            <button
-              className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
-              onClick={() => setShowThankYou(false)}
+            <Button
+              className="h-full cursor-pointer"
+              disabled={!isConnected || isListMintedOut || isPending}
+              onClick={() => mint(list.id)}
             >
-              <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
-            </button>
-            <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              THANK YOU
-            </h4>
-            <p className="text-base text-gray-700 dark:text-gray-300 mb-8">
-              Your transaction was successful! Please allow a few minutes for the changes to reflect.
-            </p>
-            <button
-              onClick={() => setShowThankYou(false)}
-              className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-            >
-              CLOSE
-            </button>
+              {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              MINT
+            </Button>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function WalletConnect() {
+  const { open } = useAppKit();
+  const { isConnected } = useAccount();
+
+  return (
+    <>
+      {!isConnected && (
+        <Button className="cursor-pointer" onClick={() => open()}>
+          CONNECT
+        </Button>
       )}
+      {isConnected && <appkit-account-button />}
     </>
   );
 }
