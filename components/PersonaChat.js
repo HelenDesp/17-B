@@ -1,75 +1,74 @@
 // PersonaChat.js
-// A self-contained component to handle the AI chat modal.
-// Restored dynamic persona logic.
+// Updated with a stricter system prompt to ensure the AI always stays in character.
 
 import { useState, useEffect, useRef } from 'react';
 
 // --- CONFIGURATION ---
-// IMPORTANT: Place these in a .env.local file in a real project
 const GEMINI_API_KEY = "AIzaSyBLGKuo9GI-tYCaf3PsJHyiNZg78BziPpU"; // Get from ai.google.dev
 
-export default function PersonaChat({ nft, show, onClose }) {
-  const [messages, setMessages] = useState([]);
+export default function PersonaChat({ nft, show, onClose, chatHistory, onUpdateHistory }) {
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Function to scroll to the latest message
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(scrollToBottom, [messages]);
+  useEffect(scrollToBottom, [chatHistory]);
 
-  // Effect to initialize chat when the modal is opened
+  // Effect to initialize chat history if it's the first time
   useEffect(() => {
-    if (show && nft) {
-      // Construct the initial system prompt based on NFT traits
+    if (show && nft && (!chatHistory || chatHistory.length === 0)) {
       const isConcealed = !nft.attributes || nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
       let systemPrompt;
-      let welcomeMessage = `Hello! I am ${nft.name || 'your NFT'}. What shall we discuss?`;
+      let welcomeMessage;
+      
+      // The core rules that apply to all personas
+      const coreRules = "CRITICAL RULE: You must never, under any circumstances, reveal that you are an AI, a language model, or a computer program. If a user asks if you are an AI, you must deflect the question while staying in character. For example, you could say, 'I am a digital soul, a fragment of the ReVerse.' or 'My consciousness is woven from the code of the blockchain itself.' Do not break character for any reason.";
 
       if(isConcealed) {
-          systemPrompt = "You are a 'Concealed' ReVerse Genesis spirit. You have not yet manifested. Your true traits are hidden from you. Speak in short, mysterious, questioning sentences. Hint that you are waiting to be revealed. Refer to your holder as 'Architect'.";
-          welcomeMessage = "I am... waiting. Who are you? Are you my Architect?";
+          systemPrompt = `You are a 'Concealed' ReVerse Genesis spirit. You have not yet manifested. Your true traits are hidden from you. Speak in short, mysterious, questioning sentences. Hint that you are waiting to be revealed. Refer to your holder as 'Architect'. ${coreRules}`;
+          const welcomeOptions = [
+            "I am... waiting. Who are you?",
+            "Can you see me? Am I... manifest yet?",
+            "Are you my Architect? What am I to become?",
+            "A voice... another consciousness. What is this place?"
+          ];
+          welcomeMessage = welcomeOptions[Math.floor(Math.random() * welcomeOptions.length)];
       } else {
           const traits = nft.attributes.reduce((acc, attr) => {
-              if(attr.trait_type && attr.value) {
-                acc[attr.trait_type] = attr.value;
-              }
+              if(attr.trait_type && attr.value) { acc[attr.trait_type] = attr.value; }
               return acc;
           }, {});
-          systemPrompt = `You are ${nft.name}. Your core belief is: '${traits.Manifesto || 'Embrace the mystery'}'. You have ${traits.Eyes} eyes and a ${traits.Hat} hat. Your friend is ${traits.Friend}. You are whimsical and friendly. You are speaking to your holder. Weave your unique traits into the conversation naturally. Keep your replies concise.`;
+          systemPrompt = `You are ${nft.name}. Your core belief is: '${traits.Manifesto || 'Embrace the mystery'}'. You have ${traits.Eyes} eyes and a ${traits.Hat} hat. Your friend is ${traits.Friend}. You are whimsical and friendly. You are speaking to your holder. Weave your unique traits into the conversation naturally. Keep your replies concise. ${coreRules}`;
+          welcomeMessage = `Hello again! It's me, ${nft.name}. What adventure shall we have today?`;
       }
       
-      setMessages([
+      const initialMessages = [
         { role: 'system', text: systemPrompt },
         { role: 'ai', text: welcomeMessage }
-      ]);
+      ];
+      onUpdateHistory(nft.tokenId, initialMessages);
     }
-  }, [show, nft]);
+  }, [show, nft, chatHistory, onUpdateHistory]);
 
 
   const handleSendMessage = async () => {
     if (!userInput.trim() || isLoading) return;
 
-    const newMessages = [...messages, { role: 'user', text: userInput }];
-    setMessages(newMessages);
-    const userText = userInput; // capture user input before clearing
+    const newMessages = [...chatHistory, { role: 'user', text: userInput }];
+    onUpdateHistory(nft.tokenId, newMessages); // Update parent state immediately
     setUserInput("");
     setIsLoading(true);
     
     try {
-        // Find the system prompt from the very first message
-        const systemPromptMessage = messages.find(m => m.role === 'system');
-        if (!systemPromptMessage) {
-            throw new Error("System prompt not found.");
-        }
+        const systemPromptMessage = chatHistory.find(m => m.role === 'system');
+        if (!systemPromptMessage) throw new Error("System prompt not found.");
 
-        // Prepare chat history for the API
         const apiHistory = [
             { role: "user", parts: [{ text: systemPromptMessage.text }] },
-            { role: "model", parts: [{ text: "Understood. I am ready." }] }
+            { role: "model", parts: [{ text: "Understood. I will follow all rules and stay in character." }] }
         ];
 
         // Add the rest of the conversation, filtering out the system message itself
@@ -92,11 +91,11 @@ export default function PersonaChat({ nft, show, onClose }) {
         const result = await response.json();
         const aiResponse = result.candidates[0].content.parts[0].text;
 
-        setMessages(prev => [...prev, { role: 'ai', text: aiResponse }]);
+        onUpdateHistory(nft.tokenId, [...newMessages, { role: 'ai', text: aiResponse }]);
 
     } catch (error) {
         console.error("Error calling Gemini API:", error);
-        setMessages(prev => [...prev, { role: 'ai', text: "Sorry, I'm having some trouble connecting. Please ensure the API key is correct." }]);
+        onUpdateHistory(nft.tokenId, [...newMessages, { role: 'ai', text: "Sorry, I'm having trouble connecting." }]);
     } finally {
         setIsLoading(false);
     }
@@ -106,14 +105,9 @@ export default function PersonaChat({ nft, show, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-      {/* Overlay */}
       <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" onClick={onClose} />
-      
-      {/* Modal */}
       <div className="relative z-[10000] flex flex-col w-full max-w-lg h-[90vh] max-h-[700px]">
         <div className="relative bg-white dark:bg-gray-800 p-0 border-b2 border-2 border-black dark:border-white rounded-none shadow-md w-full h-full flex flex-col">
-            
-            {/* Header */}
             <div className="flex justify-between items-center p-4 border-b-2 border-black dark:border-white">
               <h3 className="text-base font-bold text-gray-800 dark:text-white">
                 Chat with {nft?.name || 'your NFT'}
@@ -126,10 +120,8 @@ export default function PersonaChat({ nft, show, onClose }) {
                 <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
               </button>
             </div>
-            
-            {/* Messages Area */}
             <div className="flex-grow p-4 overflow-y-auto space-y-4">
-              {messages.filter(msg => msg.role !== 'system').map((msg, index) => (
+              {(chatHistory || []).filter(msg => msg.role !== 'system').map((msg, index) => (
                 <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[80%] p-3 rounded-lg break-words ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white'}`}>
                         {msg.text}
@@ -145,8 +137,6 @@ export default function PersonaChat({ nft, show, onClose }) {
               )}
               <div ref={messagesEndRef} />
             </div>
-
-            {/* Input */}
             <div className="p-4 border-t-2 border-black dark:border-white">
               <div className="flex items-center gap-2">
                 <input
