@@ -79,7 +79,8 @@ export default function NFTViewer({
       });
       setSelectedNFT(null);
       setShowThankYou(true);
-    } catch (error)      if (error.response?.status === 400 && error.response.data?.error === "Name is required.") {
+    } catch (error) { // --- FIX WAS HERE: ADDED OPENING BRACE ---
+      if (error.response?.status === 400 && error.response.data?.error === "Name is required.") {
         setNameError("Name is required.");
       } else {
         console.error("Submission error:", error);
