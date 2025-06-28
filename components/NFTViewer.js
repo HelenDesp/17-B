@@ -33,21 +33,30 @@ export default function NFTViewer({
     setChatNFT(null); // Clear the NFT data when closing
   };
   
-  // A helper function to get a random emotion based on NFT state
+  // --- FIXED getEmotion FUNCTION ---
+  // This function is now more robust to prevent crashes.
   const getEmotion = (nft) => {
-    // We assume the attributes are available on the nft object.
-    if (!nft.attributes) return '🤔'; 
+    // Safely check if nft exists and if nft.attributes is a usable array.
+    if (!nft || !Array.isArray(nft.attributes)) {
+      return '??'; // Return a default emotion if data is missing or malformed.
+    }
     
-    const isConcealed = nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
-    if (isConcealed) {
-        const emotions = ['🤔', '😴', '🤫'];
-        return emotions[Math.floor(Math.random() * emotions.length)];
-    } else {
-        const emotions = ['😊', '😜', '👽', '🦄', '😎', '🚀'];
-        return emotions[Math.floor(Math.random() * emotions.length)];
+    try {
+      const isConcealed = nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
+      if (isConcealed) {
+          const emotions = ['??', '??', '??'];
+          return emotions[Math.floor(Math.random() * emotions.length)];
+      } else {
+          const emotions = ['??', '??', '??', '??', '??', '??'];
+          return emotions[Math.floor(Math.random() * emotions.length)];
+      }
+    } catch (e) {
+      // If any other error occurs within the logic, return a default.
+      console.error("Error determining emotion:", e);
+      return '??';
     }
   };
-  // --- END OF NEW CHAT LOGIC ---
+  // --- END OF FIX ---
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -102,7 +111,7 @@ export default function NFTViewer({
                   onClick={() => handleOpenChat(nft)}
                   title="Chat with this NFT"
                 >
-                    <span className="text-xl">💬</span>
+                    <span className="text-xl">??</span>
                     <span className="text-xl">{getEmotion(nft)}</span>
                 </div>
 
