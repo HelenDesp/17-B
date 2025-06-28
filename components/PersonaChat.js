@@ -1,5 +1,5 @@
 // PersonaChat.js
-// Final version with your live backend URL integrated.
+// Final version with your live backend URL integrated and improved error logging.
 
 import { useState, useEffect, useRef } from 'react';
 
@@ -59,8 +59,8 @@ export default function PersonaChat({ nft, show, onClose, chatHistory, onUpdateH
     setUserInput("");
     setIsLoading(true);
     
-    // Define the error message here to avoid repetition
-    const errorMessage = { role: 'model', text: "Sorry, my connection to the ReVerse seems weak right now." };
+    // This is a temporary message for the UI only
+    const temporaryErrorMessage = { role: 'ai', text: "Sorry, my connection to the ReVerse seems weak right now." };
 
     try {
         const response = await fetch(HYBRID_BACKEND_URL, {
@@ -74,7 +74,12 @@ export default function PersonaChat({ nft, show, onClose, chatHistory, onUpdateH
         
         if (!response.ok) { 
             const errorBody = await response.text();
-            console.error("Backend Error Response:", errorBody); // Log the detailed error from the server
+            // Log the detailed error from the server to the browser console for debugging
+            console.error("CRITICAL BACKEND ERROR:", { 
+              status: response.status,
+              statusText: response.statusText,
+              body: errorBody 
+            });
             throw new Error(`Backend Error: ${response.statusText}`);
         }
 
@@ -86,15 +91,28 @@ export default function PersonaChat({ nft, show, onClose, chatHistory, onUpdateH
         }
 
         const aiResponse = result.text;
+        // The API call was successful, so update the persistent history with the real response.
         onUpdateHistory(nft.tokenId, [...newMessages, { role: 'model', text: aiResponse }]);
 
     } catch (error) {
-        console.error("Error calling hybrid backend:", error);
-        onUpdateHistory(nft.tokenId, [...newMessages, errorMessage]);
+        // This catch block now handles network errors (like CORS) or the errors thrown above.
+        console.error("FETCH FAILED:", error);
+        // Show the user the error message, but DO NOT save it to the permanent history.
+        setMessages(prev => [...prev, temporaryErrorMessage]);
     } finally {
         setIsLoading(false);
     }
   };
+
+  // We now have a local 'messages' state for rendering, which can include temporary errors.
+  const [messages, setMessages] = useState([]);
+  useEffect(() => {
+    // Sync the local messages state with the persistent history from the parent.
+    if(chatHistory) {
+      setMessages(chatHistory);
+    }
+  }, [chatHistory]);
+
 
   if (!show) return null;
 
@@ -116,7 +134,8 @@ export default function PersonaChat({ nft, show, onClose, chatHistory, onUpdateH
               </button>
             </div>
             <div className="flex-grow p-4 overflow-y-auto space-y-4">
-              {(chatHistory || []).filter(msg => msg.role !== 'system').map((msg, index) => (
+              {/* Render the local 'messages' state, which can include temporary errors */}
+              {messages.filter(msg => msg.role !== 'system').map((msg, index) => (
                 <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[80%] p-3 rounded-lg break-words ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white'}`}>
                         {msg.text}
