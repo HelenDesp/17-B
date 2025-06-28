@@ -33,8 +33,7 @@ export default function NFTViewer({
     setChatNFT(null); // Clear the NFT data when closing
   };
   
-  // --- FIXED getEmotion FUNCTION ---
-  // This function is now more robust to prevent crashes.
+  // --- ROBUST getEmotion FUNCTION (FIXED) ---
   const getEmotion = (nft) => {
     // Safely check if nft exists and if nft.attributes is a usable array.
     if (!nft || !Array.isArray(nft.attributes) || nft.attributes.length === 0) {
@@ -53,10 +52,17 @@ export default function NFTViewer({
     } catch (e) {
       // If any other error occurs within the logic, return a default.
       console.error("Error determining emotion:", e);
-      return '??';
+      return '?';
     }
   };
-  // --- END OF FIX ---
+
+  // --- NEW HELPER FUNCTION TO SAFELY GET TRAIT VALUES FOR PLACEHOLDERS (FIX) ---
+  const getTraitValue = (nft, traitName) => {
+    if (!nft || !Array.isArray(nft.attributes)) return '';
+    const trait = nft.attributes.find(attr => attr.trait_type.toLowerCase() === traitName.toLowerCase());
+    return trait ? trait.value : '';
+  };
+  // --- END OF FIXES ---
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -79,7 +85,7 @@ export default function NFTViewer({
       });
       setSelectedNFT(null);
       setShowThankYou(true);
-    } catch (error) { // --- FIX WAS HERE: ADDED OPENING BRACE ---
+    } catch (error) {
       if (error.response?.status === 400 && error.response.data?.error === "Name is required.") {
         setNameError("Name is required.");
       } else {
@@ -245,7 +251,7 @@ export default function NFTViewer({
                       name={field}
                       value={formData[field]}
                       onChange={e => handleChange(field, e.target.value)}
-                      placeholder={selectedNFT.traits[field]}
+                      placeholder={getTraitValue(selectedNFT, field)}
                       className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
                       style={{ boxShadow: 'none' }}
                     />
