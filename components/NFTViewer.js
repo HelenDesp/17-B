@@ -37,7 +37,7 @@ export default function NFTViewer({
   // This function is now more robust to prevent crashes.
   const getEmotion = (nft) => {
     // Safely check if nft exists and if nft.attributes is a usable array.
-    if (!nft || !Array.isArray(nft.attributes)) {
+    if (!nft || !Array.isArray(nft.attributes) || nft.attributes.length === 0) {
       return '??'; // Return a default emotion if data is missing or malformed.
     }
     
@@ -79,8 +79,7 @@ export default function NFTViewer({
       });
       setSelectedNFT(null);
       setShowThankYou(true);
-    } catch (error) {
-      if (error.response?.status === 400 && error.response.data?.error === "Name is required.") {
+    } catch (error)      if (error.response?.status === 400 && error.response.data?.error === "Name is required.") {
         setNameError("Name is required.");
       } else {
         console.error("Submission error:", error);
