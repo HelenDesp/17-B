@@ -4,7 +4,6 @@ import axios from "axios";
 import { useAccount } from "wagmi";
 
 // --- IMPORT THE SEPARATE CHAT COMPONENT ---
-// This assumes 'PersonaChat.js' exists as a separate file in the same directory.
 import PersonaChat from "./PersonaChat";
 
 export default function NFTViewer({
@@ -19,9 +18,9 @@ export default function NFTViewer({
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
 
-  // --- NEW STATE & HANDLERS FOR THE CHAT MODAL ---
-  const [chatNFT, setChatNFT] = useState(null); // Stores the NFT data for the chat
-  const [isChatOpen, setIsChatOpen] = useState(false); // Controls chat visibility
+  // --- STATE & HANDLERS FOR THE CHAT MODAL ---
+  const [chatNFT, setChatNFT] = useState(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleOpenChat = (nft) => {
     setChatNFT(nft);
@@ -30,40 +29,30 @@ export default function NFTViewer({
 
   const handleCloseChat = () => {
     setIsChatOpen(false);
-    setChatNFT(null); // Clear the NFT data when closing
-  };
-  
-  // --- ROBUST getEmotion FUNCTION ---
-  const getEmotion = (nft) => {
-    // Safely check if nft exists and if nft.attributes is a usable array.
-    if (!nft || !Array.isArray(nft.attributes) || nft.attributes.length === 0) {
-      return '??'; // Return a default emotion if data is missing or malformed.
-    }
-    
-    try {
-      const isConcealed = nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
-      if (isConcealed) {
-          const emotions = ['??', '??', '??'];
-          return emotions[Math.floor(Math.random() * emotions.length)];
-      } else {
-          const emotions = ['??', '??', '??', '??', '??', '??'];
-          return emotions[Math.floor(Math.random() * emotions.length)];
-      }
-    } catch (e) {
-      // If any other error occurs within the logic, return a default.
-      console.error("Error determining emotion:", e);
-      return '??';
-    }
+    setChatNFT(null);
   };
 
-  // --- SAFER getTraitValue HELPER FUNCTION (FIXED) ---
+  // --- ROBUST getEmotion FUNCTION ---
+  const getEmotion = (nft) => {
+    if (!nft || !Array.isArray(nft.attributes) || nft.attributes.length === 0) {
+      return '??';
+    }
+    const isConcealed = nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
+    if (isConcealed) {
+      const emotions = ['??', '??', '??'];
+      return emotions[Math.floor(Math.random() * emotions.length)];
+    } else {
+      const emotions = ['??', '??', '??', '??', '?', '??'];
+      return emotions[Math.floor(Math.random() * emotions.length)];
+    }
+  };
+  
+  // --- HELPER FUNCTION TO GET TRAIT FOR MODAL PLACEHOLDERS ---
   const getTraitValue = (nft, traitName) => {
     if (!nft || !Array.isArray(nft.attributes)) return '';
-    // Add check to ensure attr and attr.trait_type exist before calling .toLowerCase()
     const trait = nft.attributes.find(attr => attr && attr.trait_type && attr.trait_type.toLowerCase() === traitName.toLowerCase());
     return trait ? trait.value : '';
   };
-  // --- END OF FIXES ---
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -110,21 +99,17 @@ export default function NFTViewer({
         ) : (
           <div className="nft-grid gap-4">
             {nfts.map((nft, i) => {
-              // --- COMPONENT-LEVEL GUARD (FIX) ---
-              // Don't render the card at all if the nft object is invalid
-              if (!nft) return null;
-
+              if (!nft) return null; // Guard against null/undefined nft objects
               return (
                 <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
-                  
                   {/* --- INTEGRATED CHAT ICON --- */}
                   <div 
                     className="absolute top-2 left-2 z-20 flex items-center gap-2 bg-black/30 dark:bg-black/50 p-2 rounded-lg cursor-pointer"
                     onClick={() => handleOpenChat(nft)}
                     title="Chat with this NFT"
                   >
-                      <span className="text-xl">??</span>
-                      <span className="text-xl">{getEmotion(nft)}</span>
+                    <span className="text-xl">??</span>
+                    <span className="text-xl">{getEmotion(nft)}</span>
                   </div>
 
                   {/* Your existing checkbox and tooltip logic */}
@@ -141,21 +126,13 @@ export default function NFTViewer({
                         className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-0 left-1/2 -translate-x-1/2 z-50"
                         style={{ width: 24, height: 24 }}
                       >
-                        {/* Auto-dark/light plane icon */}
                         <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
                           width="24" height="24" viewBox="0 0 512 512"
                           className="w-6 h-6 fill-black dark:fill-white"
                           preserveAspectRatio="xMidYMid meet"
                         >
                           <g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
-                            <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
-                            -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
-                            31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
-                            23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460
-                            l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774
-                            368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795
-                            c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003
-                            1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
+                            <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2 -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815 31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12 23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460 l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774 368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795 c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003 1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
                           </g>
                         </svg>
                       </div>
@@ -195,7 +172,6 @@ export default function NFTViewer({
       </div>
 
       {/* --- RENDER THE CHAT MODAL --- */}
-      {/* This will only appear when isChatOpen is true */}
       <PersonaChat 
         nft={chatNFT}
         show={isChatOpen}
@@ -205,14 +181,9 @@ export default function NFTViewer({
       {/* ===== YOUR EXISTING UPGRADE MODAL (FULL CODE) ===== */}
       {selectedNFT && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          {/* Overlay */}
           <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" />
-
-          {/* Modal */}
           <div className="relative z-[10000] flex items-center justify-center min-h-screen w-full px-4 py-10">
             <div className="relative bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
-              
-              {/* Close Button */}
               <button
                 className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
                 onClick={() => setSelectedNFT(null)}
@@ -220,14 +191,10 @@ export default function NFTViewer({
               >
                 <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
               </button>
-              
               <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
-              
-              {/* Border around image */}
               <div className="mb-4 border-b1 border-2 border-black dark:border-white">
                 <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover" />
               </div>
-              
               <form onSubmit={handleSubmit} className="space-y-3">
                 <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
                 <div>
