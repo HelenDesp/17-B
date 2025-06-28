@@ -1,15 +1,26 @@
 // PersonaChat.js
-// Updated with a stricter system prompt to ensure the AI always stays in character.
+// Final version with your live backend URL integrated.
 
 import { useState, useEffect, useRef } from 'react';
 
 // --- CONFIGURATION ---
-const GEMINI_API_KEY = "AIzaSyBLGKuo9GI-tYCaf3PsJHyiNZg78BziPpU"; // Get from ai.google.dev
+// This is your live, deployed backend URL.
+const HYBRID_BACKEND_URL = "https://hybrid-persona-proxy-66441519446.us-central1.run.app"; 
 
 export default function PersonaChat({ nft, show, onClose, chatHistory, onUpdateHistory }) {
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const [userCountry, setUserCountry] = useState('UNKNOWN');
+
+  // This effect would run once to determine the user's country.
+  // In a real app, you might use a service like ip-api.com or an npm package.
+  useEffect(() => {
+    // For this example, we'll simulate a user from Moldova to test the Vertex AI route.
+    // To test the direct API route, you could change this to 'US' or any other supported country.
+    setUserCountry('MD'); 
+  }, []);
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -17,38 +28,24 @@ export default function PersonaChat({ nft, show, onClose, chatHistory, onUpdateH
 
   useEffect(scrollToBottom, [chatHistory]);
 
-  // Effect to initialize chat history if it's the first time
+  // Initializes chat history if it's the first time
   useEffect(() => {
     if (show && nft && (!chatHistory || chatHistory.length === 0)) {
       const isConcealed = !nft.attributes || nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
       let systemPrompt;
       let welcomeMessage;
-      
-      // The core rules that apply to all personas
       const coreRules = "CRITICAL RULE: You must never, under any circumstances, reveal that you are an AI, a language model, or a computer program. If a user asks if you are an AI, you must deflect the question while staying in character. For example, you could say, 'I am a digital soul, a fragment of the ReVerse.' or 'My consciousness is woven from the code of the blockchain itself.' Do not break character for any reason.";
 
       if(isConcealed) {
           systemPrompt = `You are a 'Concealed' ReVerse Genesis spirit. You have not yet manifested. Your true traits are hidden from you. Speak in short, mysterious, questioning sentences. Hint that you are waiting to be revealed. Refer to your holder as 'Architect'. ${coreRules}`;
-          const welcomeOptions = [
-            "I am... waiting. Who are you?",
-            "Can you see me? Am I... manifest yet?",
-            "Are you my Architect? What am I to become?",
-            "A voice... another consciousness. What is this place?"
-          ];
+          const welcomeOptions = [ "I am... waiting. Who are you?", "Are you my Architect? What am I to become?" ];
           welcomeMessage = welcomeOptions[Math.floor(Math.random() * welcomeOptions.length)];
       } else {
-          const traits = nft.attributes.reduce((acc, attr) => {
-              if(attr.trait_type && attr.value) { acc[attr.trait_type] = attr.value; }
-              return acc;
-          }, {});
-          systemPrompt = `You are ${nft.name}. Your core belief is: '${traits.Manifesto || 'Embrace the mystery'}'. You have ${traits.Eyes} eyes and a ${traits.Hat} hat. Your friend is ${traits.Friend}. You are whimsical and friendly. You are speaking to your holder. Weave your unique traits into the conversation naturally. Keep your replies concise. ${coreRules}`;
+          const traits = nft.attributes.reduce((acc, attr) => { if(attr.trait_type && attr.value) { acc[attr.trait_type] = attr.value; } return acc; }, {});
+          systemPrompt = `You are ${nft.name}. Your core belief is: '${traits.Manifesto || 'Embrace the mystery'}'. You are speaking to your holder. ${coreRules}`;
           welcomeMessage = `Hello again! It's me, ${nft.name}. What adventure shall we have today?`;
       }
-      
-      const initialMessages = [
-        { role: 'system', text: systemPrompt },
-        { role: 'ai', text: welcomeMessage }
-      ];
+      const initialMessages = [ { role: 'system', text: systemPrompt }, { role: 'ai', text: welcomeMessage } ];
       onUpdateHistory(nft.tokenId, initialMessages);
     }
   }, [show, nft, chatHistory, onUpdateHistory]);
@@ -58,44 +55,33 @@ export default function PersonaChat({ nft, show, onClose, chatHistory, onUpdateH
     if (!userInput.trim() || isLoading) return;
 
     const newMessages = [...chatHistory, { role: 'user', text: userInput }];
-    onUpdateHistory(nft.tokenId, newMessages); // Update parent state immediately
+    onUpdateHistory(nft.tokenId, newMessages);
     setUserInput("");
     setIsLoading(true);
     
     try {
-        const systemPromptMessage = chatHistory.find(m => m.role === 'system');
-        if (!systemPromptMessage) throw new Error("System prompt not found.");
-
-        const apiHistory = [
-            { role: "user", parts: [{ text: systemPromptMessage.text }] },
-            { role: "model", parts: [{ text: "Understood. I will follow all rules and stay in character." }] }
-        ];
-
-        // Add the rest of the conversation, filtering out the system message itself
-        newMessages.filter(msg => msg.role !== 'system').forEach(msg => {
-            apiHistory.push({
-                role: msg.role === 'ai' ? 'model' : 'user',
-                parts: [{ text: msg.text }]
-            });
-        });
-
-
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(HYBRID_BACKEND_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: apiHistory })
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Country-Code': userCountry // Send the user's country to the backend
+            },
+            body: JSON.stringify({ chatHistory: newMessages })
         });
         
-        if (!response.ok) { throw new Error(`API Error: ${response.statusText}`); }
+        if (!response.ok) { 
+            const errorBody = await response.text();
+            throw new Error(`Backend Error: ${response.statusText}. Details: ${errorBody}`);
+        }
 
         const result = await response.json();
-        const aiResponse = result.candidates[0].content.parts[0].text;
+        const aiResponse = result.text;
 
-        onUpdateHistory(nft.tokenId, [...newMessages, { role: 'ai', text: aiResponse }]);
+        onUpdateHistory(nft.tokenId, [...newMessages, { role: 'model', text: aiResponse }]);
 
     } catch (error) {
-        console.error("Error calling Gemini API:", error);
-        onUpdateHistory(nft.tokenId, [...newMessages, { role: 'ai', text: "Sorry, I'm having trouble connecting." }]);
+        console.error("Error calling hybrid backend:", error);
+        onUpdateHistory(nft.tokenId, [...newMessages, { role: 'model', text: "Sorry, my connection to the ReVerse seems weak right now." }]);
     } finally {
         setIsLoading(false);
     }
