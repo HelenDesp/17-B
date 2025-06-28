@@ -18,9 +18,11 @@ export default function NFTViewer({
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
 
-  // --- STATE & HANDLERS FOR THE CHAT MODAL ---
+  // --- STATE & HANDLERS FOR THE CHAT MODAL & PERSISTENT HISTORY ---
   const [chatNFT, setChatNFT] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  // This object will store chat histories, keyed by NFT tokenId
+  const [chatHistories, setChatHistories] = useState({}); 
 
   const handleOpenChat = (nft) => {
     setChatNFT(nft);
@@ -29,20 +31,28 @@ export default function NFTViewer({
 
   const handleCloseChat = () => {
     setIsChatOpen(false);
-    setChatNFT(null);
+    // We no longer clear the NFT state here, so the history persists
+  };
+  
+  // This function updates the history for a specific NFT
+  const handleUpdateHistory = (tokenId, newMessages) => {
+    setChatHistories(prevHistories => ({
+      ...prevHistories,
+      [tokenId]: newMessages,
+    }));
   };
 
   // --- ROBUST getEmotion FUNCTION ---
   const getEmotion = (nft) => {
     if (!nft || !Array.isArray(nft.attributes) || nft.attributes.length === 0) {
-      return '??';
+      return '🤔';
     }
     const isConcealed = nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
     if (isConcealed) {
-      const emotions = ['??', '??', '??'];
+      const emotions = ['🤔', '😴', '🤫'];
       return emotions[Math.floor(Math.random() * emotions.length)];
     } else {
-      const emotions = ['??', '??', '??', '??', '?', '??'];
+      const emotions = ['😊', '😜', '👽', '🦄', '😎', '🚀'];
       return emotions[Math.floor(Math.random() * emotions.length)];
     }
   };
@@ -108,7 +118,7 @@ export default function NFTViewer({
                     onClick={() => handleOpenChat(nft)}
                     title="Chat with this NFT"
                   >
-                    <span className="text-xl">??</span>
+                    <span className="text-xl">💬</span>
                     <span className="text-xl">{getEmotion(nft)}</span>
                   </div>
 
@@ -176,6 +186,9 @@ export default function NFTViewer({
         nft={chatNFT}
         show={isChatOpen}
         onClose={handleCloseChat}
+        // Pass the specific history and the update function to the chat component
+        chatHistory={chatNFT ? chatHistories[chatNFT.tokenId] || [] : []}
+        onUpdateHistory={handleUpdateHistory}
       />
 
       {/* ===== YOUR EXISTING UPGRADE MODAL (FULL CODE) ===== */}
