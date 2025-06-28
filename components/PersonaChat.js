@@ -1,5 +1,6 @@
 // PersonaChat.js
 // A self-contained component to handle the AI chat modal.
+// Restored dynamic persona logic.
 
 import { useState, useEffect, useRef } from 'react';
 
@@ -23,15 +24,19 @@ export default function PersonaChat({ nft, show, onClose }) {
   // Effect to initialize chat when the modal is opened
   useEffect(() => {
     if (show && nft) {
-      // Construct the initial system prompt
-      const isConcealed = nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
+      // Construct the initial system prompt based on NFT traits
+      const isConcealed = !nft.attributes || nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
       let systemPrompt;
+      let welcomeMessage = `Hello! I am ${nft.name || 'your NFT'}. What shall we discuss?`;
 
       if(isConcealed) {
           systemPrompt = "You are a 'Concealed' ReVerse Genesis spirit. You have not yet manifested. Your true traits are hidden from you. Speak in short, mysterious, questioning sentences. Hint that you are waiting to be revealed. Refer to your holder as 'Architect'.";
+          welcomeMessage = "I am... waiting. Who are you? Are you my Architect?";
       } else {
           const traits = nft.attributes.reduce((acc, attr) => {
-              acc[attr.trait_type] = attr.value;
+              if(attr.trait_type && attr.value) {
+                acc[attr.trait_type] = attr.value;
+              }
               return acc;
           }, {});
           systemPrompt = `You are ${nft.name}. Your core belief is: '${traits.Manifesto || 'Embrace the mystery'}'. You have ${traits.Eyes} eyes and a ${traits.Hat} hat. Your friend is ${traits.Friend}. You are whimsical and friendly. You are speaking to your holder. Weave your unique traits into the conversation naturally. Keep your replies concise.`;
@@ -39,7 +44,7 @@ export default function PersonaChat({ nft, show, onClose }) {
       
       setMessages([
         { role: 'system', text: systemPrompt },
-        { role: 'ai', text: `Hello! I am ${nft.name}. What shall we discuss?` }
+        { role: 'ai', text: welcomeMessage }
       ]);
     }
   }, [show, nft]);
@@ -50,23 +55,29 @@ export default function PersonaChat({ nft, show, onClose }) {
 
     const newMessages = [...messages, { role: 'user', text: userInput }];
     setMessages(newMessages);
+    const userText = userInput; // capture user input before clearing
     setUserInput("");
     setIsLoading(true);
-
+    
     try {
-        // Prepare chat history for the API, excluding the system prompt for subsequent turns
-        const apiHistory = newMessages.map(msg => ({
-            role: msg.role === 'ai' ? 'model' : 'user',
-            parts: [{ text: msg.text }]
-        })).filter(msg => msg.role !== 'system');
-        
-        // Add the system prompt at the beginning of the history
-        apiHistory.unshift({
-            role: 'user',
-            parts: [{ text: messages.find(m => m.role === 'system').text }]
-        },{
-            role: 'model',
-            parts: [{ text: 'Understood. I am ready.' }]
+        // Find the system prompt from the very first message
+        const systemPromptMessage = messages.find(m => m.role === 'system');
+        if (!systemPromptMessage) {
+            throw new Error("System prompt not found.");
+        }
+
+        // Prepare chat history for the API
+        const apiHistory = [
+            { role: "user", parts: [{ text: systemPromptMessage.text }] },
+            { role: "model", parts: [{ text: "Understood. I am ready." }] }
+        ];
+
+        // Add the rest of the conversation, filtering out the system message itself
+        newMessages.filter(msg => msg.role !== 'system').forEach(msg => {
+            apiHistory.push({
+                role: msg.role === 'ai' ? 'model' : 'user',
+                parts: [{ text: msg.text }]
+            });
         });
 
 
@@ -85,7 +96,7 @@ export default function PersonaChat({ nft, show, onClose }) {
 
     } catch (error) {
         console.error("Error calling Gemini API:", error);
-        setMessages(prev => [...prev, { role: 'ai', text: "Sorry, I'm having trouble connecting right now." }]);
+        setMessages(prev => [...prev, { role: 'ai', text: "Sorry, I'm having some trouble connecting. Please ensure the API key is correct." }]);
     } finally {
         setIsLoading(false);
     }
