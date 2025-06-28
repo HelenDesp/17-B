@@ -33,7 +33,7 @@ export default function NFTViewer({
     setChatNFT(null); // Clear the NFT data when closing
   };
   
-  // --- ROBUST getEmotion FUNCTION (FIXED) ---
+  // --- ROBUST getEmotion FUNCTION ---
   const getEmotion = (nft) => {
     // Safely check if nft exists and if nft.attributes is a usable array.
     if (!nft || !Array.isArray(nft.attributes) || nft.attributes.length === 0) {
@@ -52,14 +52,15 @@ export default function NFTViewer({
     } catch (e) {
       // If any other error occurs within the logic, return a default.
       console.error("Error determining emotion:", e);
-      return '?';
+      return '??';
     }
   };
 
-  // --- NEW HELPER FUNCTION TO SAFELY GET TRAIT VALUES FOR PLACEHOLDERS (FIX) ---
+  // --- SAFER getTraitValue HELPER FUNCTION (FIXED) ---
   const getTraitValue = (nft, traitName) => {
     if (!nft || !Array.isArray(nft.attributes)) return '';
-    const trait = nft.attributes.find(attr => attr.trait_type.toLowerCase() === traitName.toLowerCase());
+    // Add check to ensure attr and attr.trait_type exist before calling .toLowerCase()
+    const trait = nft.attributes.find(attr => attr && attr.trait_type && attr.trait_type.toLowerCase() === traitName.toLowerCase());
     return trait ? trait.value : '';
   };
   // --- END OF FIXES ---
@@ -108,81 +109,87 @@ export default function NFTViewer({
           <p className="text-gray-500 dark:text-white">No NFTs found for this wallet.</p>
         ) : (
           <div className="nft-grid gap-4">
-            {nfts.map((nft, i) => (
-              <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
-                
-                {/* --- INTEGRATED CHAT ICON --- */}
-                <div 
-                  className="absolute top-2 left-2 z-20 flex items-center gap-2 bg-black/30 dark:bg-black/50 p-2 rounded-lg cursor-pointer"
-                  onClick={() => handleOpenChat(nft)}
-                  title="Chat with this NFT"
-                >
-                    <span className="text-xl">??</span>
-                    <span className="text-xl">{getEmotion(nft)}</span>
-                </div>
+            {nfts.map((nft, i) => {
+              // --- COMPONENT-LEVEL GUARD (FIX) ---
+              // Don't render the card at all if the nft object is invalid
+              if (!nft) return null;
 
-                {/* Your existing checkbox and tooltip logic */}
-                <div className="absolute left-2 bottom-2 z-10">
-                  <div className="relative flex flex-col items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedNFTs.includes(nft.tokenId)}
-                      onChange={() => onSelectNFT(nft.tokenId)}
-                      className="peer w-5 h-5 appearance-none rvg-checkbox"
-                      id={`select-nft-${nft.tokenId}`}
-                    />
-                    <div
-                      className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-0 left-1/2 -translate-x-1/2 z-50"
-                      style={{ width: 24, height: 24 }}
-                    >
-                      {/* Auto-dark/light plane icon */}
-                      <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
-                        width="24" height="24" viewBox="0 0 512 512"
-                        className="w-6 h-6 fill-black dark:fill-white"
-                        preserveAspectRatio="xMidYMid meet"
+              return (
+                <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
+                  
+                  {/* --- INTEGRATED CHAT ICON --- */}
+                  <div 
+                    className="absolute top-2 left-2 z-20 flex items-center gap-2 bg-black/30 dark:bg-black/50 p-2 rounded-lg cursor-pointer"
+                    onClick={() => handleOpenChat(nft)}
+                    title="Chat with this NFT"
+                  >
+                      <span className="text-xl">??</span>
+                      <span className="text-xl">{getEmotion(nft)}</span>
+                  </div>
+
+                  {/* Your existing checkbox and tooltip logic */}
+                  <div className="absolute left-2 bottom-2 z-10">
+                    <div className="relative flex flex-col items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedNFTs.includes(nft.tokenId)}
+                        onChange={() => onSelectNFT(nft.tokenId)}
+                        className="peer w-5 h-5 appearance-none rvg-checkbox"
+                        id={`select-nft-${nft.tokenId}`}
+                      />
+                      <div
+                        className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-0 left-1/2 -translate-x-1/2 z-50"
+                        style={{ width: 24, height: 24 }}
                       >
-                        <g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
-                          <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
-                          -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
-                          31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
-                          23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460
-                          l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774
-                          368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795
-                          c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003
-                          1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
-                        </g>
-                      </svg>
+                        {/* Auto-dark/light plane icon */}
+                        <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+                          width="24" height="24" viewBox="0 0 512 512"
+                          className="w-6 h-6 fill-black dark:fill-white"
+                          preserveAspectRatio="xMidYMid meet"
+                        >
+                          <g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
+                            <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
+                            -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
+                            31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
+                            23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460
+                            l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774
+                            368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795
+                            c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003
+                            1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
+                          </g>
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                </div>
-                {nft.image ? (
-                  <img
-                    src={nft.image}
-                    alt={nft.name}
-                    className="w-full aspect-square object-cover border-b1"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = "";
-                    }}
-                  />
-                ) : (
-                  <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
-                    No Image
+                  {nft.image ? (
+                    <img
+                      src={nft.image}
+                      alt={nft.name}
+                      className="w-full aspect-square object-cover border-b1"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "";
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+                      No Image
+                    </div>
+                  )}
+                  <div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
+                    {nft.name}
                   </div>
-                )}
-                <div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
-                  {nft.name}
+                  <div className="flex justify-center mt-3">
+                    <button
+                      onClick={() => setSelectedNFT(nft)}
+                      className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+                    >
+                      UPGRADE NFT
+                    </button>
+                  </div>
                 </div>
-                <div className="flex justify-center mt-3">
-                  <button
-                    onClick={() => setSelectedNFT(nft)}
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                  >
-                    UPGRADE NFT
-                  </button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
