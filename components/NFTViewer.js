@@ -45,7 +45,7 @@ export default function NFTViewer({
   // --- ROBUST getEmotion FUNCTION ---
   const getEmotion = (nft) => {
     if (!nft || !Array.isArray(nft.attributes) || nft.attributes.length === 0) {
-      return '🤔';
+      return '�';
     }
     const isConcealed = nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
     if (isConcealed) {

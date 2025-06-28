@@ -59,29 +59,38 @@ export default function PersonaChat({ nft, show, onClose, chatHistory, onUpdateH
     setUserInput("");
     setIsLoading(true);
     
+    // Define the error message here to avoid repetition
+    const errorMessage = { role: 'model', text: "Sorry, my connection to the ReVerse seems weak right now." };
+
     try {
         const response = await fetch(HYBRID_BACKEND_URL, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'X-Country-Code': userCountry // Send the user's country to the backend
+                'X-Country-Code': userCountry 
             },
             body: JSON.stringify({ chatHistory: newMessages })
         });
         
         if (!response.ok) { 
             const errorBody = await response.text();
-            throw new Error(`Backend Error: ${response.statusText}. Details: ${errorBody}`);
+            console.error("Backend Error Response:", errorBody); // Log the detailed error from the server
+            throw new Error(`Backend Error: ${response.statusText}`);
         }
 
         const result = await response.json();
-        const aiResponse = result.text;
 
+        if (result.error) {
+            console.error("Backend Logic Error:", result.details);
+            throw new Error(result.error);
+        }
+
+        const aiResponse = result.text;
         onUpdateHistory(nft.tokenId, [...newMessages, { role: 'model', text: aiResponse }]);
 
     } catch (error) {
         console.error("Error calling hybrid backend:", error);
-        onUpdateHistory(nft.tokenId, [...newMessages, { role: 'model', text: "Sorry, my connection to the ReVerse seems weak right now." }]);
+        onUpdateHistory(nft.tokenId, [...newMessages, errorMessage]);
     } finally {
         setIsLoading(false);
     }
