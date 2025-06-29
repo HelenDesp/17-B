@@ -1,11 +1,11 @@
 // PersonaChat.js
-// Final version, updated to call the new /api/chat route.
+// Final, corrected version with the proper API route path.
 
 import { useState, useEffect, useRef } from 'react';
 
 // --- CONFIGURATION ---
-// We now point to our own internal API route.
-const CHAT_API_ROUTE = "./Chat"; 
+// This now points to the correct, lowercase API route.
+const CHAT_API_ROUTE = "/api/chat"; 
 
 export default function PersonaChat({ nft, show, onClose, chatHistory, onUpdateHistory }) {
   const [userInput, setUserInput] = useState("");

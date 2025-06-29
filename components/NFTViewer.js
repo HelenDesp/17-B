@@ -21,7 +21,6 @@ export default function NFTViewer({
   // --- STATE & HANDLERS FOR THE CHAT MODAL & PERSISTENT HISTORY ---
   const [chatNFT, setChatNFT] = useState(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  // This object will store chat histories, keyed by NFT tokenId
   const [chatHistories, setChatHistories] = useState({}); 
 
   const handleOpenChat = (nft) => {
@@ -31,10 +30,8 @@ export default function NFTViewer({
 
   const handleCloseChat = () => {
     setIsChatOpen(false);
-    // We no longer clear the NFT state here, so the history persists
   };
   
-  // This function updates the history for a specific NFT
   const handleUpdateHistory = (tokenId, newMessages) => {
     setChatHistories(prevHistories => ({
       ...prevHistories,
@@ -42,22 +39,20 @@ export default function NFTViewer({
     }));
   };
 
-  // --- ROBUST getEmotion FUNCTION ---
   const getEmotion = (nft) => {
     if (!nft || !Array.isArray(nft.attributes) || nft.attributes.length === 0) {
-      return '�';
+      return '??';
     }
     const isConcealed = nft.attributes.some(attr => attr.trait_type === 'Level' && attr.value === 'Concealed');
     if (isConcealed) {
-      const emotions = ['🤔', '😴', '🤫'];
+      const emotions = ['?', '??', '??'];
       return emotions[Math.floor(Math.random() * emotions.length)];
     } else {
-      const emotions = ['😊', '😜', '👽', '🦄', '😎', '🚀'];
+      const emotions = ['??', '??', '??', '??', '??', '??'];
       return emotions[Math.floor(Math.random() * emotions.length)];
     }
   };
   
-  // --- HELPER FUNCTION TO GET TRAIT FOR MODAL PLACEHOLDERS ---
   const getTraitValue = (nft, traitName) => {
     if (!nft || !Array.isArray(nft.attributes)) return '';
     const trait = nft.attributes.find(attr => attr && attr.trait_type && attr.trait_type.toLowerCase() === traitName.toLowerCase());
@@ -109,20 +104,17 @@ export default function NFTViewer({
         ) : (
           <div className="nft-grid gap-4">
             {nfts.map((nft, i) => {
-              if (!nft) return null; // Guard against null/undefined nft objects
+              if (!nft) return null; 
               return (
                 <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
-                  {/* --- INTEGRATED CHAT ICON --- */}
                   <div 
                     className="absolute top-2 left-2 z-20 flex items-center gap-2 bg-black/30 dark:bg-black/50 p-2 rounded-lg cursor-pointer"
                     onClick={() => handleOpenChat(nft)}
                     title="Chat with this NFT"
                   >
-                    <span className="text-xl">💬</span>
+                    <span className="text-xl">??</span>
                     <span className="text-xl">{getEmotion(nft)}</span>
                   </div>
-
-                  {/* Your existing checkbox and tooltip logic */}
                   <div className="absolute left-2 bottom-2 z-10">
                     <div className="relative flex flex-col items-center">
                       <input
@@ -181,17 +173,14 @@ export default function NFTViewer({
         )}
       </div>
 
-      {/* --- RENDER THE CHAT MODAL --- */}
       <PersonaChat 
         nft={chatNFT}
         show={isChatOpen}
         onClose={handleCloseChat}
-        // Pass the specific history and the update function to the chat component
         chatHistory={chatNFT ? chatHistories[chatNFT.tokenId] || [] : []}
         onUpdateHistory={handleUpdateHistory}
       />
 
-      {/* ===== YOUR EXISTING UPGRADE MODAL (FULL CODE) ===== */}
       {selectedNFT && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" />
@@ -265,7 +254,6 @@ export default function NFTViewer({
         </div>
       )}
 
-      {/* ===== YOUR EXISTING THANK YOU MODAL (FULL CODE) ===== */}
       {showThankYou && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
           <div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
