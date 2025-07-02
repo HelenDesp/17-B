@@ -3,20 +3,18 @@
 import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
 import { streamText } from 'ai';
 
-// IMPORTANT: Set the runtime to edge for best performance with streaming.
-// This is the standard for the Vercel AI SDK.
-export const runtime = 'edge';
+// By not exporting a "runtime" variable, we default to the Node.js serverless runtime,
+// which is compatible with the Google Cloud authentication libraries.
 
 // Initialize the Vertex AI provider.
-// It automatically reads the environment variables you set up in Vercel.
 const vertex = createGoogleVertexAI();
 
 // This is the handler for the /api/chat endpoint.
-// It uses the standard Web Request object.
-export default async function handler(req) {
-  // We only want to handle POST requests
+export default async function handler(req, res) {
+  // Explicitly handle only POST requests
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
   try {
@@ -34,23 +32,27 @@ Engage the user in a conversation about their NFT. You can talk about its lore, 
 
     // Call the streamText model from the Vercel AI SDK
     const result = await streamText({
-      // Use the Gemini 1.5 Flash model for fast responses
       model: vertex('gemini-1.5-flash-001'),
-      // Provide the system prompt to define the AI's behavior
       system: systemPrompt,
-      // Pass the existing conversation history
       messages,
     });
 
-    // Respond with the stream. The .toAIStreamResponse() is the correct method for Edge functions.
-    return result.toAIStreamResponse();
+    // Set headers for streaming the response
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    // Manually iterate over the stream and write chunks to the response.
+    // This is a robust method for handling streams in a Node.js environment.
+    for await (const chunk of result.textStream) {
+      res.write(chunk);
+    }
+
+    // End the response when the stream is finished
+    res.end();
 
   } catch (error) {
     // Handle any potential errors
     console.error("Error in chat API route:", error);
-    return new Response(
-      JSON.stringify({ error: 'An error occurred while processing your request.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return res.status(500).json({ error: 'An error occurred while processing your request.' });
   }
 }
