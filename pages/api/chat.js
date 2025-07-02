@@ -1,8 +1,10 @@
-// src/app/api/chat/route.js
+// pages/api/chat.js
 
 import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
 import { streamText } from 'ai';
 
+// IMPORTANT: Set the runtime to edge
+export const runtime = 'edge';
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
@@ -10,7 +12,16 @@ export const maxDuration = 30;
 // It automatically reads the environment variables you set up in Vercel.
 const vertex = createGoogleVertexAI();
 
-export async function POST(req) {
+// This is the handler for the /api/chat endpoint in the Pages Router
+export default async function handler(req) {
+  // In the Pages Router, we need to manually check the request method.
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     // Extract the `messages` and `data` from the request body
     const { messages, data } = await req.json();
