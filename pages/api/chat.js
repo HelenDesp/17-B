@@ -13,6 +13,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Message and NFT data are required" })
     }
 
+    // Log environment variables for debugging (remove in production)
+    console.log("Environment check:", {
+      hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
+      hasLocation: !!process.env.GOOGLE_CLOUD_LOCATION,
+      hasCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
+      location: process.env.GOOGLE_CLOUD_LOCATION,
+    })
+
     // Build conversation history for context
     let conversationContext = ""
     if (chatHistory && chatHistory.length > 0) {
@@ -45,11 +54,20 @@ Current message from human: ${message}
 
 Respond as ${nftData.name}:`
 
-    // Initialize the Vertex AI model
+    // Initialize the Vertex AI model with explicit configuration
     const model = vertex("gemini-1.5-flash", {
       project: process.env.GOOGLE_CLOUD_PROJECT_ID,
       location: process.env.GOOGLE_CLOUD_LOCATION || "us-central1",
+      // The AI SDK will automatically use GOOGLE_APPLICATION_CREDENTIALS
+      googleAuthOptions: {
+        // If you have the credentials as a JSON string, parse it
+        credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS
+          ? JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
+          : undefined,
+      },
     })
+
+    console.log("Attempting to generate text...")
 
     // Generate response using AI SDK
     const { text } = await generateText({
@@ -59,12 +77,26 @@ Respond as ${nftData.name}:`
       temperature: 0.7,
     })
 
+    console.log("Text generated successfully")
+
     res.status(200).json({ response: text })
   } catch (error) {
-    console.error("Error with Vertex AI:", error)
+    console.error("Detailed error with Vertex AI:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      cause: error.cause,
+    })
+
     res.status(500).json({
       error: "Failed to generate response",
       details: error.message,
+      // Add more debugging info
+      debug: {
+        hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
+        hasLocation: !!process.env.GOOGLE_CLOUD_LOCATION,
+        hasCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      },
     })
   }
 }
