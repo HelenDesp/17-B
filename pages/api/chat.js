@@ -1,7 +1,7 @@
 // pages/api/chat.js
 
 import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
-import { streamText } from 'ai';
+import { streamText, StreamingTextResponse } from 'ai';
 
 // Initialize the Vertex AI provider.
 // It automatically reads the environment variables you set up in Vercel.
@@ -33,8 +33,22 @@ Engage the user in a conversation about their NFT. You can talk about its lore, 
           messages,
         });
 
-        // Respond with the stream. The .pipe() method is used for the Node.js runtime.
-        return result.pipe(res);
+        // Create a StreamingTextResponse to properly handle the stream.
+        // This is the key change to ensure compatibility with Vercel's environment.
+        const stream = result.toAIStream();
+        
+        // Pipe the stream to the response
+        let streamedResponse = '';
+        const reader = stream.getReader();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = new TextDecoder().decode(value);
+          streamedResponse += chunk;
+          res.write(chunk);
+        }
+        res.end();
+        return;
 
       } catch (error) {
         // Handle any potential errors
