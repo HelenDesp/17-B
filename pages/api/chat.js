@@ -1,42 +1,108 @@
-/*
-  OPTION 1: If your file is located at 'pages/api/chat.js'
-  (For the Next.js Pages Router)
-  
-  Copy and paste this entire code block into your 'pages/api/chat.js' file.
-*/
+import { VertexAI } from "@google-cloud/vertexai"
 
-import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
-import { streamText } from 'ai';
+// Initialize Vertex AI with your project details
+// When deployed on Vercel, credentials will come from environment variables
+const vertex_ai = new VertexAI({
+  project: process.env.GOOGLE_CLOUD_PROJECT_ID,
+  location: process.env.GOOGLE_CLOUD_LOCATION || "us-central1",
+  // For Vercel deployment, credentials are handled automatically via environment variables
+  // No need to specify keyFilename when using GOOGLE_APPLICATION_CREDENTIALS env var
+})
 
-// Initialize the Vertex AI provider.
-const vertex = createGoogleVertexAI();
+// Initialize the model
+const model = "gemini-1.5-flash"
+
+const generativeModel = vertex_ai.preview.getGenerativeModel({
+  model: model,
+  generationConfig: {
+    maxOutputTokens: 8192,
+    temperature: 0.7,
+    topP: 0.8,
+  },
+  safetySettings: [
+    {
+      category: "HARM_CATEGORY_HATE_SPEECH",
+      threshold: "BLOCK_MEDIUM_AND_ABOVE",
+    },
+    {
+      category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+      threshold: "BLOCK_MEDIUM_AND_ABOVE",
+    },
+    {
+      category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+      threshold: "BLOCK_MEDIUM_AND_ABOVE",
+    },
+    {
+      category: "HARM_CATEGORY_HARASSMENT",
+      threshold: "BLOCK_MEDIUM_AND_ABOVE",
+    },
+  ],
+})
 
 export default async function handler(req, res) {
-  // Check for POST method
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" })
   }
 
   try {
-    const { messages, data } = await req.json();
-    const { nftName, nftTraits } = data;
+    const { message, nftData, chatHistory } = req.body
 
-    const systemPrompt = `You are a knowledgeable and creative assistant for the ReVerse Genesis NFT collection. 
-You are currently chatting with the owner of the NFT named "${nftName}".
-Here are its traits: ${JSON.stringify(nftTraits, null, 2)}.
-Engage the user in a conversation about their NFT. Be friendly, imaginative, and stay in character.`;
+    if (!message || !nftData) {
+      return res.status(400).json({ error: "Message and NFT data are required" })
+    }
 
-    const result = await streamText({
-      model: vertex('gemini-1.5-flash-001'),
-      system: systemPrompt,
-      messages,
-    });
+    // Build conversation history for context
+    let conversationContext = ""
+    if (chatHistory && chatHistory.length > 0) {
+      conversationContext = chatHistory
+        .slice(-10) // Keep last 10 messages for context
+        .map((msg) => `${msg.role === "user" ? "Human" : "NFT"}: ${msg.content}`)
+        .join("\n")
+    }
 
-    // This is the standard way to pipe the stream to the response in the Pages Router.
-    result.pipe(res);
+    // Create the prompt
+    const prompt = `You are an AI assistant embodying a ReVerse Genesis NFT character. Here are your character details:
 
+Character Information:
+- Name: ${nftData.name}
+- Token ID: ${nftData.tokenId}
+- Manifesto: ${nftData.manifesto}
+- Friend: ${nftData.friend}
+- Weapon: ${nftData.weapon}
+
+Instructions:
+1. Respond as this specific NFT character, incorporating the traits and characteristics mentioned above
+2. Be creative, engaging, and stay in character
+3. Reference your manifesto, friend, and weapon when relevant to the conversation
+4. Keep responses conversational and interesting
+5. Show personality based on your traits
+
+${conversationContext ? `Previous conversation:\n${conversationContext}\n` : ""}
+
+Current message from human: ${message}
+
+Respond as ${nftData.name}:`
+
+    const request = {
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }],
+        },
+      ],
+    }
+
+    const streamingResp = await generativeModel.generateContentStream(request)
+    const aggregatedResponse = await streamingResp.response
+
+    const responseText = aggregatedResponse.candidates[0].content.parts[0].text
+
+    res.status(200).json({ response: responseText })
   } catch (error) {
-    console.error("Error in chat API route:", error);
-    return res.status(500).json({ error: 'An error occurred while processing your request.' });
+    console.error("Error with Vertex AI:", error)
+    res.status(500).json({
+      error: "Failed to generate response",
+      details: error.message,
+    })
   }
 }
