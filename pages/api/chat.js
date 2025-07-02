@@ -1,22 +1,19 @@
 // pages/api/chat.js
 
 import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
-import { streamText } from 'ai';
+import { streamText, StreamingTextResponse } from 'ai';
 
-// IMPORTANT: Set the runtime to edge for best performance with streaming.
-// This is the standard for the Vercel AI SDK.
-export const runtime = 'edge';
+// By not exporting a "runtime" variable, we default to the Node.js serverless runtime,
+// which is compatible with the Google Cloud authentication libraries.
 
 // Initialize the Vertex AI provider.
-// It automatically reads the environment variables you set up in Vercel.
 const vertex = createGoogleVertexAI();
 
 // This is the handler for the /api/chat endpoint.
-// It uses the standard Web Request object.
-export default async function handler(req) {
+export default async function handler(req, res) {
   // We only want to handle POST requests
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
@@ -34,23 +31,35 @@ Engage the user in a conversation about their NFT. You can talk about its lore, 
 
     // Call the streamText model from the Vercel AI SDK
     const result = await streamText({
-      // Use the Gemini 1.5 Flash model for fast responses
       model: vertex('gemini-1.5-flash-001'),
-      // Provide the system prompt to define the AI's behavior
       system: systemPrompt,
-      // Pass the existing conversation history
       messages,
     });
 
-    // Respond with the stream. The .toAIStreamResponse() is the correct method for Edge functions.
-    return result.toAIStreamResponse();
+    // Create a StreamingTextResponse to properly handle the stream.
+    // This is the key change to ensure compatibility with Vercel's environment.
+    const stream = result.toAIStream();
+    const response = new StreamingTextResponse(stream);
 
+    // Manually pipe the response to the res object for the Pages Router.
+    res.writeHead(200, {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Transfer-Encoding': 'chunked',
+    });
+
+    const reader = response.body.getReader();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+      res.write(value);
+    }
+    res.end();
+    
   } catch (error) {
     // Handle any potential errors
     console.error("Error in chat API route:", error);
-    return new Response(
-      JSON.stringify({ error: 'An error occurred while processing your request.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return res.status(500).json({ error: 'An error occurred while processing your request.' });
   }
 }
