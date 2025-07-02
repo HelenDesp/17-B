@@ -1,7 +1,7 @@
 // pages/api/chat.js
 
 import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
-import { streamText, StreamingTextResponse } from 'ai';
+import { streamText } from 'ai';
 
 // By not exporting a "runtime" variable, we default to the Node.js serverless runtime,
 // which is compatible with the Google Cloud authentication libraries.
@@ -36,26 +36,10 @@ Engage the user in a conversation about their NFT. You can talk about its lore, 
       messages,
     });
 
-    // Create a StreamingTextResponse to properly handle the stream.
-    // This is the key change to ensure compatibility with Vercel's environment.
-    const stream = result.toAIStream();
-    const response = new StreamingTextResponse(stream);
-
-    // Manually pipe the response to the res object for the Pages Router.
-    res.writeHead(200, {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Transfer-Encoding': 'chunked',
-    });
-
-    const reader = response.body.getReader();
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      res.write(value);
-    }
-    res.end();
+    // This is the key change: Use the .pipe() method to directly stream the AI
+    // response to the Next.js API response object. This is the standard
+    // and most reliable method for the Node.js runtime.
+    result.pipe(res);
     
   } catch (error) {
     // Handle any potential errors
