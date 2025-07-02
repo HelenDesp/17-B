@@ -1,55 +1,49 @@
-// pages/api/chat.js
-// This is your new, simplified backend that runs directly on Vercel.
+// src/app/api/chat/route.js
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
+import { streamText } from 'ai';
 
-// --- CONFIGURATION ---
-// This uses the API key you already have.
-// IMPORTANT: In a real production app, move this to a .env.local file for security.
-const GEMINI_API_KEY = 'AIzaSyBLGKuo9GI-tYCaf3PsJHyiNZg78BziPpU';
+// Allow streaming responses up to 30 seconds
+export const maxDuration = 30;
 
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+// Initialize the Vertex AI provider.
+// It automatically reads the environment variables you set up in Vercel.
+const vertex = createGoogleVertexAI();
 
-export default async function handler(req, res) {
-  // Only allow POST requests
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
-
+export async function POST(req) {
   try {
-    const { chatHistory } = req.body;
+    // Extract the `messages` and `data` from the request body
+    const { messages, data } = await req.json();
+    const { nftName, nftTraits } = data; // Get NFT data sent from the frontend
 
-    if (!chatHistory || !Array.isArray(chatHistory)) {
-      return res.status(400).json({ error: 'Invalid chatHistory provided.' });
-    }
+    // Create a system prompt to give the AI context about its role and the NFT.
+    // This is where you can get creative and define the AI's personality.
+    const systemPrompt = `You are a knowledgeable and creative assistant for the ReVerse Genesis NFT collection. 
+You are currently chatting with the owner of the NFT named "${nftName}".
 
-    // Convert the history to the format the SDK expects
-    const historyForAPI = chatHistory.map(msg => ({
-      role: msg.role === 'ai' ? 'model' : 'user',
-      parts: msg.parts || [{ text: msg.text }],
-    }));
+Here are its traits, use them to inform your conversation: ${JSON.stringify(nftTraits, null, 2)}.
 
-    // The last message is the new prompt. We remove the system prompt for the chat session.
-    const latestUserMessage = historyForAPI.pop();
-    const systemPrompt = historyForAPI.shift(); // The first message is the system prompt
+Engage the user in a conversation about their NFT. You can talk about its lore, suggest creative stories, discuss its traits, or even role-play as the character. Be friendly, imaginative, and stay in character.`;
 
-    const chat = model.startChat({
-        history: historyForAPI, // Start chat with the actual conversation history
-        // The system instruction is handled differently in this SDK
-        systemInstruction: systemPrompt.parts[0].text,
+    // Call the streamText model from the Vercel AI SDK
+    const result = await streamText({
+      // Use the Gemini 1.5 Flash model for fast responses
+      model: vertex('gemini-1.5-flash-001'),
+      // Provide the system prompt to define the AI's behavior
+      system: systemPrompt,
+      // Pass the existing conversation history
+      messages,
     });
-    
-    const result = await chat.sendMessage(latestUserMessage.parts[0].text);
-    const response = result.response;
-    const aiResponseText = response.text();
 
-    // Send the successful response back to the frontend
-    return res.status(200).json({ text: aiResponseText });
+    // Respond with the stream
+    return result.toAIStreamResponse();
 
   } catch (error) {
-    console.error('Error in API route:', error);
-    return res.status(500).json({ error: 'Failed to get response from AI.', details: error.message });
+    // Handle any potential errors
+    console.error("Error in chat API route:", error);
+    return new Response(
+      JSON.stringify({ error: 'An error occurred while processing your request.' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 }
