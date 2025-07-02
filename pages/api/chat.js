@@ -3,16 +3,18 @@
 import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
 import { streamText } from 'ai';
 
+// IMPORTANT: Set the runtime to edge for best performance with streaming
+export const runtime = 'edge';
+
 // Initialize the Vertex AI provider.
 // It automatically reads the environment variables you set up in Vercel.
 const vertex = createGoogleVertexAI();
 
 // This is the handler for the /api/chat endpoint in the Pages Router
-export default async function handler(req, res) {
-  // In the Pages Router, we need to manually check the request method.
+export default async function handler(req) {
+  // We only want to handle POST requests
   if (req.method !== 'POST') {
-    // Use res.status().json() for Pages Router API responses
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return new Response('Method Not Allowed', { status: 405 });
   }
 
   try {
@@ -39,14 +41,15 @@ Engage the user in a conversation about their NFT. You can talk about its lore, 
       messages,
     });
 
-    // Respond with the stream. The .pipe() method is used to send the stream
-    // to the response object in a Node.js environment.
-    return result.pipe(res);
+    // Respond with the stream. The .toAIStreamResponse() is the correct method for Edge functions.
+    return result.toAIStreamResponse();
 
   } catch (error) {
     // Handle any potential errors
     console.error("Error in chat API route:", error);
-    // Use res.status().json() for Pages Router API responses
-    return res.status(500).json({ error: 'An error occurred while processing your request.' });
+    return new Response(
+      JSON.stringify({ error: 'An error occurred while processing your request.' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 }
