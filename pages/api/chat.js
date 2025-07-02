@@ -3,17 +3,20 @@
 import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
 import { streamText } from 'ai';
 
-// By not exporting a "runtime" variable, we default to the Node.js serverless runtime,
-// which is compatible with the Google Cloud authentication libraries.
+// IMPORTANT: Set the runtime to edge for best performance with streaming.
+// This is the standard for the Vercel AI SDK.
+export const runtime = 'edge';
 
 // Initialize the Vertex AI provider.
+// It automatically reads the environment variables you set up in Vercel.
 const vertex = createGoogleVertexAI();
 
 // This is the handler for the /api/chat endpoint.
-export default async function handler(req, res) {
+// It uses the standard Web Request object.
+export default async function handler(req) {
   // We only want to handle POST requests
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+    return new Response('Method Not Allowed', { status: 405 });
   }
 
   try {
@@ -31,19 +34,23 @@ Engage the user in a conversation about their NFT. You can talk about its lore, 
 
     // Call the streamText model from the Vercel AI SDK
     const result = await streamText({
+      // Use the Gemini 1.5 Flash model for fast responses
       model: vertex('gemini-1.5-flash-001'),
+      // Provide the system prompt to define the AI's behavior
       system: systemPrompt,
+      // Pass the existing conversation history
       messages,
     });
 
-    // This is the key change: Use the .pipe() method to directly stream the AI
-    // response to the Next.js API response object. This is the standard
-    // and most reliable method for the Node.js runtime.
-    result.pipe(res);
-    
+    // Respond with the stream. The .toAIStreamResponse() is the correct method for Edge functions.
+    return result.toAIStreamResponse();
+
   } catch (error) {
     // Handle any potential errors
     console.error("Error in chat API route:", error);
-    return res.status(500).json({ error: 'An error occurred while processing your request.' });
+    return new Response(
+      JSON.stringify({ error: 'An error occurred while processing your request.' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 }
