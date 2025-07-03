@@ -3,30 +3,31 @@
 import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
 import { streamText } from 'ai';
 
-// IMPORTANT: Set the runtime to 'edge' for best performance with streaming.
-// This is the standard for the Vercel AI SDK.
-export const runtime = 'edge';
+// By not exporting a "runtime" variable, we default to the Node.js serverless runtime,
+// which is compatible with the Google Cloud authentication libraries.
 
 // Initialize the Vertex AI provider.
 // It automatically reads the GOOGLE_APPLICATION_CREDENTIALS environment variable.
 const vertex = createGoogleVertexAI();
 
-export default async function handler(req) {
+export default async function handler(req, res) {
   // We only want to handle POST requests
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
   try {
-    // The 'useChat' hook sends a 'messages' array.
+    // The 'useChat' hook (which we'll use in the frontend) sends a 'messages' array.
     const { messages } = await req.json();
     
     // The last message from the user contains the NFT data in its 'data' property.
     const lastUserMessage = messages.findLast(m => m.role === 'user');
     const nftData = lastUserMessage?.data;
 
+    // If for some reason NFT data is missing, return an error.
     if (!nftData) {
-      throw new Error('NFT data is missing from the request.');
+      return res.status(400).json({ error: 'NFT data is missing from the request.' });
     }
 
     // Create a system prompt to give the AI context about its role and the NFT.
@@ -47,15 +48,17 @@ Engage the user in a conversation about their NFT. Be friendly, imaginative, and
       messages,
     });
 
-    // Respond with the stream. The .toAIStreamResponse() is the correct method for Edge functions.
-    return result.toAIStreamResponse();
-
+    // Use the .pipe() method to directly stream the AI
+    // response to the Next.js API response object. This is the standard
+    // and most reliable method for the Node.js runtime.
+    result.pipe(res);
+    
   } catch (error) {
     // Handle any potential errors
     console.error("Error in chat API route:", error);
-    return new Response(
-      JSON.stringify({ error: 'An error occurred while processing your request.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return res.status(500).json({ 
+        error: 'An error occurred while processing your request.',
+        details: error.message 
+    });
   }
 }
