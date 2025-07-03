@@ -27,7 +27,8 @@
 	"@coinbase/onchainkit": "^0.38.14",
 	"@ai-sdk/google-vertex": "^2.2.27",
 	"ai": "^4.3.16",
-	"google-auth-library": "^9.0.0"
+	"google-auth-library": "^9.0.0",
+	"@google-cloud/vertexai": "^1.2.0"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.9",
