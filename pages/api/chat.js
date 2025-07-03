@@ -1,70 +1,118 @@
-// pages/api/chat.js
-
-// Import the official Google Cloud library
-import { VertexAI } from '@google-cloud/vertexai';
-
-// Initialize the VertexAI client.
-// It will automatically use the GOOGLE_APPLICATION_CREDENTIALS from your Vercel environment.
-const vertex_ai = new VertexAI({
-  project: process.env.GOOGLE_CLOUD_PROJECT_ID,
-  location: process.env.GOOGLE_CLOUD_LOCATION,
-});
-
-// Select the Gemini model
-const model = vertex_ai.getGenerativeModel({
-  model: 'gemini-1.5-flash-001',
-});
+import { vertex } from "@ai-sdk/google-vertex"
+import { generateText } from "ai"
+import { GoogleAuth } from "google-auth-library"
 
 export default async function handler(req, res) {
-  // We only want to handle POST requests
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" })
   }
 
   try {
-    const { message, nftData, chatHistory = [] } = await req.json();
+    const { message, nftData, chatHistory } = req.body
 
-    // Create a system prompt to give the AI context about its role and the NFT.
-    const systemPrompt = `You are a knowledgeable and creative assistant for the ReVerse Genesis NFT collection. 
-You are currently chatting with the owner of the NFT named "${nftData.name}".
+    if (!message || !nftData) {
+      return res.status(400).json({ error: "Message and NFT data are required" })
+    }
 
-Here are its traits, use them to inform your conversation:
+    // Parse credentials directly from environment variable
+    let credentials
+    try {
+      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
+    } catch (parseError) {
+      console.error("Failed to parse credentials:", parseError)
+      return res.status(500).json({
+        error: "Invalid credentials format",
+        details: "GOOGLE_APPLICATION_CREDENTIALS must be valid JSON",
+      })
+    }
+
+    // Create Google Auth client directly
+    const auth = new GoogleAuth({
+      credentials: credentials,
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+    })
+
+    // Get access token
+    const authClient = await auth.getClient()
+    const accessToken = await authClient.getAccessToken()
+
+    console.log("Authentication successful, got access token")
+
+    // Build conversation history for context
+    let conversationContext = ""
+    if (chatHistory && chatHistory.length > 0) {
+      conversationContext = chatHistory
+        .slice(-10)
+        .map((msg) => `${msg.role === "user" ? "Human" : "NFT"}: ${msg.content}`)
+        .join("\n")
+    }
+
+    // Create the prompt
+    const prompt = `You are an AI assistant embodying a ReVerse Genesis NFT character. Here are your character details:
+
+Character Information:
+- Name: ${nftData.name}
+- Token ID: ${nftData.tokenId}
 - Manifesto: ${nftData.manifesto}
 - Friend: ${nftData.friend}
 - Weapon: ${nftData.weapon}
 
-Engage the user in a conversation about their NFT. Be friendly, imaginative, and stay in character. Keep responses concise but meaningful.`;
+Instructions:
+1. Respond as this specific NFT character, incorporating the traits and characteristics mentioned above
+2. Be creative, engaging, and stay in character
+3. Reference your manifesto, friend, and weapon when relevant to the conversation
+4. Keep responses conversational and interesting
+5. Show personality based on your traits
 
-    // Format the chat history for the Google Cloud library
-    const history = chatHistory.map(m => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.content }],
-    }));
+${conversationContext ? `Previous conversation:\n${conversationContext}\n` : ""}
 
-    // Start a chat session with the history
-    const chat = model.startChat({
-      history: [
-        { role: 'user', parts: [{ text: systemPrompt }] },
-        { role: 'model', parts: [{ text: 'I understand. I am ready to chat as this NFT character.' }] },
-        ...history,
-      ],
-    });
+Current message from human: ${message}
 
-    // Send the user's message and get the full response (non-streaming)
-    const result = await chat.sendMessage(message);
-    const responseText = result.response.candidates[0].content.parts[0].text;
+Respond as ${nftData.name}:`
 
-    // Send the AI's text response back to your frontend.
-    // This matches the format your NFTViewer.js expects.
-    res.status(200).json({ response: responseText });
+    // Initialize the Vertex AI model with the access token
+    const model = vertex("gemini-1.5-flash-002", {
+      project: process.env.GOOGLE_CLOUD_PROJECT_ID,
+      location: process.env.GOOGLE_CLOUD_LOCATION || "us-central1",
+      // Use the access token directly
+      headers: {
+        Authorization: `Bearer ${accessToken.token}`,
+      },
+    })
 
+    console.log("Attempting to generate text with direct auth...")
+
+    // Generate response using AI SDK
+    const { text } = await generateText({
+      model,
+      prompt,
+      maxTokens: 1000,
+      temperature: 0.7,
+    })
+
+    console.log("Text generated successfully")
+
+    res.status(200).json({ response: text })
   } catch (error) {
-    // Handle any potential errors
-    console.error("Error in chat API route:", error);
-    return res.status(500).json({ 
-        error: 'An error occurred while processing your request.',
-        details: error.message 
-    });
+    console.error("=== DETAILED ERROR INFORMATION ===")
+    console.error("Error message:", error.message)
+    console.error("Error name:", error.name)
+    console.error("Error stack:", error.stack)
+
+    // Check if it's an authentication error
+    if (error.message.includes("authentication") || error.message.includes("credentials")) {
+      return res.status(401).json({
+        error: "Authentication failed",
+        details: error.message,
+        suggestion: "Check your Google Cloud credentials and permissions",
+      })
+    }
+
+    res.status(500).json({
+      error: "Failed to generate response",
+      details: error.message,
+      errorType: error.name,
+      timestamp: new Date().toISOString(),
+    })
   }
 }
