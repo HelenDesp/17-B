@@ -1,34 +1,33 @@
 // pages/api/chat.js
 
 import { createGoogleVertexAI } from '@ai-sdk/google-vertex';
-import { generateText } from 'ai';
+import { streamText } from 'ai';
 
-// By not exporting a "runtime" variable, we default to the Node.js serverless runtime.
-// This is compatible with the Google Cloud authentication libraries.
+// IMPORTANT: Set the runtime to 'edge' for best performance with streaming.
+// This is the standard for the Vercel AI SDK.
+export const runtime = 'edge';
 
 // Initialize the Vertex AI provider.
-// It automatically reads the GOOGLE_APPLICATION_CREDENTIALS environment variable once it's correctly formatted.
+// It automatically reads the GOOGLE_APPLICATION_CREDENTIALS environment variable.
 const vertex = createGoogleVertexAI();
 
-export default async function handler(req, res) {
+export default async function handler(req) {
   // We only want to handle POST requests
   if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+    return new Response('Method Not Allowed', { status: 405 });
   }
 
   try {
-    // Your frontend sends 'message', 'nftData', and 'chatHistory'. We'll use them.
-    const { message, nftData, chatHistory = [] } = await req.json();
+    // The 'useChat' hook sends a 'messages' array.
+    const { messages } = await req.json();
+    
+    // The last message from the user contains the NFT data in its 'data' property.
+    const lastUserMessage = messages.findLast(m => m.role === 'user');
+    const nftData = lastUserMessage?.data;
 
-    // Reformat the incoming data for the generateText function
-    const messages = [
-      ...chatHistory.map(m => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.content,
-      })),
-      { role: 'user', content: message },
-    ];
+    if (!nftData) {
+      throw new Error('NFT data is missing from the request.');
+    }
 
     // Create a system prompt to give the AI context about its role and the NFT.
     const systemPrompt = `You are a knowledgeable and creative assistant for the ReVerse Genesis NFT collection. 
@@ -41,24 +40,22 @@ Here are its traits, use them to inform your conversation:
 
 Engage the user in a conversation about their NFT. Be friendly, imaginative, and stay in character. Keep responses concise but meaningful.`;
 
-    // Call the generateText model from the Vercel AI SDK.
-    // This function waits for the full response and returns it as a single object.
-    const result = await generateText({
+    // Call the streamText model from the Vercel AI SDK
+    const result = await streamText({
       model: vertex('gemini-1.5-flash-001'),
       system: systemPrompt,
       messages,
     });
 
-    // Send the AI's text response back to your frontend.
-    // This matches the format your NFTViewer.js expects.
-    res.status(200).json({ response: result.text });
+    // Respond with the stream. The .toAIStreamResponse() is the correct method for Edge functions.
+    return result.toAIStreamResponse();
 
   } catch (error) {
     // Handle any potential errors
     console.error("Error in chat API route:", error);
-    return res.status(500).json({ 
-        error: 'An error occurred while processing your request.',
-        details: error.message 
-    });
+    return new Response(
+      JSON.stringify({ error: 'An error occurred while processing your request.' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 }
