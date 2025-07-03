@@ -1,5 +1,6 @@
 import { vertex } from "@ai-sdk/google-vertex"
 import { generateText } from "ai"
+import { GoogleAuth } from "google-auth-library"
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -13,20 +14,35 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Message and NFT data are required" })
     }
 
-    // Log environment variables for debugging (remove in production)
-    console.log("Environment check:", {
-      hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
-      hasLocation: !!process.env.GOOGLE_CLOUD_LOCATION,
-      hasCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
-      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-      location: process.env.GOOGLE_CLOUD_LOCATION,
+    // Parse credentials directly from environment variable
+    let credentials
+    try {
+      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
+    } catch (parseError) {
+      console.error("Failed to parse credentials:", parseError)
+      return res.status(500).json({
+        error: "Invalid credentials format",
+        details: "GOOGLE_APPLICATION_CREDENTIALS must be valid JSON",
+      })
+    }
+
+    // Create Google Auth client directly
+    const auth = new GoogleAuth({
+      credentials: credentials,
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
     })
+
+    // Get access token
+    const authClient = await auth.getClient()
+    const accessToken = await authClient.getAccessToken()
+
+    console.log("Authentication successful, got access token")
 
     // Build conversation history for context
     let conversationContext = ""
     if (chatHistory && chatHistory.length > 0) {
       conversationContext = chatHistory
-        .slice(-10) // Keep last 10 messages for context
+        .slice(-10)
         .map((msg) => `${msg.role === "user" ? "Human" : "NFT"}: ${msg.content}`)
         .join("\n")
     }
@@ -54,28 +70,17 @@ Current message from human: ${message}
 
 Respond as ${nftData.name}:`
 
-    // Parse credentials from environment variable
-    let credentials
-    try {
-      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
-    } catch (error) {
-      console.error("Failed to parse Google credentials:", error)
-      return res.status(500).json({ 
-        error: "Invalid Google credentials configuration",
-        details: "Credentials must be valid JSON"
-      })
-    }
-
-    // Initialize the Vertex AI model with parsed credentials
+    // Initialize the Vertex AI model with the access token
     const model = vertex("gemini-1.5-flash", {
       project: process.env.GOOGLE_CLOUD_PROJECT_ID,
       location: process.env.GOOGLE_CLOUD_LOCATION || "us-central1",
-      googleAuthOptions: {
-        credentials: credentials,
+      // Use the access token directly
+      headers: {
+        Authorization: `Bearer ${accessToken.token}`,
       },
     })
 
-    console.log("Attempting to generate text...")
+    console.log("Attempting to generate text with direct auth...")
 
     // Generate response using AI SDK
     const { text } = await generateText({
@@ -89,34 +94,25 @@ Respond as ${nftData.name}:`
 
     res.status(200).json({ response: text })
   } catch (error) {
-    // Enhanced error logging
     console.error("=== DETAILED ERROR INFORMATION ===")
     console.error("Error message:", error.message)
     console.error("Error name:", error.name)
     console.error("Error stack:", error.stack)
-    console.error("Error cause:", error.cause)
 
-    // Log environment variables (safely)
-    console.error("Environment check:", {
-      hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
-      projectIdLength: process.env.GOOGLE_CLOUD_PROJECT_ID?.length,
-      hasLocation: !!process.env.GOOGLE_CLOUD_LOCATION,
-      location: process.env.GOOGLE_CLOUD_LOCATION,
-      hasCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
-      credentialsType: typeof process.env.GOOGLE_APPLICATION_CREDENTIALS,
-      credentialsLength: process.env.GOOGLE_APPLICATION_CREDENTIALS?.length,
-    })
+    // Check if it's an authentication error
+    if (error.message.includes("authentication") || error.message.includes("credentials")) {
+      return res.status(401).json({
+        error: "Authentication failed",
+        details: error.message,
+        suggestion: "Check your Google Cloud credentials and permissions",
+      })
+    }
 
     res.status(500).json({
       error: "Failed to generate response",
       details: error.message,
       errorType: error.name,
-      debug: {
-        hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
-        hasLocation: !!process.env.GOOGLE_CLOUD_LOCATION,
-        hasCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
-        timestamp: new Date().toISOString(),
-      },
+      timestamp: new Date().toISOString(),
     })
   }
 }
