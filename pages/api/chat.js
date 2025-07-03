@@ -54,16 +54,24 @@ Current message from human: ${message}
 
 Respond as ${nftData.name}:`
 
-    // Initialize the Vertex AI model with explicit configuration
+    // Parse credentials from environment variable
+    let credentials
+    try {
+      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
+    } catch (error) {
+      console.error("Failed to parse Google credentials:", error)
+      return res.status(500).json({ 
+        error: "Invalid Google credentials configuration",
+        details: "Credentials must be valid JSON"
+      })
+    }
+
+    // Initialize the Vertex AI model with parsed credentials
     const model = vertex("gemini-1.5-flash", {
       project: process.env.GOOGLE_CLOUD_PROJECT_ID,
       location: process.env.GOOGLE_CLOUD_LOCATION || "us-central1",
-      // The AI SDK will automatically use GOOGLE_APPLICATION_CREDENTIALS
       googleAuthOptions: {
-        // If you have the credentials as a JSON string, parse it
-        credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS
-          ? JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
-          : undefined,
+        credentials: credentials,
       },
     })
 
@@ -81,21 +89,33 @@ Respond as ${nftData.name}:`
 
     res.status(200).json({ response: text })
   } catch (error) {
-    console.error("Detailed error with Vertex AI:", {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      cause: error.cause,
+    // Enhanced error logging
+    console.error("=== DETAILED ERROR INFORMATION ===")
+    console.error("Error message:", error.message)
+    console.error("Error name:", error.name)
+    console.error("Error stack:", error.stack)
+    console.error("Error cause:", error.cause)
+
+    // Log environment variables (safely)
+    console.error("Environment check:", {
+      hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
+      projectIdLength: process.env.GOOGLE_CLOUD_PROJECT_ID?.length,
+      hasLocation: !!process.env.GOOGLE_CLOUD_LOCATION,
+      location: process.env.GOOGLE_CLOUD_LOCATION,
+      hasCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      credentialsType: typeof process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      credentialsLength: process.env.GOOGLE_APPLICATION_CREDENTIALS?.length,
     })
 
     res.status(500).json({
       error: "Failed to generate response",
       details: error.message,
-      // Add more debugging info
+      errorType: error.name,
       debug: {
         hasProjectId: !!process.env.GOOGLE_CLOUD_PROJECT_ID,
         hasLocation: !!process.env.GOOGLE_CLOUD_LOCATION,
         hasCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+        timestamp: new Date().toISOString(),
       },
     })
   }
