@@ -1,118 +1,98 @@
-import { vertex } from "@ai-sdk/google-vertex"
-import { generateText } from "ai"
-import { GoogleAuth } from "google-auth-library"
+// pages/api/chat.js or app/api/chat/route.js (depending on your Next.js version)
+import { vertex } from '@ai-sdk/google-vertex';
+import { generateText } from 'ai';
 
+// For App Router (Next.js 13+)
+export async function POST(request) {
+  try {
+    const { message, nftData, chatHistory } = await request.json();
+
+    // Create the system prompt based on NFT data
+    const systemPrompt = `You are ${nftData.name}, a unique NFT character from the ReVerse Genesis collection. Here are your characteristics:
+
+Name: ${nftData.name}
+Token ID: ${nftData.tokenId}
+Manifesto: ${nftData.manifesto}
+Friend: ${nftData.friend}
+Weapon: ${nftData.weapon}
+
+You should embody this character and respond in character. Be creative, engaging, and reflect the personality suggested by your traits. Keep responses conversational and interesting, drawing from your manifesto, mentioning your friend when relevant, and occasionally referencing your weapon if it fits the conversation context.
+
+Stay in character at all times and make the conversation feel like you're truly this NFT character coming to life.`;
+
+    // Convert chat history to the format expected by the AI SDK
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...chatHistory.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content
+      })),
+      { role: 'user', content: message }
+    ];
+
+    // Generate response using Vertex AI
+    const { text } = await generateText({
+      model: vertex('gemini-2.0-flash'),
+      messages,
+      maxTokens: 500,
+      temperature: 0.7,
+    });
+
+    return Response.json({ response: text });
+
+  } catch (error) {
+    console.error('Error with Vertex AI:', error);
+    return Response.json(
+      { error: 'Failed to generate response' },
+      { status: 500 }
+    );
+  }
+}
+
+// For Pages Router (Next.js 12 and below)
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" })
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { message, nftData, chatHistory } = req.body
+    const { message, nftData, chatHistory } = req.body;
 
-    if (!message || !nftData) {
-      return res.status(400).json({ error: "Message and NFT data are required" })
-    }
+    // Create the system prompt based on NFT data
+    const systemPrompt = `You are ${nftData.name}, a unique NFT character from the ReVerse Genesis collection. Here are your characteristics:
 
-    // Parse credentials directly from environment variable
-    let credentials
-    try {
-      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS)
-    } catch (parseError) {
-      console.error("Failed to parse credentials:", parseError)
-      return res.status(500).json({
-        error: "Invalid credentials format",
-        details: "GOOGLE_APPLICATION_CREDENTIALS must be valid JSON",
-      })
-    }
+Name: ${nftData.name}
+Token ID: ${nftData.tokenId}
+Manifesto: ${nftData.manifesto}
+Friend: ${nftData.friend}
+Weapon: ${nftData.weapon}
 
-    // Create Google Auth client directly
-    const auth = new GoogleAuth({
-      credentials: credentials,
-      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-    })
+You should embody this character and respond in character. Be creative, engaging, and reflect the personality suggested by your traits. Keep responses conversational and interesting, drawing from your manifesto, mentioning your friend when relevant, and occasionally referencing your weapon if it fits the conversation context.
 
-    // Get access token
-    const authClient = await auth.getClient()
-    const accessToken = await authClient.getAccessToken()
+Stay in character at all times and make the conversation feel like you're truly this NFT character coming to life.`;
 
-    console.log("Authentication successful, got access token")
+    // Convert chat history to the format expected by the AI SDK
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...chatHistory.map(msg => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: msg.content
+      })),
+      { role: 'user', content: message }
+    ];
 
-    // Build conversation history for context
-    let conversationContext = ""
-    if (chatHistory && chatHistory.length > 0) {
-      conversationContext = chatHistory
-        .slice(-10)
-        .map((msg) => `${msg.role === "user" ? "Human" : "NFT"}: ${msg.content}`)
-        .join("\n")
-    }
-
-    // Create the prompt
-    const prompt = `You are an AI assistant embodying a ReVerse Genesis NFT character. Here are your character details:
-
-Character Information:
-- Name: ${nftData.name}
-- Token ID: ${nftData.tokenId}
-- Manifesto: ${nftData.manifesto}
-- Friend: ${nftData.friend}
-- Weapon: ${nftData.weapon}
-
-Instructions:
-1. Respond as this specific NFT character, incorporating the traits and characteristics mentioned above
-2. Be creative, engaging, and stay in character
-3. Reference your manifesto, friend, and weapon when relevant to the conversation
-4. Keep responses conversational and interesting
-5. Show personality based on your traits
-
-${conversationContext ? `Previous conversation:\n${conversationContext}\n` : ""}
-
-Current message from human: ${message}
-
-Respond as ${nftData.name}:`
-
-    // Initialize the Vertex AI model with the access token
-    const model = vertex("gemini-2.0-flash", {
-      project: process.env.GOOGLE_CLOUD_PROJECT_ID,
-      location: process.env.GOOGLE_CLOUD_LOCATION || "us-central1",
-      // Use the access token directly
-      headers: {
-        Authorization: `Bearer ${accessToken.token}`,
-      },
-    })
-
-    console.log("Attempting to generate text with direct auth...")
-
-    // Generate response using AI SDK
+    // Generate response using Vertex AI
     const { text } = await generateText({
-      model,
-      prompt,
-      maxTokens: 1000,
+      model: vertex('gemini-2.0-flash'),
+      messages,
+      maxTokens: 500,
       temperature: 0.7,
-    })
+    });
 
-    console.log("Text generated successfully")
+    res.status(200).json({ response: text });
 
-    res.status(200).json({ response: text })
   } catch (error) {
-    console.error("=== DETAILED ERROR INFORMATION ===")
-    console.error("Error message:", error.message)
-    console.error("Error name:", error.name)
-    console.error("Error stack:", error.stack)
-
-    // Check if it's an authentication error
-    if (error.message.includes("authentication") || error.message.includes("credentials")) {
-      return res.status(401).json({
-        error: "Authentication failed",
-        details: error.message,
-        suggestion: "Check your Google Cloud credentials and permissions",
-      })
-    }
-
-    res.status(500).json({
-      error: "Failed to generate response",
-      details: error.message,
-      errorType: error.name,
-      timestamp: new Date().toISOString(),
-    })
+    console.error('Error with Vertex AI:', error);
+    res.status(500).json({ error: 'Failed to generate response' });
   }
 }
