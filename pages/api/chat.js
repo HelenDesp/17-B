@@ -71,7 +71,7 @@ Current message from human: ${message}
 Respond as ${nftData.name}:`
 
     // Initialize the Vertex AI model with the access token
-    const model = vertex("gemini-2.0-flash-001", {
+    const model = vertex("gemini-2.0-flash", {
       project: process.env.GOOGLE_CLOUD_PROJECT_ID,
       location: process.env.GOOGLE_CLOUD_LOCATION || "us-central1",
       // Use the access token directly
