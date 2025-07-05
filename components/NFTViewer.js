@@ -2,6 +2,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
+// 1. Import the new SlidingPuzzle component
+import SlidingPuzzle from "./SlidingPuzzle"; // Adjust path if needed
 
 export default function NFTViewer({
   nfts,
@@ -15,13 +17,10 @@ export default function NFTViewer({
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
 
-  // --- State for Gemini Chat ---
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [activeChatNFT, setActiveChatNFT] = useState(null);
-  const [chatHistory, setChatHistory] = useState([]);
-  const [chatInput, setChatInput] = useState("");
-  const [isChatLoading, setIsChatLoading] = useState(false);
-  
+  // --- New State for the Game Modal ---
+  const [isGameOpen, setIsGameOpen] = useState(false);
+  const [activeGameNFT, setActiveGameNFT] = useState(null);
+
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
   const handleSubmit = async (e) => {
@@ -44,52 +43,24 @@ export default function NFTViewer({
       setSelectedNFT(null);
       setShowThankYou(true);
     } catch (error) {
+      if (error.response?.status === 400 && error.response.data?.error === "Name is required.") {
+        setNameError("Name is required.");
+      } else {
         console.error("Submission error:", error);
         alert("Failed to submit form. Please try again.");
+      }
     }
   };
 
-  // --- Handlers for Gemini Chat ---
-  const handleOpenChat = (nft) => {
-    setActiveChatNFT(nft);
-    setChatHistory([]);
-    setIsChatOpen(true);
+  // --- New Handlers for the Game Modal ---
+  const handleOpenGame = (nft) => {
+    setActiveGameNFT(nft);
+    setIsGameOpen(true);
   };
 
-  const handleCloseChat = () => {
-    setIsChatOpen(false);
-    setActiveChatNFT(null);
-  };
-
-  const handleChatSubmit = async (e) => {
-    e.preventDefault();
-    if (!chatInput.trim() || isChatLoading) return;
-
-    const newHistory = [...chatHistory, { role: "user", text: chatInput }];
-    setChatHistory(newHistory);
-    const currentInput = chatInput;
-    setChatInput("");
-    setIsChatLoading(true);
-
-    try {
-      // This correctly calls your Vercel API route
-      const response = await axios.post("/api/chat", {
-        prompt: currentInput,
-      });
-
-      setChatHistory([
-        ...newHistory,
-        { role: "gemini", text: response.data.text },
-      ]);
-    } catch (error) {
-      console.error("Chat error:", error);
-      setChatHistory([
-        ...newHistory,
-        { role: "gemini", text: "Sorry, I couldn't get a response. Please try again." },
-      ]);
-    } finally {
-      setIsChatLoading(false);
-    }
+  const handleCloseGame = () => {
+    setIsGameOpen(false);
+    setActiveGameNFT(null);
   };
 
   return (
@@ -108,14 +79,16 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 
+                {/* ===== GAME ICON - TOP LEFT ===== */}
                 <button 
-                  onClick={() => handleOpenChat(nft)}
+                  onClick={() => handleOpenGame(nft)}
                   className="absolute top-2 left-2 z-10 p-1.5 bg-white/70 dark:bg-black/70 rounded-full hover:bg-white dark:hover:bg-black transition-colors"
-                  aria-label="Open AI Chat"
+                  aria-label="Play Puzzle Game"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800 dark:text-gray-200"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800 dark:text-gray-200"><path d="M18 8V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M18 16v2a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-2"/><path d="M8 18v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="12" x2="12" y1="4" y2="18"/></svg>
                 </button>
 
+                {/* Checkbox always at bottom left with tooltip */}
                 <div className="absolute left-2 bottom-2 z-10">
                   <div className="relative flex flex-col items-center">
                     <input
@@ -142,12 +115,18 @@ export default function NFTViewer({
                   </div>
                 </div>
                 
-                <img
+                {nft.image ? (
+                  <img
                     src={nft.image}
                     alt={nft.name}
                     className="w-full aspect-square object-cover border-b1"
                     onError={(e) => { e.currentTarget.src = ""; }}
-                />
+                  />
+                ) : (
+                  <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+                    No Image
+                  </div>
+                )}
                 
                 <div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
                   {nft.name}
@@ -166,6 +145,7 @@ export default function NFTViewer({
         )}
       </div>
 
+      {/* ===== FULL UPGRADE MODAL ===== */}
       {selectedNFT && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" onClick={() => setSelectedNFT(null)} />
@@ -239,61 +219,28 @@ export default function NFTViewer({
         </div>
       )}
 
-      {isChatOpen && activeChatNFT && (
+      {/* ===== NEW GAME MODAL ===== */}
+      {isGameOpen && activeGameNFT && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" onClick={handleCloseChat} />
-          <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full flex flex-col" style={{height: '80vh'}}>
-            <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-300 dark:border-gray-600">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Chat with {activeChatNFT.name}</h3>
+          <div className="fixed inset-0 bg-black bg-opacity-70 z-[9999]" onClick={handleCloseGame} />
+          <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Solve the Puzzle: {activeGameNFT.name}</h3>
               <button
                 className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                onClick={handleCloseChat}
+                onClick={handleCloseGame}
                 aria-label="Close"
               >
                 <span className="text-4xl leading-none font-bold">&#215;</span>
               </button>
             </div>
-            <div className="flex-grow overflow-y-auto space-y-4 pr-2">
-              {chatHistory.map((msg, index) => (
-                <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-xs md:max-w-md p-3 rounded-lg ${msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
-                    <p className="text-sm">{msg.text}</p>
-                  </div>
-                </div>
-              ))}
-              {isChatLoading && (
-                 <div className="flex justify-start">
-                    <div className="max-w-xs p-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                      <div className="flex items-center space-x-2">
-                          <span className="h-2 w-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                          <span className="h-2 w-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                          <span className="h-2 w-2 bg-gray-500 rounded-full animate-bounce"></span>
-                      </div>
-                    </div>
-                </div>
-              )}
-            </div>
-            <form onSubmit={handleChatSubmit} className="mt-4 pt-4 border-t border-gray-300 dark:border-gray-600 flex items-center">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask something..."
-                className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
-                disabled={isChatLoading}
-              />
-              <button
-                type="submit"
-                className="ml-2 px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm uppercase rounded-none transition hover:bg-gray-900 hover:text-white disabled:opacity-50"
-                disabled={isChatLoading || !chatInput.trim()}
-              >
-                Send
-              </button>
-            </form>
+            {/* Render the SlidingPuzzle component inside the modal */}
+            <SlidingPuzzle imageUrl={activeGameNFT.image} />
           </div>
         </div>
       )}
 
+      {/* ===== FULL THANK YOU MODAL ===== */}
       {showThankYou && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
           <div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
