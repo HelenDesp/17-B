@@ -1,91 +1,68 @@
-// app/api/chat/route.js (Using Google AI SDK directly)
-import { GoogleAuth } from 'google-auth-library';
+// In your Next.js project, create this file at: /pages/api/chat.js
 
-export async function POST(request) {
+// 1. Use the '@google/genai' SDK as requested
+import { GoogleGenerativeAI } from '@google/genai';
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
+
+  const { prompt } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: 'Prompt is required.' });
+  }
+
   try {
-    console.log('Chat API called');
-    
-    const body = await request.json();
-    const { message, nftData, chatHistory } = body;
-
-    if (!message || !nftData) {
-      return Response.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    // Create the system prompt
-    const systemPrompt = `You are ${nftData.name}, a unique NFT character from the ReVerse Genesis collection. Here are your characteristics:
-
-Name: ${nftData.name}
-Token ID: ${nftData.tokenId}
-Manifesto: ${nftData.manifesto}
-Friend: ${nftData.friend}
-Weapon: ${nftData.weapon}
-
-You should embody this character and respond in character. Be creative, engaging, and reflect the personality suggested by your traits. Keep responses conversational and interesting. Stay in character at all times.`;
-
-    // Prepare the conversation history
-    let conversationText = systemPrompt + '\n\n';
-    
-    if (chatHistory && chatHistory.length > 0) {
-      chatHistory.forEach(msg => {
-        if (msg.role === 'user') {
-          conversationText += `Human: ${msg.content}\n`;
-        } else {
-          conversationText += `${nftData.name}: ${msg.content}\n`;
-        }
-      });
-    }
-    
-    conversationText += `Human: ${message}\n${nftData.name}:`;
-
-    // Set up Google Auth
-    const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON || '{}');
-    const auth = new GoogleAuth({
-      credentials,
-      scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+    // 2. Initialize the SDK to use Vertex AI.
+    // This will securely use the environment variables you set in Vercel.
+    const genAI = new GoogleGenerativeAI({
+      vertexai: true,
+      project: process.env.GOOGLE_CLOUD_PROJECT_ID,
+      location: process.env.GOOGLE_CLOUD_LOCATION
     });
 
-    const authClient = await auth.getClient();
-    const projectId = process.env.GOOGLE_VERTEX_PROJECT_ID || 'tough-cipher-464318-q0';
-    const location = process.env.GOOGLE_VERTEX_LOCATION || 'us-central1';
+    const model = 'gemini-2.0-flash-001';
 
-    // Make direct API call to Vertex AI
-    const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/gemini-2.0-flash:generateContent`;
-    
-    const requestBody = {
-      contents: [{
-        parts: [{
-          text: conversationText
-        }]
-      }],
+    // 3. Set up the model with the configuration
+    const generativeModel = genAI.getGenerativeModel({
+      model: model,
       generationConfig: {
-        maxOutputTokens: 500,
-        temperature: 0.7,
-      }
-    };
-
-    const response = await authClient.request({
-      url,
-      method: 'POST',
-      data: requestBody,
+        "temperature": 1,
+        "maxOutputTokens": 512,
+        "topP": 1,
+      },
+      safetySettings: [
+        { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
+        { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" },
+        { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE" },
+        { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" }
+      ],
     });
 
-    const aiResponse = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
+    // 4. Make the call to the Gemini API with the user's prompt
+    const request = {
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    };
+    const streamingResp = await generativeModel.generateContentStream(request);
 
-    return Response.json({ response: aiResponse });
+    // 5. Aggregate the streamed response into a single string
+    let responseText = '';
+    for await (const chunk of streamingResp.stream) {
+        if (chunk.candidates && chunk.candidates.length > 0) {
+            const part = chunk.candidates[0].content.parts[0];
+            if (part.text) {
+                responseText += part.text;
+            }
+        }
+    }
+    
+    // 6. Send the successful response back to your dApp
+    res.status(200).json({ text: responseText });
 
   } catch (error) {
-    console.error('Detailed error:', error);
-    
-    return Response.json(
-      { 
-        error: 'Failed to generate response',
-        details: error.message 
-      },
-      { status: 500 }
-    );
+    console.error('Error calling Vertex AI:', error);
+    res.status(500).json({ error: 'Failed to get response from AI.' });
   }
 }
