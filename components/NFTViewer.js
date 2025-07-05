@@ -15,7 +15,7 @@ export default function NFTViewer({
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
 
-  // --- New State for Gemini Chat ---
+  // --- State for Gemini Chat ---
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeChatNFT, setActiveChatNFT] = useState(null);
   const [chatHistory, setChatHistory] = useState([]);
@@ -49,7 +49,7 @@ export default function NFTViewer({
     }
   };
 
-  // --- New Handlers for Gemini Chat ---
+  // --- Handlers for Gemini Chat ---
   const handleOpenChat = (nft) => {
     setActiveChatNFT(nft);
     setChatHistory([]); // Clear previous chat history
@@ -71,7 +71,7 @@ export default function NFTViewer({
     setIsChatLoading(true);
 
     try {
-      // Call your secure backend proxy, not Google directly
+      // IMPORTANT: This calls your secure backend proxy, not Google directly
       const response = await axios.post("http://localhost:3001/api/chat", {
         prompt: chatInput,
       });
@@ -80,7 +80,8 @@ export default function NFTViewer({
         ...newHistory,
         { role: "gemini", text: response.data.text },
       ]);
-    } catch (error) {
+    } catch (error)
+     {
       console.error("Chat error:", error);
       setChatHistory([
         ...newHistory,
@@ -106,6 +107,17 @@ export default function NFTViewer({
           <div className="nft-grid gap-4">
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
+                
+                {/* ===== CHAT ICON CODE ===== */}
+                <button 
+                  onClick={() => handleOpenChat(nft)}
+                  className="absolute top-2 left-2 z-10 p-1.5 bg-white/70 dark:bg-black/70 rounded-full hover:bg-white dark:hover:bg-black transition-colors"
+                  aria-label="Open AI Chat"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800 dark:text-gray-200"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path></svg>
+                </button>
+                {/* ===== END OF CHAT ICON CODE ===== */}
+
                 {/* Checkbox always at bottom left with tooltip */}
                 <div className="absolute left-2 bottom-2 z-10">
                   <div className="relative flex flex-col items-center">
@@ -120,41 +132,26 @@ export default function NFTViewer({
                       className="opacity-0 peer-hover:opacity-100 transition pointer-events-none absolute bottom-full mb-0 left-1/2 -translate-x-1/2 z-50"
                       style={{ width: 24, height: 24 }}
                     >
-                      {/* Auto-dark/light plane icon */}
                       <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
                         width="24" height="24" viewBox="0 0 512 512"
                         className="w-6 h-6 fill-black dark:fill-white"
                         preserveAspectRatio="xMidYMid meet"
                       >
                         <g transform="translate(0,512) scale(0.1,-0.1)" stroke="none">
-                          <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2
-                          -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815
-                          31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12
-                          23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460
-                          l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774
-                          368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795
-                          c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003
-                          1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
+                          <path d="M2521 3714 c-1125 -535 -2054 -983 -2065 -994 -29 -28 -28 -93 2 -122 16 -17 233 -91 814 -278 l792 -256 254 -789 c194 -606 259 -796 278 -815 31 -32 94 -34 124 -4 11 11 449 922 974 2025 524 1102 962 2023 974 2046 12 23 22 51 22 62 0 53 -50 102 -102 100 -13 -1 -943 -439 -2067 -975z m598 -460 l-1005 -1005 -595 191 c-327 106 -625 202 -664 215 l-70 23 45 20 c25 12 774 368 1665 791 891 424 1622 771 1625 771 3 0 -448 -453 -1001 -1006z m355 -795 c-433 -910 -790 -1657 -793 -1661 -3 -4 -102 290 -219 654 l-214 661 1003 1003 c552 552 1004 1002 1006 1000 1 -1 -351 -747 -783 -1657z"/>
                         </g>
                       </svg>
                     </div>
                   </div>
                 </div>
-                {nft.image ? (
-                  <img
+                
+                <img
                     src={nft.image}
                     alt={nft.name}
                     className="w-full aspect-square object-cover border-b1"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = "";
-                    }}
-                  />
-                ) : (
-                  <div className="w-full aspect-square bg-gray-300 dark:bg-gray-600 rounded-md flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
-                    No Image
-                  </div>
-                )}
+                    onError={(e) => { e.currentTarget.src = ""; }}
+                />
+                
                 <div className="mt-2 text-sm font-medium text-center text-gray-800 dark:text-white">
                   {nft.name}
                 </div>
@@ -172,17 +169,12 @@ export default function NFTViewer({
         )}
       </div>
 
-      {/* ===== UPGRADE MODAL ===== */}
+      {/* ===== FULL UPGRADE MODAL ===== */}
       {selectedNFT && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-          {/* Overlay */}
-          <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" />
-
-          {/* Modal */}
+          <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" onClick={() => setSelectedNFT(null)} />
           <div className="relative z-[10000] flex items-center justify-center min-h-screen w-full px-4 py-10">
             <div className="relative bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
-              
-              {/* Close Button */}
               <button
                 className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
                 onClick={() => setSelectedNFT(null)}
@@ -190,14 +182,10 @@ export default function NFTViewer({
               >
                 <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
               </button>
-              
               <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">UPGRADE YOUR NFT</h3>
-              
-              {/* Border around image */}
               <div className="mb-4 border-b1 border-2 border-black dark:border-white">
                 <img src={selectedNFT.image} alt={selectedNFT.name} className="w-full aspect-square object-cover" />
               </div>
-              
               <form onSubmit={handleSubmit} className="space-y-3">
                 <input type="hidden" name="ORIGINAL" value={selectedNFT.name} />
                 <div>
@@ -228,7 +216,7 @@ export default function NFTViewer({
                       name={field}
                       value={formData[field]}
                       onChange={e => handleChange(field, e.target.value)}
-                      placeholder={selectedNFT.traits[field]}
+                      placeholder={selectedNFT.traits ? selectedNFT.traits[field] : ''}
                       className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
                       style={{ boxShadow: 'none' }}
                     />
@@ -260,7 +248,6 @@ export default function NFTViewer({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" onClick={handleCloseChat} />
           <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full flex flex-col" style={{height: '80vh'}}>
-            {/* Modal Header with Close Button */}
             <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-300 dark:border-gray-600">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Chat with {activeChatNFT.name}</h3>
               <button
@@ -271,8 +258,6 @@ export default function NFTViewer({
                 <span className="text-4xl leading-none font-bold">&#215;</span>
               </button>
             </div>
-            
-            {/* Chat History */}
             <div className="flex-grow overflow-y-auto space-y-4 pr-2">
               {chatHistory.map((msg, index) => (
                 <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -293,8 +278,6 @@ export default function NFTViewer({
                 </div>
               )}
             </div>
-
-            {/* Chat Input Form */}
             <form onSubmit={handleChatSubmit} className="mt-4 pt-4 border-t border-gray-300 dark:border-gray-600 flex items-center">
               <input
                 type="text"
@@ -314,9 +297,9 @@ export default function NFTViewer({
             </form>
           </div>
         </div>
-      )}	  
-	  
-      {/* ===== THANK YOU MODAL ===== */}
+      )}
+
+      {/* ===== FULL THANK YOU MODAL ===== */}
       {showThankYou && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
           <div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
