@@ -2,7 +2,6 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
-// 1. Import the new SlidingPuzzle component
 import SlidingPuzzle from "./SlidingPuzzle"; // Adjust path if needed
 
 export default function NFTViewer({
@@ -17,9 +16,10 @@ export default function NFTViewer({
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
 
-  // --- New State for the Game Modal ---
+  // --- State for the Game Modal ---
   const [isGameOpen, setIsGameOpen] = useState(false);
   const [activeGameNFT, setActiveGameNFT] = useState(null);
+  const [difficulty, setDifficulty] = useState(3); // Default difficulty
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -52,7 +52,6 @@ export default function NFTViewer({
     }
   };
 
-  // --- New Handlers for the Game Modal ---
   const handleOpenGame = (nft) => {
     setActiveGameNFT(nft);
     setIsGameOpen(true);
@@ -79,7 +78,6 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 
-                {/* ===== GAME ICON - TOP LEFT ===== */}
                 <button 
                   onClick={() => handleOpenGame(nft)}
                   className="absolute top-2 left-2 z-10 p-1.5 bg-white/70 dark:bg-black/70 rounded-full hover:bg-white dark:hover:bg-black transition-colors"
@@ -88,7 +86,6 @@ export default function NFTViewer({
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800 dark:text-gray-200"><path d="M18 8V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M18 16v2a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-2"/><path d="M8 18v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="12" x2="12" y1="4" y2="18"/></svg>
                 </button>
 
-                {/* Checkbox always at bottom left with tooltip */}
                 <div className="absolute left-2 bottom-2 z-10">
                   <div className="relative flex flex-col items-center">
                     <input
@@ -221,11 +218,23 @@ export default function NFTViewer({
 
       {/* ===== NEW GAME MODAL ===== */}
       {isGameOpen && activeGameNFT && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black bg-opacity-70 z-[9999]" onClick={handleCloseGame} />
-          <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full">
+          <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-xl w-full">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Solve the Puzzle: {activeGameNFT.name}</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Puzzle: {activeGameNFT.name}</h3>
+              <div className="flex items-center space-x-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty:</label>
+                <select 
+                    value={difficulty} 
+                    onChange={(e) => setDifficulty(Number(e.target.value))}
+                    className="p-1 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white rounded-none text-sm"
+                >
+                    <option value={3}>Easy (3x3)</option>
+                    <option value={4}>Medium (4x4)</option>
+                    <option value={5}>Hard (5x5)</option>
+                </select>
+              </div>
               <button
                 className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
                 onClick={handleCloseGame}
@@ -234,8 +243,12 @@ export default function NFTViewer({
                 <span className="text-4xl leading-none font-bold">&#215;</span>
               </button>
             </div>
-            {/* Render the SlidingPuzzle component inside the modal */}
-            <SlidingPuzzle imageUrl={activeGameNFT.image} />
+            <SlidingPuzzle 
+                key={difficulty} // Important: This resets the component when difficulty changes
+                imageUrl={activeGameNFT.image} 
+                difficulty={difficulty}
+                playerAddress={address}
+            />
           </div>
         </div>
       )}
