@@ -79,16 +79,14 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 
-                {/* --- PETZ ICON - ONLY SHOWS IF TRAIT EXISTS --- */}
-                {nft.traits?.petz && (
-                  <button 
-                    onClick={() => handleOpenPetz(nft)}
-                    className="absolute top-2 left-2 z-10 p-1.5 bg-pink-200/80 dark:bg-pink-800/80 rounded-full hover:bg-pink-300 dark:hover:bg-pink-700 transition-colors"
-                    aria-label="View Companion Pet"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-600 dark:text-pink-300"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                  </button>
-                )}
+                {/* --- PETZ ICON - NOW SHOWS FOR EVERY NFT FOR TESTING --- */}
+                <button 
+                  onClick={() => handleOpenPetz(nft)}
+                  className="absolute top-2 left-2 z-10 p-1.5 bg-pink-200/80 dark:bg-pink-800/80 rounded-full hover:bg-pink-300 dark:hover:bg-pink-700 transition-colors"
+                  aria-label="View Companion Pet"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-600 dark:text-pink-300"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                </button>
 
                 <div className="absolute left-2 bottom-2 z-10">
                   <div className="relative flex flex-col items-center">
@@ -236,7 +234,8 @@ export default function NFTViewer({
               </button>
             </div>
             <Petz 
-                petzTrait={activePetzNFT.traits.petz}
+                // Provide a default trait for testing if one doesn't exist
+                petzTrait={activePetzNFT.traits?.petz || 'type:cat, color:grey, eyes:normal'}
                 nftId={activePetzNFT.tokenId} // Used for saving data to a database
             />
           </div>
