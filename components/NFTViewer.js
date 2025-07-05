@@ -19,7 +19,7 @@ export default function NFTViewer({
   // --- State for the Game Modal ---
   const [isGameOpen, setIsGameOpen] = useState(false);
   const [activeGameNFT, setActiveGameNFT] = useState(null);
-  const [difficulty, setDifficulty] = useState(3); // Default difficulty
+  const [difficulty, setDifficulty] = useState(2); // Default difficulty set to 2x2 for testing
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -230,6 +230,7 @@ export default function NFTViewer({
                     onChange={(e) => setDifficulty(Number(e.target.value))}
                     className="p-1 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white rounded-none text-sm"
                 >
+                    <option value={2}>Test (2x2)</option>
                     <option value={3}>Easy (3x3)</option>
                     <option value={4}>Medium (4x4)</option>
                     <option value={5}>Hard (5x5)</option>
