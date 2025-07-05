@@ -52,7 +52,7 @@ export default function NFTViewer({
   // --- Handlers for Gemini Chat ---
   const handleOpenChat = (nft) => {
     setActiveChatNFT(nft);
-    setChatHistory([]); // Clear previous chat history
+    setChatHistory([]);
     setIsChatOpen(true);
   };
 
@@ -67,21 +67,21 @@ export default function NFTViewer({
 
     const newHistory = [...chatHistory, { role: "user", text: chatInput }];
     setChatHistory(newHistory);
+    const currentInput = chatInput;
     setChatInput("");
     setIsChatLoading(true);
 
     try {
-      // IMPORTANT: This calls your secure backend proxy, not Google directly
-      const response = await axios.post("http://localhost:3001/api/chat", {
-        prompt: chatInput,
+      // This correctly calls your Vercel API route
+      const response = await axios.post("/api/chat", {
+        prompt: currentInput,
       });
 
       setChatHistory([
         ...newHistory,
         { role: "gemini", text: response.data.text },
       ]);
-    } catch (error)
-     {
+    } catch (error) {
       console.error("Chat error:", error);
       setChatHistory([
         ...newHistory,
@@ -108,7 +108,6 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 
-                {/* ===== CHAT ICON CODE ===== */}
                 <button 
                   onClick={() => handleOpenChat(nft)}
                   className="absolute top-2 left-2 z-10 p-1.5 bg-white/70 dark:bg-black/70 rounded-full hover:bg-white dark:hover:bg-black transition-colors"
@@ -116,9 +115,7 @@ export default function NFTViewer({
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800 dark:text-gray-200"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path></svg>
                 </button>
-                {/* ===== END OF CHAT ICON CODE ===== */}
 
-                {/* Checkbox always at bottom left with tooltip */}
                 <div className="absolute left-2 bottom-2 z-10">
                   <div className="relative flex flex-col items-center">
                     <input
@@ -169,7 +166,6 @@ export default function NFTViewer({
         )}
       </div>
 
-      {/* ===== FULL UPGRADE MODAL ===== */}
       {selectedNFT && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" onClick={() => setSelectedNFT(null)} />
@@ -243,7 +239,6 @@ export default function NFTViewer({
         </div>
       )}
 
-      {/* ===== GEMINI CHAT MODAL ===== */}
       {isChatOpen && activeChatNFT && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" onClick={handleCloseChat} />
@@ -299,7 +294,6 @@ export default function NFTViewer({
         </div>
       )}
 
-      {/* ===== FULL THANK YOU MODAL ===== */}
       {showThankYou && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
           <div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
