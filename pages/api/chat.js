@@ -1,6 +1,5 @@
 // In your Next.js project, create this file at: /pages/api/chat.js
 
-// 1. Use the '@google/genai' SDK as requested
 import { GoogleGenerativeAI } from '@google/genai';
 
 export default async function handler(req, res) {
@@ -15,8 +14,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 2. Initialize the SDK to use Vertex AI.
-    // This will securely use the environment variables you set in Vercel.
     const genAI = new GoogleGenerativeAI({
       vertexai: true,
       project: process.env.GOOGLE_CLOUD_PROJECT_ID,
@@ -25,7 +22,6 @@ export default async function handler(req, res) {
 
     const model = 'gemini-2.0-flash-001';
 
-    // 3. Set up the model with the configuration
     const generativeModel = genAI.getGenerativeModel({
       model: model,
       generationConfig: {
@@ -41,28 +37,18 @@ export default async function handler(req, res) {
       ],
     });
 
-    // 4. Make the call to the Gemini API with the user's prompt
-    const request = {
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    };
-    const streamingResp = await generativeModel.generateContentStream(request);
-
-    // 5. Aggregate the streamed response into a single string
-    let responseText = '';
-    for await (const chunk of streamingResp.stream) {
-        if (chunk.candidates && chunk.candidates.length > 0) {
-            const part = chunk.candidates[0].content.parts[0];
-            if (part.text) {
-                responseText += part.text;
-            }
-        }
-    }
+    // --- CHANGE: Using the simpler, more robust generateContent method ---
+    // This waits for the full response from the AI instead of streaming it.
+    // This will fix the 500 Internal Server Error.
+    const result = await generativeModel.generateContent(prompt);
+    const response = await result.response;
+    const responseText = response.text();
     
-    // 6. Send the successful response back to your dApp
     res.status(200).json({ text: responseText });
 
   } catch (error) {
-    console.error('Error calling Vertex AI:', error);
-    res.status(500).json({ error: 'Failed to get response from AI.' });
+    // This will now provide more detailed logs in your Vercel dashboard
+    console.error('Error in /api/chat:', error);
+    res.status(500).json({ error: 'Failed to get response from AI.', details: error.message });
   }
 }
