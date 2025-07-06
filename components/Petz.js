@@ -1,185 +1,113 @@
 // /components/Petz.js
 "use client";
-import { useState, useEffect, useMemo } from 'react';
-import AsciiMazeGame from './AsciiMazeGame'; // Import the new maze game
+import { useState, useMemo } from 'react';
 
-// --- Pixel Art Data (used to generate ASCII) ---
-const pixelPetzData = {
-  cat: [
-    "................",
-    "................",
-    "....xxxx........",
-    "...xeeee..x.....",
-    "..xeeee..xx.....",
-    "..xeeee..x......",
-    "..xffffffx......",
-    "..xssssssx......",
-    "..xffffffx......",
-    "..xffffffx......",
-    ".xssssssfx......",
-    ".xssssssfx......",
-    "..xxxxxx........",
-    "................",
-    "................",
-    "................",
-  ],
-  dragon: [
-    "................",
-    "....xx....xx....",
-    "...xssx..xssx...",
-    "..xssssxxssssx..",
-    "..xseesssseesx..",
-    "..xssssssssssx..",
-    "..xffsffsffsfx..",
-    "..xffffffffffx..",
-    "..xssssssssssx..",
-    "...xfffffffx....",
-    "....xsssssx.....",
-    ".....xxxxx......",
-    "................",
-    "................",
-    "................",
-    "................",
-  ],
-   robot: [
-    "................",
-    "................",
-    "....xxxxxx......",
-    "...xeeeeee..x...",
-    "..xssseesss.xx..",
-    "..xssssssss.x...",
-    "..xfffffffx.....",
-    "..xfffffffx.....",
-    "..xfffffffx.....",
-    "..xsssssssx.....",
-    "..xsssssssx.....",
-    "...xxxxxxx......",
-    "................",
-    "................",
-    "................",
-    "................",
-  ],
+// 1. Data from Cat-Traits.txt is now a structured object
+const catTraits = {
+  Head: {
+    'Punk': '^///^',
+    'Horns': '^/-/^',
+    'Curly Hair': '^```^',
+    'Bald': '^___^'
+  },
+  Face: {
+    'Happy': '(^.^)',
+    'Sleeping': '(-.-)',
+    'Angry': '(ò.ó)',
+    'Normal': '(o.o)'
+  },
+  Body: {
+    'Priest': '(\\+/)',
+    'Tuxedo': '(|:|)',
+    'Sweater': '({#})',
+    'Normal': '(   )'
+  }
 };
 
+// Helper component for a styled dropdown
+const TraitSelector = ({ label, options, selected, onChange }) => (
+  <div className="flex flex-col items-center">
+    <label className="mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">{label}</label>
+    <select 
+      value={selected} 
+      onChange={(e) => onChange(e.target.value)}
+      className="p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md appearance-none text-center font-mono"
+    >
+      {Object.keys(options).map(optionName => (
+        <option key={optionName} value={optionName}>{optionName}</option>
+      ))}
+    </select>
+  </div>
+);
 
-export default function Petz({ petzTrait, nftId, ownerNFTImage }) {
-  const petData = useMemo(() => {
-    const data = {};
-    // FINAL FIX: Explicitly check if the prop is a string before using it.
-    // This is the most robust way to prevent the 'split' error.
-    const traitString = typeof petzTrait === 'string' ? petzTrait : 'type:cat, color:grey, eyes:normal';
-    
-    traitString.split(',').forEach(part => {
-      const [key, value] = part.split(':');
-      if (key && value) { // Ensure both key and value exist after split
-        data[key.trim()] = value.trim();
-      }
-    });
-    return data;
-  }, [petzTrait]);
+export default function Petz({ ownerNFTImage }) {
+  // 2. State to hold the currently selected trait for each part
+  const [selectedHead, setSelectedHead] = useState('Punk');
+  const [selectedFace, setSelectedFace] = useState('Normal');
+  const [selectedBody, setSelectedBody] = useState('Tuxedo');
 
-  const [happiness, setHappiness] = useState(75);
-  const [lastAction, setLastAction] = useState(null);
-  const [isMiniGameOpen, setIsMiniGameOpen] = useState(false);
-
+  // 3. Combine the selected parts to create the final ASCII art
   const asciiArt = useMemo(() => {
-    const petArt = pixelPetzData[petData.type] || pixelPetzData.cat;
-    const asciiMap = {
-        'x': '#', // Outline
-        'f': ':', // Fill
-        'e': 'O', // Eye
-        's': '.', // Shade
-        '.': ' '  // Empty space
-    };
-    return petArt.map(row => 
-        row.split('').map(char => asciiMap[char] || ' ').join('')
-    ).join('\n');
-  }, [petData.type]);
+    const head = catTraits.Head[selectedHead] || catTraits.Head['Bald'];
+    const face = catTraits.Face[selectedFace] || catTraits.Face['Normal'];
+    const body = catTraits.Body[selectedBody] || catTraits.Body['Normal'];
+    
+    // Center each line for better alignment
+    const lines = [head, face, body];
+    const maxLength = Math.max(...lines.map(line => line.length));
+    const paddedLines = lines.map(line => {
+        const padding = Math.floor((maxLength - line.length) / 2);
+        return ' '.repeat(padding) + line;
+    });
 
-  const handleFeed = () => {
-    setHappiness(Math.min(100, happiness + 15));
-    setLastAction('Yum! +15 Happiness');
-    setTimeout(() => setLastAction(null), 2000);
-  };
-
-  const handlePlay = () => {
-    setIsMiniGameOpen(true);
-  };
-  
-  const handleGameEnd = (didWin) => {
-    setIsMiniGameOpen(false);
-    if (didWin) {
-        setHappiness(h => Math.min(100, h + 30));
-        setLastAction('You solved the maze! +30 Happiness');
-    }
-    setTimeout(() => setLastAction(null), 2500);
-  };
-
-  const happinessColor = useMemo(() => {
-    if (happiness > 70) return '#22C55E';
-    if (happiness > 30) return '#F59E0B';
-    return '#EF4444';
-  }, [happiness]);
+    return paddedLines.join('\n');
+  }, [selectedHead, selectedFace, selectedBody]);
 
   return (
-    <>
-      <div className="flex flex-col items-center p-4 bg-gray-200 dark:bg-gray-900 rounded-md">
-        <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
-          <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
-          <div className="absolute bottom-0 w-full h-1/3 bg-gray-500 dark:bg-gray-900" style={{ transform: 'perspective(100px) rotateX(20deg)', transformOrigin: 'bottom' }}></div>
-          
-          <div className="absolute top-4 left-4 w-20 h-20 bg-white p-1 shadow-lg border-2 border-black">
-              <img src={ownerNFTImage} alt="Owner NFT" className="w-full h-full object-cover" />
-          </div>
-
-          <div className="z-10">
-            <pre 
-                className="font-mono text-xs leading-none text-center"
-                style={{ color: petData.color || 'grey' }}
-            >
-                {asciiArt}
-            </pre>
-          </div>
-
-          {lastAction && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white px-4 py-2 rounded-lg font-bold text-lg animate-fade-out z-20">
-                  {lastAction}
-              </div>
-          )}
+    <div className="flex flex-col items-center p-4 bg-gray-200 dark:bg-gray-900 rounded-md">
+      {/* The Pet Room Display */}
+      <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
+        <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
+        <div className="absolute bottom-0 w-full h-1/3 bg-gray-500 dark:bg-gray-900" style={{ transform: 'perspective(100px) rotateX(20deg)', transformOrigin: 'bottom' }}></div>
+        
+        <div className="absolute top-4 left-4 w-20 h-20 bg-white p-1 shadow-lg border-2 border-black">
+            <img src={ownerNFTImage} alt="Owner NFT" className="w-full h-full object-cover" />
         </div>
 
-        <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md">
-          <div className="text-center mb-4">
-              <p className="font-bold text-xl text-gray-800 dark:text-gray-200 capitalize">{petData.type || 'Pet'} Pet</p>
-          </div>
-          
-          <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Happiness</label>
-              <div className="w-full bg-gray-400 dark:bg-gray-700 rounded-full h-4">
-                  <div 
-                      className="h-4 rounded-full transition-all duration-500" 
-                      style={{ width: `${happiness}%`, backgroundColor: happinessColor }}
-                  />
-              </div>
-          </div>
-
-          <div className="flex justify-center space-x-4">
-              <button onClick={handleFeed} className="px-6 py-2 border-2 border-blue-500 text-blue-500 text-lg uppercase rounded-none transition hover:bg-blue-500 hover:text-white">Feed</button>
-              <button onClick={handlePlay} className="px-6 py-2 border-2 border-yellow-500 text-yellow-500 text-lg uppercase rounded-none transition hover:bg-yellow-500 hover:text-white">Play</button>
-          </div>
+        {/* The ASCII Art Display */}
+        <div className="z-10 bg-black/50 p-4 rounded-lg">
+          <pre 
+              className="font-mono text-2xl leading-tight text-center text-lime-300"
+              style={{ fontFamily: '"Press Start 2P", monospace' }}
+          >
+              {asciiArt}
+          </pre>
         </div>
-        <style jsx global>{`
-          @keyframes fade-out {
-            0% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(1.5); }
-          }
-          .animate-fade-out {
-            animation: fade-out 2.5s forwards;
-          }
-        `}</style>
       </div>
 
-      {isMiniGameOpen && <AsciiMazeGame onGameEnd={handleGameEnd} />}
-    </>
+      {/* Trait Customization Controls */}
+      <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md">
+        <div className="flex justify-around">
+          <TraitSelector 
+            label="Head"
+            options={catTraits.Head}
+            selected={selectedHead}
+            onChange={setSelectedHead}
+          />
+          <TraitSelector 
+            label="Face"
+            options={catTraits.Face}
+            selected={selectedFace}
+            onChange={setSelectedFace}
+          />
+          <TraitSelector 
+            label="Body"
+            options={catTraits.Body}
+            selected={selectedBody}
+            onChange={setSelectedBody}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
