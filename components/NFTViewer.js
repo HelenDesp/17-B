@@ -236,7 +236,8 @@ export default function NFTViewer({
             <Petz 
                 // Provide a default trait for testing if one doesn't exist
                 petzTrait={activePetzNFT.traits?.petz || 'type:cat, color:grey, eyes:normal'}
-                nftId={activePetzNFT.tokenId} // Used for saving data to a database
+                nftId={activePetzNFT.tokenId}
+                ownerNFTImage={activePetzNFT.image} // Pass the owner's NFT image
             />
           </div>
         </div>
