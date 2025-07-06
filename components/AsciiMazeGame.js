@@ -1,66 +1,36 @@
 // /components/Petz.js
 "use client";
 import { useState, useEffect, useMemo } from 'react';
-import AsciiMazeGame from './AsciiMazeGame'; // Import the new maze game
+import FeedAPet from './FeedAPet'; // Import the new mini-game
 
-// --- Pixel Art Data (used to generate ASCII) ---
-const pixelPetzData = {
-  cat: [
-    "................",
-    "................",
-    "....xxxx........",
-    "...xeeee..x.....",
-    "..xeeee..xx.....",
-    "..xeeee..x......",
-    "..xffffffx......",
-    "..xssssssx......",
-    "..xffffffx......",
-    "..xffffffx......",
-    ".xssssssfx......",
-    ".xssssssfx......",
-    "..xxxxxx........",
-    "................",
-    "................",
-    "................",
-  ],
-  dragon: [
-    "................",
-    "....xx....xx....",
-    "...xssx..xssx...",
-    "..xssssxxssssx..",
-    "..xseesssseesx..",
-    "..xssssssssssx..",
-    "..xffsffsffsfx..",
-    "..xffffffffffx..",
-    "..xssssssssssx..",
-    "...xfffffffx....",
-    "....xsssssx.....",
-    ".....xxxxx......",
-    "................",
-    "................",
-    "................",
-    "................",
-  ],
-   robot: [
-    "................",
-    "................",
-    "....xxxxxx......",
-    "...xeeeeee..x...",
-    "..xssseesss.xx..",
-    "..xssssssss.x...",
-    "..xfffffffx.....",
-    "..xfffffffx.....",
-    "..xfffffffx.....",
-    "..xsssssssx.....",
-    "..xsssssssx.....",
-    "...xxxxxxx......",
-    "................",
-    "................",
-    "................",
-    "................",
-  ],
+// --- SVG Parts Library ---
+const petParts = {
+  body: {
+    dragon: <path d="M60 150 C 70 120, 90 120, 100 150 S 130 180, 140 150 C 150 120, 170 120, 180 150 L 160 180 L 80 180 Z" />,
+    cat: <path d="M80 140 C 60 180, 180 180, 160 140 C 180 120, 60 120, 80 140 Z" />,
+    robot: <rect x="70" y="130" width="100" height="50" rx="10" />,
+  },
+  eyes: {
+    normal: <>
+      <circle cx="105" cy="150" r="5" fill="black" />
+      <circle cx="135" cy="150" r="5" fill="black" />
+    </>,
+    happy: <>
+      <path d="M100 150 C 105 145, 110 145, 110 150" stroke="black" strokeWidth="2" fill="none" />
+      <path d="M130 150 C 135 145, 140 145, 140 150" stroke="black" strokeWidth="2" fill="none" />
+    </>,
+    angry: <>
+      <line x1="100" y1="145" x2="110" y2="155" stroke="black" strokeWidth="2" />
+      <line x1="110" y1="145" x2="100" y2="155" stroke="black" strokeWidth="2" />
+      <line x1="130" y1="145" x2="140" y2="155" stroke="black" strokeWidth="2" />
+      <line x1="140" y1="145" x2="130" y2="155" stroke="black" strokeWidth="2" />
+    </>,
+  },
+  extras: {
+     dragon: <path d="M100 120 Q 120 90, 140 120" stroke="black" strokeWidth="3" fill="none" />, // Horns
+     cat: <><path d="M80 140 L 70 110 L 90 120 Z" /><path d="M160 140 L 170 110 L 150 120 Z" /></> // Ears
+  }
 };
-
 
 export default function Petz({ petzTrait, nftId, ownerNFTImage }) {
   const petData = useMemo(() => {
@@ -76,20 +46,6 @@ export default function Petz({ petzTrait, nftId, ownerNFTImage }) {
   const [lastAction, setLastAction] = useState(null);
   const [isMiniGameOpen, setIsMiniGameOpen] = useState(false);
 
-  const asciiArt = useMemo(() => {
-    const petArt = pixelPetzData[petData.type] || pixelPetzData.cat;
-    const asciiMap = {
-        'x': '#', // Outline
-        'f': ':', // Fill
-        'e': 'O', // Eye
-        's': '.', // Shade
-        '.': ' '  // Empty space
-    };
-    return petArt.map(row => 
-        row.split('').map(char => asciiMap[char] || ' ').join('')
-    ).join('\n');
-  }, [petData.type]);
-
   const handleFeed = () => {
     setHappiness(Math.min(100, happiness + 15));
     setLastAction('Yum! +15 Happiness');
@@ -100,25 +56,29 @@ export default function Petz({ petzTrait, nftId, ownerNFTImage }) {
     setIsMiniGameOpen(true);
   };
   
-  const handleGameEnd = (didWin) => {
+  const handleGameEnd = (score) => {
     setIsMiniGameOpen(false);
-    if (didWin) {
-        setHappiness(h => Math.min(100, h + 30));
-        setLastAction('You solved the maze! +30 Happiness');
+    // Grant happiness based on score
+    const happinessGained = Math.floor(score / 10);
+    if (happinessGained > 0) {
+        setHappiness(h => Math.min(100, h + happinessGained));
+        setLastAction(`Fun game! +${happinessGained} Happiness`);
+    } else {
+        setLastAction('Good try! No happiness gained.');
     }
     setTimeout(() => setLastAction(null), 2500);
   };
 
   const happinessColor = useMemo(() => {
-    if (happiness > 70) return '#22C55E';
-    if (happiness > 30) return '#F59E0B';
-    return '#EF4444';
+    if (happiness > 70) return '#22C55E'; // green-500
+    if (happiness > 30) return '#F59E0B'; // amber-500
+    return '#EF4444'; // red-500
   }, [happiness]);
 
   return (
     <>
       <div className="flex flex-col items-center p-4 bg-gray-200 dark:bg-gray-900 rounded-md">
-        <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
+        <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden">
           <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
           <div className="absolute bottom-0 w-full h-1/3 bg-gray-500 dark:bg-gray-900" style={{ transform: 'perspective(100px) rotateX(20deg)', transformOrigin: 'bottom' }}></div>
           
@@ -126,17 +86,18 @@ export default function Petz({ petzTrait, nftId, ownerNFTImage }) {
               <img src={ownerNFTImage} alt="Owner NFT" className="w-full h-full object-cover" />
           </div>
 
-          <div className="z-10">
-            <pre 
-                className="font-mono text-xs leading-none text-center"
-                style={{ color: petData.color || 'grey' }}
-            >
-                {asciiArt}
-            </pre>
+          <div className={`absolute bottom-8 left-1/2 -translate-x-1/2 w-48 h-48`}>
+              <svg viewBox="0 0 240 240" className="w-full h-full drop-shadow-lg">
+                <g fill={petData.color || 'skyblue'}>
+                  {petParts.body[petData.type] || petParts.body.cat}
+                  {petParts.extras[petData.type]}
+                </g>
+                {petParts.eyes[petData.eyes] || petParts.eyes.normal}
+              </svg>
           </div>
 
           {lastAction && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white px-4 py-2 rounded-lg font-bold text-lg animate-fade-out z-20">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white px-4 py-2 rounded-lg font-bold text-lg animate-fade-out">
                   {lastAction}
               </div>
           )}
@@ -173,7 +134,7 @@ export default function Petz({ petzTrait, nftId, ownerNFTImage }) {
         `}</style>
       </div>
 
-      {isMiniGameOpen && <AsciiMazeGame onGameEnd={handleGameEnd} />}
+      {isMiniGameOpen && <FeedAPet onGameEnd={handleGameEnd} />}
     </>
   );
 }
