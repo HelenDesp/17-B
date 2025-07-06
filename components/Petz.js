@@ -65,10 +65,16 @@ const pixelPetzData = {
 export default function Petz({ petzTrait, nftId, ownerNFTImage }) {
   const petData = useMemo(() => {
     const data = {};
-    petzTrait.split(',').forEach(part => {
-      const [key, value] = part.split(':');
-      data[key.trim()] = value.trim();
-    });
+    // FIX: Add a check to ensure petzTrait is a string before splitting.
+    // This prevents the "Cannot read properties of undefined (reading 'split')" error.
+    if (typeof petzTrait === 'string') {
+      petzTrait.split(',').forEach(part => {
+        const [key, value] = part.split(':');
+        if (key && value) { // Ensure both key and value exist after split
+          data[key.trim()] = value.trim();
+        }
+      });
+    }
     return data;
   }, [petzTrait]);
 
@@ -144,7 +150,7 @@ export default function Petz({ petzTrait, nftId, ownerNFTImage }) {
 
         <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md">
           <div className="text-center mb-4">
-              <p className="font-bold text-xl text-gray-800 dark:text-gray-200 capitalize">{petData.type} Pet</p>
+              <p className="font-bold text-xl text-gray-800 dark:text-gray-200 capitalize">{petData.type || 'Pet'} Pet</p>
           </div>
           
           <div className="mb-4">
