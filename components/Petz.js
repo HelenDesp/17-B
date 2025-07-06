@@ -65,6 +65,11 @@ export default function Petz({ ownerNFTImage }) {
 
   return (
     <div className="flex flex-col items-center p-4 bg-gray-200 dark:bg-gray-900 rounded-md">
+       {/* Import the new 'Doto' font */}
+      <style jsx global>{`
+        @import url('[https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap](https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap)');
+      `}</style>
+
       {/* The Pet Room Display */}
       <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
@@ -75,10 +80,11 @@ export default function Petz({ ownerNFTImage }) {
         </div>
 
         {/* The ASCII Art Display */}
-        <div className="z-10 bg-black/50 p-4 rounded-lg">
+        {/* REMOVED background, UPDATED text color and font */}
+        <div className="z-10 p-4 rounded-lg">
           <pre 
-              className="font-mono text-2xl leading-tight text-center text-lime-300"
-              style={{ fontFamily: '"Press Start 2P", monospace' }}
+              className="font-mono text-2xl leading-tight text-center text-black dark:text-white"
+              style={{ fontFamily: '"Doto", monospace' }}
           >
               {asciiArt}
           </pre>
