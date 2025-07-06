@@ -65,16 +65,16 @@ const pixelPetzData = {
 export default function Petz({ petzTrait, nftId, ownerNFTImage }) {
   const petData = useMemo(() => {
     const data = {};
-    // FIX: Add a check to ensure petzTrait is a string before splitting.
-    // This prevents the "Cannot read properties of undefined (reading 'split')" error.
-    if (typeof petzTrait === 'string') {
-      petzTrait.split(',').forEach(part => {
-        const [key, value] = part.split(':');
-        if (key && value) { // Ensure both key and value exist after split
-          data[key.trim()] = value.trim();
-        }
-      });
-    }
+    // FIX: Use a default value for the trait to ensure it's always a string.
+    // This is a more robust fix for the "Cannot read properties of undefined (reading 'split')" error.
+    const traitString = petzTrait || 'type:cat, color:grey, eyes:normal';
+    
+    traitString.split(',').forEach(part => {
+      const [key, value] = part.split(':');
+      if (key && value) { // Ensure both key and value exist after split
+        data[key.trim()] = value.trim();
+      }
+    });
     return data;
   }, [petzTrait]);
 
