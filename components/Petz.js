@@ -64,21 +64,23 @@ export default function Petz({ ownerNFTImage }) {
   }, [selectedHead, selectedFace, selectedBody]);
 
   return (
-    <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md">
+    // UPDATED: Added border to this main container
+    <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
        {/* Import the 'Doto' font */}
       <style jsx global>{`
         @import url('[https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap](https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap)');
       `}</style>
 
       {/* The Pet Room Display */}
-      {/* UPDATED: Added border, removed floor and poster */}
-      <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center border-b border-black dark:border-white">
+      {/* UPDATED: Removed border from this div */}
+      <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         
         {/* The ASCII Art Display */}
         <div className="z-10 p-4 rounded-lg">
           <pre 
-              className="font-mono text-2xl leading-tight text-center text-black dark:text-white"
+              // UPDATED: Increased font size from text-2xl to text-4xl to make it bigger
+              className="font-mono text-4xl leading-tight text-center text-black dark:text-white"
               style={{
                 fontFamily: '"Doto", monospace',
                 fontWeight: 900,
@@ -91,7 +93,7 @@ export default function Petz({ ownerNFTImage }) {
       </div>
 
       {/* Trait Customization Controls */}
-      <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md">
+      <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
         <div className="flex justify-around">
           <TraitSelector 
             label="Head"
