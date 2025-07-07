@@ -80,11 +80,15 @@ export default function Petz({ ownerNFTImage }) {
         </div>
 
         {/* The ASCII Art Display */}
-        {/* REMOVED background, UPDATED text color and font */}
         <div className="z-10 p-4 rounded-lg">
           <pre 
               className="font-mono text-2xl leading-tight text-center text-black dark:text-white"
-              style={{ fontFamily: '"Doto", monospace' }}
+              style={{
+                fontFamily: '"Doto", monospace',
+                fontWeight: 900,
+                // Add a text-shadow to make the font appear bolder
+                textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000'
+              }}
           >
               {asciiArt}
           </pre>
