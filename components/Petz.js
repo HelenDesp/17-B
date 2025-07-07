@@ -2,25 +2,37 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// 1. Data from Cat-Traits.txt is now a structured object
+// 1. Updated data structure from the new Cat-Traits.txt file
 const catTraits = {
+  Ears: {
+    'Type 1': '^   ^',
+    'Type 2': '<   >',
+    'Type 3': 'v   v',
+    'Type 4': '\\/   \\/',
+    'Type 5': '/\\   /\\',
+  },
   Head: {
-    'Punk': '^///^',
-    'Horns': '^/-/^',
-    'Curly Hair': '^```^',
-    'Bald': '^___^'
+    'Punk': '///',
+    'Horns': '/-/',
+    'Curly Hair': '```',
+    'Bald': '___'
   },
   Face: {
-    'Happy': '(^.^)',
+    'Suspicious': '(o.0)',
     'Sleeping': '(-.-)',
-    'Angry': '(ò.ó)',
-    'Normal': '(o.o)'
+    'Eyes Open': '(o.o)',
+    'Wide-eyed': '(0.0)'
+  },
+  Mouth: {
+    'Normal': '---',
+    'Monster': 'vvv',
+    'Cigarette': '--,'
   },
   Body: {
+    'Muscular': '{=|=}',
+    'Suit': '{\\:/}',
     'Priest': '(\\+/)',
-    'Tuxedo': '(|:|)',
-    'Sweater': '({#})',
-    'Normal': '(   )'
+    'Bombol': '{\'"\'}'
   }
 };
 
@@ -41,19 +53,26 @@ const TraitSelector = ({ label, options, selected, onChange }) => (
 );
 
 export default function Petz({ ownerNFTImage }) {
-  // 2. State to hold the currently selected trait for each part
+  // 2. State for all the new selectable parts
+  const [selectedEars, setSelectedEars] = useState('Type 1');
   const [selectedHead, setSelectedHead] = useState('Punk');
-  const [selectedFace, setSelectedFace] = useState('Normal');
-  const [selectedBody, setSelectedBody] = useState('Tuxedo');
+  const [selectedFace, setSelectedFace] = useState('Eyes Open');
+  const [selectedMouth, setSelectedMouth] = useState('Normal');
+  const [selectedBody, setSelectedBody] = useState('Suit');
 
   // 3. Combine the selected parts to create the final ASCII art
   const asciiArt = useMemo(() => {
-    const head = catTraits.Head[selectedHead] || catTraits.Head['Bald'];
-    const face = catTraits.Face[selectedFace] || catTraits.Face['Normal'];
-    const body = catTraits.Body[selectedBody] || catTraits.Body['Normal'];
+    const ears = catTraits.Ears[selectedEars] || '';
+    const head = catTraits.Head[selectedHead] || '';
+    const face = catTraits.Face[selectedFace] || '';
+    const mouth = catTraits.Mouth[selectedMouth] || '';
+    const body = catTraits.Body[selectedBody] || '';
     
-    // Center each line for better alignment
-    const lines = [head, face, body];
+    // Combine ears and head for the first line
+    const firstLine = `${ears.slice(0, 1)}${head}${ears.slice(-1)}`;
+    
+    // Construct the final art with proper alignment
+    const lines = [firstLine, face, mouth, body];
     const maxLength = Math.max(...lines.map(line => line.length));
     const paddedLines = lines.map(line => {
         const padding = Math.floor((maxLength - line.length) / 2);
@@ -61,26 +80,22 @@ export default function Petz({ ownerNFTImage }) {
     });
 
     return paddedLines.join('\n');
-  }, [selectedHead, selectedFace, selectedBody]);
+  }, [selectedEars, selectedHead, selectedFace, selectedMouth, selectedBody]);
 
   return (
-    // UPDATED: Added border to this main container
-    <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
-       {/* Import the 'Doto' font */}
+    <div className="flex flex-col items-center p-4 bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
       <style jsx global>{`
         @import url('[https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap](https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap)');
       `}</style>
 
       {/* The Pet Room Display */}
-      {/* UPDATED: Removed border from this div */}
-      <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
+      <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center border-b border-black dark:border-white">
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         
         {/* The ASCII Art Display */}
         <div className="z-10 p-4 rounded-lg">
           <pre 
-              // UPDATED: Increased font size from text-2xl to text-4xl to make it bigger
-              className="font-mono text-4xl leading-tight text-center text-black dark:text-white"
+              className="font-mono text-2xl leading-tight text-center text-black dark:text-white"
               style={{
                 fontFamily: '"Doto", monospace',
                 fontWeight: 900,
@@ -94,7 +109,13 @@ export default function Petz({ ownerNFTImage }) {
 
       {/* Trait Customization Controls */}
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
-        <div className="flex justify-around">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <TraitSelector 
+            label="Ears"
+            options={catTraits.Ears}
+            selected={selectedEars}
+            onChange={setSelectedEars}
+          />
           <TraitSelector 
             label="Head"
             options={catTraits.Head}
@@ -106,6 +127,12 @@ export default function Petz({ ownerNFTImage }) {
             options={catTraits.Face}
             selected={selectedFace}
             onChange={setSelectedFace}
+          />
+           <TraitSelector 
+            label="Mouth"
+            options={catTraits.Mouth}
+            selected={selectedMouth}
+            onChange={setSelectedMouth}
           />
           <TraitSelector 
             label="Body"
