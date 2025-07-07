@@ -64,21 +64,17 @@ export default function Petz({ ownerNFTImage }) {
   }, [selectedHead, selectedFace, selectedBody]);
 
   return (
-    <div className="flex flex-col items-center p-4 bg-gray-200 dark:bg-gray-900 rounded-md">
-       {/* Import the new 'Doto' font */}
+    <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md">
+       {/* Import the 'Doto' font */}
       <style jsx global>{`
         @import url('[https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap](https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap)');
       `}</style>
 
       {/* The Pet Room Display */}
-      <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
+      {/* UPDATED: Added border, removed floor and poster */}
+      <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center border-b border-black dark:border-white">
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
-        <div className="absolute bottom-0 w-full h-1/3 bg-gray-500 dark:bg-gray-900" style={{ transform: 'perspective(100px) rotateX(20deg)', transformOrigin: 'bottom' }}></div>
         
-        <div className="absolute top-4 left-4 w-20 h-20 bg-white p-1 shadow-lg border-2 border-black">
-            <img src={ownerNFTImage} alt="Owner NFT" className="w-full h-full object-cover" />
-        </div>
-
         {/* The ASCII Art Display */}
         <div className="z-10 p-4 rounded-lg">
           <pre 
@@ -86,7 +82,6 @@ export default function Petz({ ownerNFTImage }) {
               style={{
                 fontFamily: '"Doto", monospace',
                 fontWeight: 900,
-                // Add a text-shadow to make the font appear bolder
                 textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000'
               }}
           >

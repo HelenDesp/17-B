@@ -2,8 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
-// 1. Import the new Petz component
-import Petz from "./Petz"; // Adjust path if needed
+import Petz from "./Petz"; // Make sure this path is correct
 
 export default function NFTViewer({
   nfts,
@@ -17,7 +16,6 @@ export default function NFTViewer({
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
 
-  // --- State for the Petz Modal ---
   const [isPetzOpen, setIsPetzOpen] = useState(false);
   const [activePetzNFT, setActivePetzNFT] = useState(null);
 
@@ -52,7 +50,6 @@ export default function NFTViewer({
     }
   };
 
-  // --- Handlers for the Petz Modal ---
   const handleOpenPetz = (nft) => {
     setActivePetzNFT(nft);
     setIsPetzOpen(true);
@@ -79,7 +76,6 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 
-                {/* --- PETZ ICON - NOW SHOWS FOR EVERY NFT FOR TESTING --- */}
                 <button 
                   onClick={() => handleOpenPetz(nft)}
                   className="absolute top-2 left-2 z-10 p-1.5 bg-pink-200/80 dark:bg-pink-800/80 rounded-full hover:bg-pink-300 dark:hover:bg-pink-700 transition-colors"
@@ -218,26 +214,37 @@ export default function NFTViewer({
         </div>
       )}
 
-      {/* ===== NEW PETZ MODAL ===== */}
+      {/* ===== PETZ MODAL with updated header ===== */}
       {isPetzOpen && activePetzNFT && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black bg-opacity-70 z-[9999]" onClick={handleClosePetz} />
           <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full">
+            
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Your Companion from {activePetzNFT.name}</h3>
-              <button
-                className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                onClick={handleClosePetz}
-                aria-label="Close"
-              >
-                <span className="text-4xl leading-none font-bold">&#215;</span>
-              </button>
+                <div className="flex items-center space-x-3">
+                    <img 
+                        src={activePetzNFT.image} 
+                        alt={activePetzNFT.name}
+                        className="h-12 w-12 object-cover border border-black dark:border-white"
+                    />
+                    <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{activePetzNFT.name}</p>
+                        <h3 className="text-lg font-bold text-gray-800 dark:text-white">Your Companion</h3>
+                    </div>
+                </div>
+                <button
+                    className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                    onClick={handleClosePetz}
+                    aria-label="Close"
+                >
+                    <span className="text-4xl leading-none font-bold">&#215;</span>
+                </button>
             </div>
+
             <Petz 
-                // Provide a default trait for testing if one doesn't exist
                 petzTrait={activePetzNFT.traits?.petz || 'type:cat, color:grey, eyes:normal'}
                 nftId={activePetzNFT.tokenId}
-                ownerNFTImage={activePetzNFT.image} // Pass the owner's NFT image
+                ownerNFTImage={activePetzNFT.image}
             />
           </div>
         </div>
