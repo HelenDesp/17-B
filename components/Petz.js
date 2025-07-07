@@ -2,31 +2,31 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// 1. Updated data structure from the new Cat-Traits.txt file
+// 1. Updated data structure with padding to ensure proper alignment
 const catTraits = {
   Ears: {
-    'Type 1': '^   ^',
-    'Type 2': '<   >',
-    'Type 3': 'v   v',
-    'Type 4': '\\/   \\/',
-    'Type 5': '/\\   /\\',
+    'Type 1': ' ^   ^ ',
+    'Type 2': ' <   > ',
+    'Type 3': ' v   v ',
+    'Type 4': '\/   \/',
+    'Type 5': '/\   /\',
   },
   Head: {
-    'Punk': '///',
-    'Horns': '/-/',
-    'Curly Hair': '```',
-    'Bald': '___'
+    'Punk': ' /// ',
+    'Horns': ' /-/ ',
+    'Curly Hair': ' ``` ',
+    'Bald': ' ___ '
   },
   Face: {
     'Suspicious': '(o.0)',
     'Sleeping': '(-.-)',
-    'Eyes Open': '(o.o)',
+    'Eyes Open': ' (o.o) ',
     'Wide-eyed': '(0.0)'
   },
   Mouth: {
-    'Normal': '---',
-    'Monster': 'vvv',
-    'Cigarette': '--,'
+    'Normal': ' --- ',
+    'Monster': ' vvv ',
+    'Cigarette': ' --, '
   },
   Body: {
     'Muscular': '{=|=}',
@@ -62,24 +62,18 @@ export default function Petz({ ownerNFTImage }) {
 
   // 3. Combine the selected parts to create the final ASCII art
   const asciiArt = useMemo(() => {
-    const ears = catTraits.Ears[selectedEars] || '';
-    const head = catTraits.Head[selectedHead] || '';
-    const face = catTraits.Face[selectedFace] || '';
-    const mouth = catTraits.Mouth[selectedMouth] || '';
-    const body = catTraits.Body[selectedBody] || '';
+    const ears = catTraits.Ears[selectedEars] || '       ';
+    const head = catTraits.Head[selectedHead] || '       ';
+    const face = catTraits.Face[selectedFace] || '       ';
+    const mouth = catTraits.Mouth[selectedMouth] || '       ';
+    const body = catTraits.Body[selectedBody] || '       ';
     
     // Combine ears and head for the first line
-    const firstLine = `${ears.slice(0, 1)}${head}${ears.slice(-1)}`;
+    const firstLine = `${ears.slice(0, 2)}${head.trim()}${ears.slice(-2)}`;
     
-    // Construct the final art with proper alignment
+    // Join the lines. Padding is now handled by the data itself.
     const lines = [firstLine, face, mouth, body];
-    const maxLength = Math.max(...lines.map(line => line.length));
-    const paddedLines = lines.map(line => {
-        const padding = Math.floor((maxLength - line.length) / 2);
-        return ' '.repeat(padding) + line;
-    });
-
-    return paddedLines.join('\n');
+    return lines.join('\n');
   }, [selectedEars, selectedHead, selectedFace, selectedMouth, selectedBody]);
 
   return (
@@ -89,13 +83,14 @@ export default function Petz({ ownerNFTImage }) {
       `}</style>
 
       {/* The Pet Room Display */}
-      <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center border-b border-black dark:border-white">
+      <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         
         {/* The ASCII Art Display */}
         <div className="z-10 p-4 rounded-lg">
           <pre 
-              className="font-mono text-2xl leading-tight text-center text-black dark:text-white"
+              // UPDATED: Increased font size from text-2xl to text-5xl
+              className="font-mono text-5xl leading-none text-center text-black dark:text-white"
               style={{
                 fontFamily: '"Doto", monospace',
                 fontWeight: 900,
