@@ -36,21 +36,46 @@ const catTraits = {
   }
 };
 
-// Helper component for a styled dropdown
-const TraitSelector = ({ label, options, selected, onChange }) => (
-  <div className="flex flex-col items-center">
-    <label className="mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">{label}</label>
-    <select 
-      value={selected} 
-      onChange={(e) => onChange(e.target.value)}
-      className="p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md appearance-none text-center font-mono"
-    >
-      {Object.keys(options).map(optionName => (
-        <option key={optionName} value={optionName}>{optionName}</option>
-      ))}
-    </select>
-  </div>
-);
+// NEW: Custom Dropdown Component for better styling
+const TraitSelector = ({ label, options, selected, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSelect = (optionName) => {
+    onChange(optionName);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative w-full">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left font-mono"
+      >
+        <div className="flex items-center">
+            {/* Big Arrow Icon */}
+            <svg className={`w-8 h-8 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            <span className="ml-2">{label}:</span>
+        </div>
+        <span>{selected}</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border-2 border-black dark:border-white rounded-md z-10 max-h-48 overflow-y-auto">
+          {Object.keys(options).map(optionName => (
+            <button
+              key={optionName}
+              onClick={() => handleSelect(optionName)}
+              className="w-full text-left p-2 font-mono hover:bg-gray-200 dark:hover:bg-gray-600"
+            >
+              {optionName}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 export default function Petz({ ownerNFTImage }) {
   // 2. State for all the new selectable parts
@@ -77,7 +102,8 @@ export default function Petz({ ownerNFTImage }) {
   }, [selectedEars, selectedHead, selectedFace, selectedMouth, selectedBody]);
 
   return (
-    <div className="flex flex-col items-center p-4 bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
+    // UPDATED: Removed p-4 from this container
+    <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
       <style jsx global>{`
         @import url('[https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap](https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap)');
       `}</style>
@@ -89,7 +115,6 @@ export default function Petz({ ownerNFTImage }) {
         {/* The ASCII Art Display */}
         <div className="z-10 p-4 rounded-lg">
           <pre 
-              // UPDATED: Increased font size from text-2xl to text-5xl
               className="font-mono text-5xl leading-none text-center text-black dark:text-white"
               style={{
                 fontFamily: '"Doto", monospace',
@@ -104,7 +129,7 @@ export default function Petz({ ownerNFTImage }) {
 
       {/* Trait Customization Controls */}
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <TraitSelector 
             label="Ears"
             options={catTraits.Ears}
