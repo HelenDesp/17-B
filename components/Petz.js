@@ -8,8 +8,8 @@ const catTraits = {
     'Type 1': ' ^   ^ ',
     'Type 2': ' <   > ',
     'Type 3': ' v   v ',
-    'Type 4': '\/   \/',
-    'Type 5': '/\   /\',
+    'Type 4': '\\/   \\/',
+    'Type 5': '/\\   /\\',
   },
   Head: {
     'Punk': ' /// ',
