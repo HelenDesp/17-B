@@ -2,38 +2,38 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// 1. Updated data structure with padding to ensure proper alignment
+// 1. Data is now un-padded. Centering is handled dynamically.
 const catTraits = {
   Ears: {
-    'None': '       ',
-    'Type 1': ' ^   ^ ',
-    'Type 2': ' <   > ',
-    'Type 3': ' v   v ',
+    'None': '',
+    'Type 1': '^   ^',
+    'Type 2': '<   >',
+    'Type 3': 'v   v',
     'Type 4': '\\/   \\/',
     'Type 5': '/\\   /\\',
   },
   Head: {
-    'None': '     ',
-    'Punk': ' /// ',
-    'Horns': ' /-/ ',
-    'Curly Hair': ' ``` ',
-    'Bald': ' ___ '
+    'None': '',
+    'Punk': '///',
+    'Horns': '/-/',
+    'Curly Hair': '```',
+    'Bald': '___'
   },
   Face: {
-    'None': '       ',
+    'None': '',
     'Suspicious': '(o.0)',
     'Sleeping': '(-.-)',
-    'Eyes Open': ' (o.o) ',
+    'Eyes Open': '(o.o)',
     'Wide-eyed': '(0.0)'
   },
   Mouth: {
-    'None': '     ',
-    'Normal': ' --- ',
-    'Monster': ' vvv ',
-    'Cigarette': ' --, '
+    'None': '',
+    'Normal': '---',
+    'Monster': 'vvv',
+    'Cigarette': '--,'
   },
   Body: {
-    'None': '       ',
+    'None': '',
     'Muscular': '{=|=}',
     'Suit': '{\\:/}',
     'Priest': '(\\+/)',
@@ -47,7 +47,7 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
 
   const handleSelect = (optionName) => {
     if (optionName === 'Random') {
-      const availableOptions = Object.keys(options).filter(op => op !== 'None' && op !== 'Random');
+      const availableOptions = Object.keys(options).filter(op => op !== 'None');
       const randomOption = availableOptions[Math.floor(Math.random() * availableOptions.length)];
       onChange(randomOption);
     } else {
@@ -65,11 +65,19 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
         className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left"
         style={{ fontFamily: "'Cygnito Mono', monospace" }}
       >
-        {/* UPDATED: Display format "Trait - Attribute" */}
-        <span className="font-bold">{label} - {selected}</span>
+        <div className="flex items-center">
+            <span className="font-bold">{label}</span>
+            {/* UPDATED: Logic to show attribute only when it's not 'None' */}
+            {selected !== 'None' && (
+                <>
+                    <span className="mx-2 text-gray-400">•</span>
+                    <span className="font-normal">{selected}</span>
+                </>
+            )}
+        </div>
         {/* Pixelated Arrow */}
         <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-           <path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 4H8V2H6V4Z M8 2H10V0H8V2Z" transform="rotate(0 6 3)"/>
+           <path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" />
         </svg>
       </button>
 
@@ -79,8 +87,8 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
             <button
               key={optionName}
               onClick={() => handleSelect(optionName)}
-              // UPDATED: Hover effect is now a bottom border
-              className="w-full text-left p-2 flex items-center border-b-2 border-transparent hover:border-black dark:hover:border-white"
+              // UPDATED: Hover effect is now a 1px bottom border
+              className="w-full text-left p-2 flex items-center border-b border-transparent hover:border-black dark:hover:border-white"
               style={{ fontFamily: "'Cygnito Mono', monospace" }}
             >
               <span className="mr-2 text-lg">•</span>
@@ -95,12 +103,12 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
 
 
 export default function Petz({ ownerNFTImage }) {
-  // State for all the new selectable parts
-  const [selectedEars, setSelectedEars] = useState('Type 1');
-  const [selectedHead, setSelectedHead] = useState('Punk');
+  // State for all the new selectable parts, defaulting to 'None'
+  const [selectedEars, setSelectedEars] = useState('None');
+  const [selectedHead, setSelectedHead] = useState('None');
   const [selectedFace, setSelectedFace] = useState('Eyes Open');
   const [selectedMouth, setSelectedMouth] = useState('Normal');
-  const [selectedBody, setSelectedBody] = useState('Suit');
+  const [selectedBody, setSelectedBody] = useState('None');
 
   // Combine the selected parts to create the final ASCII art
   const asciiArt = useMemo(() => {
@@ -110,14 +118,26 @@ export default function Petz({ ownerNFTImage }) {
     const mouth = catTraits.Mouth[selectedMouth] || '';
     const body = catTraits.Body[selectedBody] || '';
     
+    // Combine ears and head for the first line
     const firstLine = `${ears.slice(0, 1)}${head}${ears.slice(-1)}`;
     
-    // The data is now pre-padded, so we just join the lines.
+    // Filter out empty lines if 'None' is selected
     const lines = [firstLine, face, mouth, body].filter(line => line.trim() !== '');
-    return lines.join('\n');
+    
+    // Find the longest line to calculate centering
+    const maxLength = Math.max(...lines.map(line => line.length), 0);
+
+    // Pad each line to be centered
+    const paddedLines = lines.map(line => {
+        const padding = Math.floor((maxLength - line.length) / 2);
+        return ' '.repeat(padding) + line;
+    });
+
+    return paddedLines.join('\n');
   }, [selectedEars, selectedHead, selectedFace, selectedMouth, selectedBody]);
 
   return (
+    // UPDATED: Removed p-4 from this container
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
        {/* UPDATED: Font changed back to Doto */}
       <style jsx global>{`
