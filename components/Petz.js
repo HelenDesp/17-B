@@ -2,38 +2,38 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// 1. Updated data structure with a "None" option for each trait
+// 1. Updated data structure with padding to ensure proper alignment
 const catTraits = {
   Ears: {
-    'None': '',
-    'Type 1': '^   ^',
-    'Type 2': '<   >',
-    'Type 3': 'v   v',
+    'None': '       ',
+    'Type 1': ' ^   ^ ',
+    'Type 2': ' <   > ',
+    'Type 3': ' v   v ',
     'Type 4': '\\/   \\/',
     'Type 5': '/\\   /\\',
   },
   Head: {
-    'None': '',
-    'Punk': '///',
-    'Horns': '/-/',
-    'Curly Hair': '```',
-    'Bald': '___'
+    'None': '     ',
+    'Punk': ' /// ',
+    'Horns': ' /-/ ',
+    'Curly Hair': ' ``` ',
+    'Bald': ' ___ '
   },
   Face: {
-    'None': '',
+    'None': '       ',
     'Suspicious': '(o.0)',
     'Sleeping': '(-.-)',
-    'Eyes Open': '(o.o)',
+    'Eyes Open': ' (o.o) ',
     'Wide-eyed': '(0.0)'
   },
   Mouth: {
-    'None': '',
-    'Normal': '---',
-    'Monster': 'vvv',
-    'Cigarette': '--,'
+    'None': '     ',
+    'Normal': ' --- ',
+    'Monster': ' vvv ',
+    'Cigarette': ' --, '
   },
   Body: {
-    'None': '',
+    'None': '       ',
     'Muscular': '{=|=}',
     'Suit': '{\\:/}',
     'Priest': '(\\+/)',
@@ -65,10 +65,11 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
         className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left"
         style={{ fontFamily: "'Cygnito Mono', monospace" }}
       >
-        <span className="font-bold">{label}</span>
+        {/* UPDATED: Display format "Trait - Attribute" */}
+        <span className="font-bold">{label} - {selected}</span>
         {/* Pixelated Arrow */}
         <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-           <path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" />
+           <path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 4H8V2H6V4Z M8 2H10V0H8V2Z" transform="rotate(0 6 3)"/>
         </svg>
       </button>
 
@@ -78,7 +79,8 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
             <button
               key={optionName}
               onClick={() => handleSelect(optionName)}
-              className="w-full text-left p-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-600"
+              // UPDATED: Hover effect is now a bottom border
+              className="w-full text-left p-2 flex items-center border-b-2 border-transparent hover:border-black dark:hover:border-white"
               style={{ fontFamily: "'Cygnito Mono', monospace" }}
             >
               <span className="mr-2 text-lg">•</span>
@@ -110,19 +112,18 @@ export default function Petz({ ownerNFTImage }) {
     
     const firstLine = `${ears.slice(0, 1)}${head}${ears.slice(-1)}`;
     
+    // The data is now pre-padded, so we just join the lines.
     const lines = [firstLine, face, mouth, body].filter(line => line.trim() !== '');
-    const maxLength = Math.max(...lines.map(line => line.length));
-
-    const paddedLines = lines.map(line => {
-        const padding = Math.floor((maxLength - line.length) / 2);
-        return ' '.repeat(padding) + line;
-    });
-
-    return paddedLines.join('\n');
+    return lines.join('\n');
   }, [selectedEars, selectedHead, selectedFace, selectedMouth, selectedBody]);
 
   return (
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
+       {/* UPDATED: Font changed back to Doto */}
+      <style jsx global>{`
+        @import url('[https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap](https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap)');
+      `}</style>
+
       {/* The Pet Room Display */}
       <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
@@ -132,7 +133,8 @@ export default function Petz({ ownerNFTImage }) {
           <pre 
               className="font-mono text-5xl leading-none text-center text-black dark:text-white"
               style={{
-                fontFamily: "'Cygnito Mono', monospace",
+                fontFamily: '"Doto", monospace',
+                fontWeight: 900,
                 textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000'
               }}
           >
@@ -143,7 +145,8 @@ export default function Petz({ ownerNFTImage }) {
 
       {/* Trait Customization Controls */}
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* UPDATED: Reduced gap between dropdowns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <TraitSelector 
             label="Ears"
             options={catTraits.Ears}
