@@ -2,33 +2,38 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// 1. Updated data structure with padding to ensure proper alignment
+// 1. Updated data structure with a "None" option for each trait
 const catTraits = {
   Ears: {
-    'Type 1': ' ^   ^ ',
-    'Type 2': ' <   > ',
-    'Type 3': ' v   v ',
+    'None': '',
+    'Type 1': '^   ^',
+    'Type 2': '<   >',
+    'Type 3': 'v   v',
     'Type 4': '\\/   \\/',
     'Type 5': '/\\   /\\',
   },
   Head: {
-    'Punk': ' /// ',
-    'Horns': ' /-/ ',
-    'Curly Hair': ' ``` ',
-    'Bald': ' ___ '
+    'None': '',
+    'Punk': '///',
+    'Horns': '/-/',
+    'Curly Hair': '```',
+    'Bald': '___'
   },
   Face: {
+    'None': '',
     'Suspicious': '(o.0)',
     'Sleeping': '(-.-)',
-    'Eyes Open': ' (o.o) ',
+    'Eyes Open': '(o.o)',
     'Wide-eyed': '(0.0)'
   },
   Mouth: {
-    'Normal': ' --- ',
-    'Monster': ' vvv ',
-    'Cigarette': ' --, '
+    'None': '',
+    'Normal': '---',
+    'Monster': 'vvv',
+    'Cigarette': '--,'
   },
   Body: {
+    'None': '',
     'Muscular': '{=|=}',
     'Suit': '{\\:/}',
     'Priest': '(\\+/)',
@@ -36,38 +41,48 @@ const catTraits = {
   }
 };
 
-// NEW: Custom Dropdown Component for better styling
+// NEW: Custom Dropdown Component with updated styling and logic
 const TraitSelector = ({ label, options, selected, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSelect = (optionName) => {
-    onChange(optionName);
+    if (optionName === 'Random') {
+      const availableOptions = Object.keys(options).filter(op => op !== 'None' && op !== 'Random');
+      const randomOption = availableOptions[Math.floor(Math.random() * availableOptions.length)];
+      onChange(randomOption);
+    } else {
+      onChange(optionName);
+    }
     setIsOpen(false);
   };
+
+  const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
 
   return (
     <div className="relative w-full">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left font-mono"
+        className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left"
+        style={{ fontFamily: "'Cygnito Mono', monospace" }}
       >
-        <div className="flex items-center">
-            {/* Big Arrow Icon */}
-            <svg className={`w-8 h-8 transform transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            <span className="ml-2">{label}:</span>
-        </div>
-        <span>{selected}</span>
+        <span className="font-bold">{label}</span>
+        {/* Pixelated Arrow */}
+        <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
+           <path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" />
+        </svg>
       </button>
 
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border-2 border-black dark:border-white rounded-md z-10 max-h-48 overflow-y-auto">
-          {Object.keys(options).map(optionName => (
+          {displayOptions.map(optionName => (
             <button
               key={optionName}
               onClick={() => handleSelect(optionName)}
-              className="w-full text-left p-2 font-mono hover:bg-gray-200 dark:hover:bg-gray-600"
+              className="w-full text-left p-2 flex items-center hover:bg-gray-200 dark:hover:bg-gray-600"
+              style={{ fontFamily: "'Cygnito Mono', monospace" }}
             >
-              {optionName}
+              <span className="mr-2 text-lg">•</span>
+              <span>{optionName}</span>
             </button>
           ))}
         </div>
@@ -78,36 +93,36 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
 
 
 export default function Petz({ ownerNFTImage }) {
-  // 2. State for all the new selectable parts
+  // State for all the new selectable parts
   const [selectedEars, setSelectedEars] = useState('Type 1');
   const [selectedHead, setSelectedHead] = useState('Punk');
   const [selectedFace, setSelectedFace] = useState('Eyes Open');
   const [selectedMouth, setSelectedMouth] = useState('Normal');
   const [selectedBody, setSelectedBody] = useState('Suit');
 
-  // 3. Combine the selected parts to create the final ASCII art
+  // Combine the selected parts to create the final ASCII art
   const asciiArt = useMemo(() => {
-    const ears = catTraits.Ears[selectedEars] || '       ';
-    const head = catTraits.Head[selectedHead] || '       ';
-    const face = catTraits.Face[selectedFace] || '       ';
-    const mouth = catTraits.Mouth[selectedMouth] || '       ';
-    const body = catTraits.Body[selectedBody] || '       ';
+    const ears = catTraits.Ears[selectedEars] || '';
+    const head = catTraits.Head[selectedHead] || '';
+    const face = catTraits.Face[selectedFace] || '';
+    const mouth = catTraits.Mouth[selectedMouth] || '';
+    const body = catTraits.Body[selectedBody] || '';
     
-    // Combine ears and head for the first line
-    const firstLine = `${ears.slice(0, 2)}${head.trim()}${ears.slice(-2)}`;
+    const firstLine = `${ears.slice(0, 1)}${head}${ears.slice(-1)}`;
     
-    // Join the lines. Padding is now handled by the data itself.
-    const lines = [firstLine, face, mouth, body];
-    return lines.join('\n');
+    const lines = [firstLine, face, mouth, body].filter(line => line.trim() !== '');
+    const maxLength = Math.max(...lines.map(line => line.length));
+
+    const paddedLines = lines.map(line => {
+        const padding = Math.floor((maxLength - line.length) / 2);
+        return ' '.repeat(padding) + line;
+    });
+
+    return paddedLines.join('\n');
   }, [selectedEars, selectedHead, selectedFace, selectedMouth, selectedBody]);
 
   return (
-    // UPDATED: Removed p-4 from this container
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
-      <style jsx global>{`
-        @import url('[https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap](https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap)');
-      `}</style>
-
       {/* The Pet Room Display */}
       <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
@@ -117,8 +132,7 @@ export default function Petz({ ownerNFTImage }) {
           <pre 
               className="font-mono text-5xl leading-none text-center text-black dark:text-white"
               style={{
-                fontFamily: '"Doto", monospace',
-                fontWeight: 900,
+                fontFamily: "'Cygnito Mono', monospace",
                 textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000'
               }}
           >
