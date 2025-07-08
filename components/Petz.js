@@ -98,10 +98,18 @@ export default function Petz({ ownerNFTImage }) {
     const bShape = catData.Shapes.Body[bodyShape] || '';
     const outfit = catData.Traits.Outfit[selectedOutfit] || '';
     const feet = catData.Traits.Feet[selectedFeet] || '';
-	
-	const firstLine = `${ears.slice(0, 2)}${headweare.trim()}${ears.slice(-2)}`;
 
-    const line1 = selectedHeadwear !== 'None' ? headwear : ears;
+    let line1;
+    // CORRECTED LOGIC: Combine Ears and Headwear correctly.
+    if (selectedHeadwear !== 'None' && selectedEars !== 'None' && ears.includes('   ')) {
+        const earParts = ears.split('   ');
+        line1 = `${earParts[0]}${headwear}${earParts[1]}`;
+    } else if (selectedHeadwear !== 'None') {
+        line1 = headwear;
+    } else {
+        line1 = ears;
+    }
+    
     const line2 = hShape ? `${hShape.slice(0, 1)}${face}${hShape.slice(-1)}` : face;
     const line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     const line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
