@@ -34,17 +34,17 @@ const TraitSelector = ({ label, options, selected, onChange, isOpen, onToggle })
   const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
   return (
     <div className="relative w-full">
-      {/* Field button with semi-transparent background and blur */}
-      <button onClick={onToggle} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white/50 dark:bg-gray-700/50 backdrop-blur-md text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+      {/* Field button with transparent background and no blur */}
+      <button onClick={onToggle} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
         <span className="font-bold">{label}</span>
         <div className="flex items-center space-x-2">
             <span className="font-normal">{selected}</span>
             <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
         </div>
       </button>
-      {/* Dropdown menu with semi-transparent background and blur */}
+      {/* Dropdown menu with transparent background and no blur */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white/50 dark:bg-gray-700/50 backdrop-blur-md border-2 border-black dark:border-white rounded-md z-10 max-h-48 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 border-2 border-black dark:border-white rounded-md z-10 max-h-48 overflow-y-auto">
           {displayOptions.map(optionName => (
             <button key={optionName} onClick={() => handleSelect(optionName)} className="w-full text-left p-2 flex items-center border-b border-transparent hover:border-black dark:hover:border-white" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
               <span className="mr-2 text-lg">•</span>
