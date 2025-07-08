@@ -19,7 +19,7 @@ const catData = {
   }
 };
 
-// Helper component for a styled dropdown
+// UPDATED: Helper component for a styled dropdown
 const TraitSelector = ({ label, options, selected, onChange, isOpen, onToggle }) => {
   const handleSelect = (optionName) => {
     if (optionName === 'Random') {
@@ -34,15 +34,17 @@ const TraitSelector = ({ label, options, selected, onChange, isOpen, onToggle })
   const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
   return (
     <div className="relative w-full">
-      <button onClick={onToggle} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+      {/* Field button with semi-transparent background and blur */}
+      <button onClick={onToggle} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white/50 dark:bg-gray-700/50 backdrop-blur-md text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
         <span className="font-bold">{label}</span>
         <div className="flex items-center space-x-2">
             <span className="font-normal">{selected}</span>
             <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
         </div>
       </button>
+      {/* Dropdown menu with semi-transparent background and blur */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border-2 border-black dark:border-white rounded-md z-10 max-h-48 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white/50 dark:bg-gray-700/50 backdrop-blur-md border-2 border-black dark:border-white rounded-md z-10 max-h-48 overflow-y-auto">
           {displayOptions.map(optionName => (
             <button key={optionName} onClick={() => handleSelect(optionName)} className="w-full text-left p-2 flex items-center border-b border-transparent hover:border-black dark:hover:border-white" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
               <span className="mr-2 text-lg">•</span>
@@ -55,12 +57,11 @@ const TraitSelector = ({ label, options, selected, onChange, isOpen, onToggle })
   );
 };
 
-// UPDATED: Modal component for selecting shapes or traits
+// Modal component for selecting shapes or traits
 const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        // Added 50% background opacity and a backdrop blur effect
         <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col p-4">
             <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-xl text-gray-800 dark:text-gray-200">{title}</h3>
