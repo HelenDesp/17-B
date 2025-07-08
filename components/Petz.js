@@ -2,7 +2,7 @@
 "use client";
 import { useState, useMemo, useEffect, useRef } from 'react';
 
-// 1. New data structure based on the updated Cat-Traits.txt
+// Data structure from the file you provided
 const catData = {
   Shapes: {
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -87,20 +87,16 @@ export default function Petz({ ownerNFTImage }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // New logic to combine shapes and traits
-  const asciiArt = useMemo(() => {
+  // UPDATED: This logic now returns an array of lines, not a single string.
+  const asciiArtLines = useMemo(() => {
     const ears = catData.Traits.Ears[selectedEars] || '';
     const headwear = catData.Traits.Headwear[selectedHeadwear] || '';
-    
     const hShape = catData.Shapes.Head[headShape] || '';
     const face = catData.Traits.Face[selectedFace] || '';
-    
     const sShape = catData.Shapes.Snout[snoutShape] || '';
     const snoutTrait = catData.Traits.Snout[selectedSnoutTrait] || '';
-    
     const bShape = catData.Shapes.Body[bodyShape] || '';
     const outfit = catData.Traits.Outfit[selectedOutfit] || '';
-
     const feet = catData.Traits.Feet[selectedFeet] || '';
 
     const line1 = selectedHeadwear !== 'None' ? headwear : ears;
@@ -115,7 +111,7 @@ export default function Petz({ ownerNFTImage }) {
         const padding = Math.floor((maxLength - line.length) / 2);
         return ' '.repeat(padding) + line;
     });
-    return paddedLines.join('\n');
+    return paddedLines;
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedFace, selectedSnoutTrait, selectedOutfit, selectedFeet]);
 
   const toggleDropdown = (label) => setOpenDropdown(prev => (prev === label ? null : label));
@@ -127,10 +123,21 @@ export default function Petz({ ownerNFTImage }) {
       <div className="w-full h-auto relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center py-2">
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         <div className="z-10 p-2">
-          {/* UPDATED: Changed leading-tight to leading-none */}
-          <pre className="font-mono text-5xl leading-none text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000' }}>
-              {asciiArt}
-          </pre>
+          
+          {/* UPDATED: Rendering logic changed to apply negative margins */}
+          <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000' }}>
+            {asciiArtLines.map((line, index) => (
+              <div 
+                key={index}
+                // Apply a negative top margin to every line except the first to create overlap
+                style={{ marginTop: index > 0 ? '-1.5rem' : 0 }} 
+              >
+                {/* Use a non-breaking space for empty lines to maintain structure */}
+                {line.trim() === '' ? '\u00A0' : line}
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
       <div ref={controlsRef} className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
