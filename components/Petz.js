@@ -19,7 +19,7 @@ const catData = {
   }
 };
 
-// NEW: Accordion Item component for individual traits
+// Accordion Item component for individual traits (used inside modal)
 const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
     const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
 
@@ -60,6 +60,25 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
+// Reinstated Modal component
+const SelectionModal = ({ title, isOpen, onClose, children }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col p-4">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-xl text-gray-800 dark:text-gray-200">{title}</h3>
+                <button onClick={onClose} className="p-2 border-2 border-black dark:border-white rounded-md">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M0 0h2v2H0V0zm2 2h2v2H2V2zm2 2h2v2H4V4zm2 2h2v2H6V6zm2 2h2v2H8V8zm2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm-2-2h2v2h-2v-2zm-2-2h2v2H8V8zM6 8h2v2H6V8zM4 6h2v2H4V6zM2 4h2v2H2V4zm0-2h2v2H2V2zm2-2h2v2H4V0zm2 0h2v2H6V0zm2 0h2v2H8V0zm2 0h2v2h-2V0z"/></svg>
+                </button>
+            </div>
+            <div className="space-y-2 flex-grow overflow-y-auto">
+                {children}
+            </div>
+        </div>
+    );
+};
+
 
 export default function Petz({ ownerNFTImage }) {
   // State for Shapes
@@ -75,8 +94,8 @@ export default function Petz({ ownerNFTImage }) {
   const [selectedOutfit, setSelectedOutfit] = useState('Suit');
   const [selectedFeet, setSelectedFeet] = useState('Standard');
   
-  // State for accordions
-  const [openSection, setOpenSection] = useState(null); // 'shapes' or 'traits'
+  // State for modals and accordions
+  const [openModal, setOpenModal] = useState(null); // 'shapes' or 'traits'
   const [openItem, setOpenItem] = useState(null); // e.g., 'Head', 'Ears'
 
   const asciiArtLines = useMemo(() => {
@@ -114,13 +133,13 @@ export default function Petz({ ownerNFTImage }) {
     return paddedLines;
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedFace, selectedSnoutTrait, selectedOutfit, selectedFeet]);
   
-  const toggleSection = (section) => {
-    setOpenSection(prev => (prev === section ? null : section));
-    setOpenItem(null); // Close any open item when switching sections
-  };
-
   const toggleItem = (item) => {
     setOpenItem(prev => (prev === item ? null : item));
+  };
+  
+  const handleCloseModal = () => {
+      setOpenModal(null);
+      setOpenItem(null); // Also reset open item when modal closes
   };
 
   return (
@@ -140,40 +159,36 @@ export default function Petz({ ownerNFTImage }) {
         </div>
       </div>
       
-      <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white space-y-2">
-        {/* Shapes Accordion */}
-        <div>
-          <button onClick={() => toggleSection('shapes')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-              <span className="font-bold">Shapes</span>
-              <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${openSection === 'shapes' ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
-          </button>
-          {openSection === 'shapes' && (
-            <div className="pt-2 space-y-2">
-              <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Head'} onToggle={() => toggleItem('Head')} />
-              <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Snout'} onToggle={() => toggleItem('Snout')} />
-              <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Body'} onToggle={() => toggleItem('Body')} />
-            </div>
-          )}
-        </div>
-
-        {/* Traits Accordion */}
-        <div>
-          <button onClick={() => toggleSection('traits')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-              <span className="font-bold">Traits</span>
-              <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${openSection === 'traits' ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
-          </button>
-          {openSection === 'traits' && (
-            <div className="pt-2 space-y-2">
-              <AccordionItem label="Ears" options={catData.Traits.Ears} selected={selectedEars} onSelect={setSelectedEars} isOpen={openItem === 'Ears'} onToggle={() => toggleItem('Ears')} />
-              <AccordionItem label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Headwear'} onToggle={() => toggleItem('Headwear')} />
-              <AccordionItem label="Face" options={catData.Traits.Face} selected={selectedFace} onSelect={setSelectedFace} isOpen={openItem === 'Face'} onToggle={() => toggleItem('Face')} />
-              <AccordionItem label="Snout Trait" options={catData.Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Snout Trait'} onToggle={() => toggleItem('Snout Trait')} />
-              <AccordionItem label="Outfit" options={catData.Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Outfit'} onToggle={() => toggleItem('Outfit')} />
-              <AccordionItem label="Feet" options={catData.Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Feet'} onToggle={() => toggleItem('Feet')} />
-            </div>
-          )}
+      {/* Main control buttons */}
+      <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
+        <div className="flex items-center space-x-2">
+            <button onClick={() => setOpenModal('shapes')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+                <span className="font-bold">Shapes</span>
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
+            </button>
+            <button onClick={() => setOpenModal('traits')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+                <span className="font-bold">Traits</span>
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
+            </button>
         </div>
       </div>
+
+      {/* Shapes Modal with Accordion Content */}
+      <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
+        <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Head'} onToggle={() => toggleItem('Head')} />
+        <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Snout'} onToggle={() => toggleItem('Snout')} />
+        <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Body'} onToggle={() => toggleItem('Body')} />
+      </SelectionModal>
+
+      {/* Traits Modal with Accordion Content */}
+      <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
+        <AccordionItem label="Ears" options={catData.Traits.Ears} selected={selectedEars} onSelect={setSelectedEars} isOpen={openItem === 'Ears'} onToggle={() => toggleItem('Ears')} />
+        <AccordionItem label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Headwear'} onToggle={() => toggleItem('Headwear')} />
+        <AccordionItem label="Face" options={catData.Traits.Face} selected={selectedFace} onSelect={setSelectedFace} isOpen={openItem === 'Face'} onToggle={() => toggleItem('Face')} />
+        <AccordionItem label="Snout" options={catData.Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Snout'} onToggle={() => toggleItem('Snout')} />
+        <AccordionItem label="Outfit" options={catData.Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Outfit'} onToggle={() => toggleItem('Outfit')} />
+        <AccordionItem label="Feet" options={catData.Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Feet'} onToggle={() => toggleItem('Feet')} />
+      </SelectionModal>
     </div>
   );
 }
