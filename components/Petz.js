@@ -130,7 +130,7 @@ export default function Petz({ ownerNFTImage }) {
               <div 
                 key={index}
                 // Apply a negative top margin to every line except the first to create overlap
-                style={{ marginTop: index > 0 ? '-1.5rem' : 0 }} 
+                style={{ marginTop: index > 0 ? '-0.5rem' : 0 }} 
               >
                 {/* Use a non-breaking space for empty lines to maintain structure */}
                 {line.trim() === '' ? '\u00A0' : line}
