@@ -19,7 +19,7 @@ const catData = {
   }
 };
 
-// UPDATED: Accordion Item component for individual traits
+// Accordion Item component for individual traits
 const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
     const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
 
@@ -52,8 +52,8 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                         <button
                             key={optionName}
                             onClick={() => handleSelect(optionName)}
-                            // UPDATED: Hover effect is now a bottom border
-                            className="w-full text-left p-2 flex items-center border-b border-transparent hover:border-black dark:hover:border-white"
+                            // UPDATED: Reduced vertical padding for less space
+                            className="w-full text-left py-1 px-2 flex items-center border-b border-transparent hover:border-black dark:hover:border-white"
                         >
                             <span className="mr-2 text-lg">•</span>
                             <span>{optionName}</span>
@@ -65,7 +65,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-// UPDATED: Modal component with adjusted padding for scrollbar alignment
+// Modal component
 const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
@@ -84,6 +84,7 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     );
 };
 
+
 export default function Petz({ ownerNFTImage }) {
   // State for Shapes
   const [headShape, setHeadShape] = useState('Round');
@@ -99,8 +100,8 @@ export default function Petz({ ownerNFTImage }) {
   const [selectedFeet, setSelectedFeet] = useState('Standard');
   
   // State for modals and accordions
-  const [openModal, setOpenModal] = useState(null); // 'shapes' or 'traits'
-  const [openItem, setOpenItem] = useState(null); // e.g., 'Head', 'Ears'
+  const [openModal, setOpenModal] = useState(null);
+  const [openItem, setOpenItem] = useState(null);
 
   const asciiArtLines = useMemo(() => {
     const ears = catData.Traits.Ears[selectedEars] || '';
@@ -165,27 +166,25 @@ export default function Petz({ ownerNFTImage }) {
       
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
         <div className="flex items-center space-x-2">
-            {/* UPDATED: Conditional border for Shapes button */}
             <button onClick={() => setOpenModal('shapes')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'shapes' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
                 <span className="font-bold">Shapes</span>
-                <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
+                {/* UPDATED: Arrow icon now matches */}
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
             </button>
-            {/* UPDATED: Conditional border for Traits button */}
             <button onClick={() => setOpenModal('traits')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'traits' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
                 <span className="font-bold">Traits</span>
-                <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
+                {/* UPDATED: Arrow icon now matches */}
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
             </button>
         </div>
       </div>
 
-      {/* Shapes Modal */}
       <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
         <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Head'} onToggle={() => toggleItem('Head')} />
         <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Snout'} onToggle={() => toggleItem('Snout')} />
         <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Body'} onToggle={() => toggleItem('Body')} />
       </SelectionModal>
 
-      {/* Traits Modal */}
       <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
         <AccordionItem label="Ears" options={catData.Traits.Ears} selected={selectedEars} onSelect={setSelectedEars} isOpen={openItem === 'Ears'} onToggle={() => toggleItem('Ears')} />
         <AccordionItem label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Headwear'} onToggle={() => toggleItem('Headwear')} />
