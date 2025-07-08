@@ -2,18 +2,20 @@
 "use client";
 import { useState, useMemo, useEffect, useRef } from 'react';
 
-// Data structure from the file you provided
+// 1. Updated data structure based on your instructions.
 const catData = {
   Shapes: {
+    // Ears is now correctly categorized as a Shape
+    Ears: { 'None': '', 'Type 1': '()', 'Type 2': '<>', 'Type 3': 'vv', 'Type 4': '\\/\\/', 'Type 5': '/\\\\/\\'},
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
     Snout: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
     Body: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
   },
   Traits: {
-    Ears: { 'None': '', 'Type 1': '^   ^', 'Type 2': '<   >', 'Type 3': 'v   v', 'Type 4': 'v   v', 'Type 5': '\\/   \\/', 'Type 6': '/\\   /\\' },
     Headwear: { 'None': '', 'Punk': '///', 'Horns': '/-/', 'Curly hair': '~~~', 'Bald': '___' },
     Face: { 'None': '', 'Meth (Suspicious)': 'o.0', 'Sleeping': '-.-', 'Eyes open': 'o.o', 'Wide-eyed': '0.0' },
-    Snout: { 'None': '', 'Normal': '---', 'Monster': 'vvv', 'Cigarette': '--,' },
+    // Added 'Wolf' trait
+    Snout: { 'None': '', 'Normal': '---', 'Monster': 'vvv', 'Cigarette': '--,', 'Wolf': 'o' },
     Outfit: { 'None': '', 'Muscular': '=|=', 'Suit': '\\:/', 'Priest': '\\+/', 'Bombol': "'\"'" },
     Feet: { 'None': '', 'Standard': '==', 'Owl': '=,,=' },
   }
@@ -62,13 +64,13 @@ const TraitSelector = ({ label, options, selected, onChange, isOpen, onToggle })
 
 export default function Petz({ ownerNFTImage }) {
   // State for Shapes
+  const [earShape, setEarShape] = useState('Type 1');
   const [headShape, setHeadShape] = useState('Round');
   const [snoutShape, setSnoutShape] = useState('Round');
   const [bodyShape, setBodyShape] = useState('Round');
 
   // State for Traits
-  const [selectedEars, setSelectedEars] = useState('Type 1');
-  const [selectedHeadwear, setSelectedHeadwear] = useState('None');
+  const [selectedHeadwear, setSelectedHeadwear] = useState('Punk');
   const [selectedFace, setSelectedFace] = useState('Eyes open');
   const [selectedSnoutTrait, setSelectedSnoutTrait] = useState('Normal');
   const [selectedOutfit, setSelectedOutfit] = useState('Suit');
@@ -87,19 +89,24 @@ export default function Petz({ ownerNFTImage }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // UPDATED: This logic now returns an array of lines, not a single string.
+  // New logic to combine shapes and traits
   const asciiArtLines = useMemo(() => {
-    const ears = catData.Traits.Ears[selectedEars] || '';
+    const eShape = catData.Shapes.Ears[earShape] || '';
     const headwear = catData.Traits.Headwear[selectedHeadwear] || '';
+    
     const hShape = catData.Shapes.Head[headShape] || '';
     const face = catData.Traits.Face[selectedFace] || '';
+    
     const sShape = catData.Shapes.Snout[snoutShape] || '';
     const snoutTrait = catData.Traits.Snout[selectedSnoutTrait] || '';
+    
     const bShape = catData.Shapes.Body[bodyShape] || '';
     const outfit = catData.Traits.Outfit[selectedOutfit] || '';
+
     const feet = catData.Traits.Feet[selectedFeet] || '';
 
-    const line1 = selectedHeadwear !== 'None' ? headwear : ears;
+    // Corrected logic: Headwear goes INSIDE the Ear shape
+    const line1 = eShape ? `${eShape.slice(0, 1)}${headwear}${eShape.slice(-1)}` : headwear;
     const line2 = hShape ? `${hShape.slice(0, 1)}${face}${hShape.slice(-1)}` : face;
     const line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     const line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
@@ -112,7 +119,7 @@ export default function Petz({ ownerNFTImage }) {
         return ' '.repeat(padding) + line;
     });
     return paddedLines;
-  }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedFace, selectedSnoutTrait, selectedOutfit, selectedFeet]);
+  }, [earShape, headShape, snoutShape, bodyShape, selectedHeadwear, selectedFace, selectedSnoutTrait, selectedOutfit, selectedFeet]);
 
   const toggleDropdown = (label) => setOpenDropdown(prev => (prev === label ? null : label));
 
@@ -124,15 +131,13 @@ export default function Petz({ ownerNFTImage }) {
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         <div className="z-10 p-2">
           
-          {/* UPDATED: Rendering logic changed to apply negative margins */}
           <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000' }}>
             {asciiArtLines.map((line, index) => (
               <div 
                 key={index}
-                // Apply a negative top margin to every line except the first to create overlap
-                style={{ marginTop: index > 0 ? '-0.5rem' : 0 }} 
+                // UPDATED: Margin changed to -0.75rem
+                style={{ marginTop: index > 0 ? '-0.75rem' : 0 }} 
               >
-                {/* Use a non-breaking space for empty lines to maintain structure */}
                 {line.trim() === '' ? '\u00A0' : line}
               </div>
             ))}
@@ -145,6 +150,8 @@ export default function Petz({ ownerNFTImage }) {
           <div className="flex flex-col">
             <h4 className="font-bold text-lg mb-2 text-left text-gray-800 dark:text-gray-200">Shape</h4>
             <div className="space-y-2 flex-grow overflow-y-auto" style={{maxHeight: '180px'}}>
+              {/* Ears is now a shape selector */}
+              <TraitSelector label="Ears" options={catData.Shapes.Ears} selected={earShape} onChange={setEarShape} isOpen={openDropdown === 'Ear Shape'} onToggle={() => toggleDropdown('Ear Shape')} />
               <TraitSelector label="Head" options={catData.Shapes.Head} selected={headShape} onChange={setHeadShape} isOpen={openDropdown === 'Head Shape'} onToggle={() => toggleDropdown('Head Shape')} />
               <TraitSelector label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onChange={setSnoutShape} isOpen={openDropdown === 'Snout Shape'} onToggle={() => toggleDropdown('Snout Shape')} />
               <TraitSelector label="Body" options={catData.Shapes.Body} selected={bodyShape} onChange={setBodyShape} isOpen={openDropdown === 'Body Shape'} onToggle={() => toggleDropdown('Body Shape')} />
@@ -153,7 +160,6 @@ export default function Petz({ ownerNFTImage }) {
           <div className="flex flex-col">
             <h4 className="font-bold text-lg mb-2 text-left text-gray-800 dark:text-gray-200">Traits</h4>
             <div className="space-y-2 flex-grow overflow-y-auto" style={{maxHeight: '180px'}}>
-              <TraitSelector label="Ears" options={catData.Traits.Ears} selected={selectedEars} onChange={setSelectedEars} isOpen={openDropdown === 'Ears'} onToggle={() => toggleDropdown('Ears')} />
               <TraitSelector label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onChange={setSelectedHeadwear} isOpen={openDropdown === 'Headwear'} onToggle={() => toggleDropdown('Headwear')} />
               <TraitSelector label="Face" options={catData.Traits.Face} selected={selectedFace} onChange={setSelectedFace} isOpen={openDropdown === 'Face'} onToggle={() => toggleDropdown('Face')} />
               <TraitSelector label="Snout" options={catData.Traits.Snout} selected={selectedSnoutTrait} onChange={setSelectedSnoutTrait} isOpen={openDropdown === 'Snout Trait'} onToggle={() => toggleDropdown('Snout Trait')} />
