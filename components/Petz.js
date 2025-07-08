@@ -19,7 +19,7 @@ const catData = {
   }
 };
 
-// Accordion Item component for individual traits (used inside modal)
+// UPDATED: Accordion Item component for individual traits
 const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
     const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
 
@@ -35,7 +35,11 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
 
     return (
         <div className="w-full" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-            <button onClick={onToggle} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white/80 dark:bg-gray-700/80 text-black dark:text-white rounded-md">
+            {/* UPDATED: Removed background, conditional border */}
+            <button 
+              onClick={onToggle} 
+              className={`w-full flex items-center justify-between p-2 text-black dark:text-white rounded-md border-black dark:border-white ${isOpen ? 'border-2' : 'border'}`}
+            >
                 <span className="font-bold">{label}</span>
                 <div className="flex items-center space-x-2">
                     <span className="font-normal">{selected}</span>
@@ -44,14 +48,17 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
             </button>
 
             {isOpen && (
-                <div className="mt-1 p-1 border-2 border-black dark:border-white rounded-md max-h-[7.5rem] overflow-y-auto bg-white/80 dark:bg-gray-700/80">
+                // UPDATED: Removed background and padding for scrollbar alignment
+                <div className="mt-1 border-2 border-black dark:border-white rounded-md max-h-[7.5rem] overflow-y-auto">
                     {displayOptions.map(optionName => (
                         <button
                             key={optionName}
                             onClick={() => handleSelect(optionName)}
-                            className="w-full text-left p-2 rounded-md hover:bg-gray-400 dark:hover:bg-gray-600"
+                            // UPDATED: Added middle dot
+                            className="w-full text-left p-2 flex items-center rounded-md hover:bg-gray-400/50 dark:hover:bg-gray-600/50"
                         >
-                            {optionName}
+                            <span className="mr-2 text-lg">•</span>
+                            <span>{optionName}</span>
                         </button>
                     ))}
                 </div>
@@ -60,7 +67,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-// Reinstated Modal component
+// Modal component
 const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
@@ -139,7 +146,7 @@ export default function Petz({ ownerNFTImage }) {
   
   const handleCloseModal = () => {
       setOpenModal(null);
-      setOpenItem(null); // Also reset open item when modal closes
+      setOpenItem(null);
   };
 
   return (
@@ -159,7 +166,6 @@ export default function Petz({ ownerNFTImage }) {
         </div>
       </div>
       
-      {/* Main control buttons */}
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
         <div className="flex items-center space-x-2">
             <button onClick={() => setOpenModal('shapes')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
@@ -173,14 +179,14 @@ export default function Petz({ ownerNFTImage }) {
         </div>
       </div>
 
-      {/* Shapes Modal with Accordion Content */}
+      {/* Shapes Modal */}
       <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
         <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Head'} onToggle={() => toggleItem('Head')} />
         <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Snout'} onToggle={() => toggleItem('Snout')} />
         <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Body'} onToggle={() => toggleItem('Body')} />
       </SelectionModal>
 
-      {/* Traits Modal with Accordion Content */}
+      {/* Traits Modal */}
       <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
         <AccordionItem label="Ears" options={catData.Traits.Ears} selected={selectedEars} onSelect={setSelectedEars} isOpen={openItem === 'Ears'} onToggle={() => toggleItem('Ears')} />
         <AccordionItem label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Headwear'} onToggle={() => toggleItem('Headwear')} />
