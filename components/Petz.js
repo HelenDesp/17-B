@@ -1,40 +1,39 @@
 // /components/Petz.js
 "use client";
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 
-// 1. Data structure from your working backup, with 'None' added.
-// The pre-padding in the strings is the key to correct alignment.
+// Data structure for cat traits
 const catTraits = {
   Ears: {
-    'None': '       ',
-    'Type 1': ' ^   ^ ',
-    'Type 2': ' <   > ',
-    'Type 3': ' v   v ',
-    'Type 4': '\\/   \\/',
-    'Type 5': '/\\   /\\',
+    'None': { left: '', right: '' },
+    'Type 1': { left: '^', right: '^' },
+    'Type 2': { left: '<', right: '>' },
+    'Type 3': { left: 'v', right: 'v' },
+    'Type 4': { left: '\\/', right: '\\/' },
+    'Type 5': { left: '/\\', right: '/\\' },
   },
   Head: {
-    'None': '     ',
-    'Punk': ' /// ',
-    'Horns': ' /-/ ',
-    'Curly Hair': ' ``` ',
-    'Bald': ' ___ '
+    'None': '',
+    'Punk': '///',
+    'Horns': '/-/',
+    'Curly Hair': '```',
+    'Bald': '___'
   },
   Face: {
-    'None': '       ',
+    'None': '',
     'Suspicious': '(o.0)',
     'Sleeping': '(-.-)',
-    'Eyes Open': ' (o.o) ',
+    'Eyes Open': '(o.o)',
     'Wide-eyed': '(0.0)'
   },
   Mouth: {
-    'None': '     ',
-    'Normal': ' --- ',
-    'Monster': ' vvv ',
-    'Cigarette': ' --, '
+    'None': '',
+    'Normal': '---',
+    'Monster': 'vvv',
+    'Cigarette': '--,'
   },
   Body: {
-    'None': '       ',
+    'None': '',
     'Muscular': '{=|=}',
     'Suit': '{\\:/}',
     'Priest': '(\\+/)',
@@ -42,10 +41,8 @@ const catTraits = {
   }
 };
 
-// Helper component for a styled dropdown (from your preferred version)
-const TraitSelector = ({ label, options, selected, onChange }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
+// UPDATED: TraitSelector now receives its open state and toggle function from the parent
+const TraitSelector = ({ label, options, selected, onChange, isOpen, onToggle }) => {
   const handleSelect = (optionName) => {
     if (optionName === 'Random') {
       const availableOptions = Object.keys(options).filter(op => op !== 'None');
@@ -54,7 +51,7 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
     } else {
       onChange(optionName);
     }
-    setIsOpen(false);
+    onToggle(); // Close the dropdown after selection
   };
 
   const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
@@ -62,7 +59,7 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
   return (
     <div className="relative w-full">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={onToggle}
         className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left"
         style={{ fontFamily: "'Cygnito Mono', monospace" }}
       >
@@ -101,14 +98,31 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
 
 
 export default function Petz({ ownerNFTImage }) {
-  // State for all the new selectable parts, defaulting to 'None'
+  // State for selectable parts
   const [selectedEars, setSelectedEars] = useState('Type 4');
   const [selectedHead, setSelectedHead] = useState('Punk');
   const [selectedFace, setSelectedFace] = useState('Eyes Open');
   const [selectedMouth, setSelectedMouth] = useState('Normal');
   const [selectedBody, setSelectedBody] = useState('Suit');
 
-  // 3. This is the corrected logic from your backup file.
+  // NEW: State to manage which dropdown is open
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const controlsRef = useRef(null);
+
+  // NEW: Effect to handle clicks outside of the dropdown area
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (controlsRef.current && !controlsRef.current.contains(event.target)) {
+        setOpenDropdown(null); // Close any open dropdown
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Logic to combine ASCII parts
   const asciiArt = useMemo(() => {
     const ears = catTraits.Ears[selectedEars] || catTraits.Ears['None'];
     const head = catTraits.Head[selectedHead] || catTraits.Head['None'];
@@ -116,24 +130,30 @@ export default function Petz({ ownerNFTImage }) {
     const mouth = catTraits.Mouth[selectedMouth] || catTraits.Mouth['None'];
     const body = catTraits.Body[selectedBody] || catTraits.Body['None'];
     
-    // This logic correctly combines the pre-padded parts.
-    const firstLine = `${ears.slice(0, 2)}${head.trim()}${ears.slice(-2)}`;
-    
-    const lines = [firstLine, face, mouth, body].filter(line => line.trim() !== '');
-    return lines.join('\n');
+    const headLine = `${ears.left}${head}${ears.right}`;
+    const lines = [headLine, face, mouth, body].filter(line => line.trim() !== '');
+    const maxLength = Math.max(...lines.map(line => line.length), 0);
+    const paddedLines = lines.map(line => {
+        const paddingNeeded = maxLength - line.length;
+        const leftPadding = Math.floor(paddingNeeded / 2);
+        const rightPadding = paddingNeeded - leftPadding;
+        return ' '.repeat(leftPadding) + line + ' '.repeat(rightPadding);
+    });
+    return paddedLines.join('\n');
   }, [selectedEars, selectedHead, selectedFace, selectedMouth, selectedBody]);
+
+  // Function to toggle a specific dropdown
+  const toggleDropdown = (label) => {
+    setOpenDropdown(prev => (prev === label ? null : label));
+  };
 
   return (
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
       <style jsx global>{`
         @import url('[https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap](https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap)');
       `}</style>
-
-      {/* The Pet Room Display */}
       <div className="w-full h-64 relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center">
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
-        
-        {/* The ASCII Art Display */}
         <div className="z-10 p-4 rounded-lg">
           <pre 
               className="font-mono text-5xl leading-none text-center text-black dark:text-white"
@@ -147,39 +167,47 @@ export default function Petz({ ownerNFTImage }) {
           </pre>
         </div>
       </div>
-
-      {/* Trait Customization Controls */}
-      <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
+      <div ref={controlsRef} className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <TraitSelector 
             label="Ears"
             options={catTraits.Ears}
             selected={selectedEars}
             onChange={setSelectedEars}
+            isOpen={openDropdown === 'Ears'}
+            onToggle={() => toggleDropdown('Ears')}
           />
           <TraitSelector 
             label="Head"
             options={catTraits.Head}
             selected={selectedHead}
             onChange={setSelectedHead}
+            isOpen={openDropdown === 'Head'}
+            onToggle={() => toggleDropdown('Head')}
           />
           <TraitSelector 
             label="Face"
             options={catTraits.Face}
             selected={selectedFace}
             onChange={setSelectedFace}
+            isOpen={openDropdown === 'Face'}
+            onToggle={() => toggleDropdown('Face')}
           />
            <TraitSelector 
             label="Mouth"
             options={catTraits.Mouth}
             selected={selectedMouth}
             onChange={setSelectedMouth}
+            isOpen={openDropdown === 'Mouth'}
+            onToggle={() => toggleDropdown('Mouth')}
           />
           <TraitSelector 
             label="Body"
             options={catTraits.Body}
             selected={selectedBody}
             onChange={setSelectedBody}
+            isOpen={openDropdown === 'Body'}
+            onToggle={() => toggleDropdown('Body')}
           />
         </div>
       </div>
