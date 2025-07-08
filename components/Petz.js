@@ -115,8 +115,8 @@ export default function Petz({ ownerNFTImage }) {
     const mouth = catTraits.Mouth[selectedMouth] || catTraits.Mouth['None'];
     const body = catTraits.Body[selectedBody] || catTraits.Body['None'];
     
-    // Construct the head line with proper spacing for ears
-    const headLine = `${ears.left}${head ? ` ${head} ` : '   '}${ears.right}`;
+    // Construct the head line without extra spaces
+    const headLine = `${ears.left}${head}${ears.right}`;
     
     // Create an array of lines that have content
     const lines = [headLine, face, mouth, body].filter(line => line.trim() !== '');
