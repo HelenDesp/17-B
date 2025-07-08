@@ -2,38 +2,39 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// 1. Corrected data structure. Ears are now split into left/right parts.
+// 1. Data structure from your working backup, with 'None' added.
+// The pre-padding in the strings is the key to correct alignment.
 const catTraits = {
   Ears: {
-    'None': { left: '', right: '' },
-    'Type 1': { left: '^', right: '^' },
-    'Type 2': { left: '<', right: '>' },
-    'Type 3': { left: 'v', right: 'v' },
-    'Type 4': { left: '\\/', right: '\\/' },
-    'Type 5': { left: '/\\', right: '/\\' },
+    'None': '       ',
+    'Type 1': ' ^   ^ ',
+    'Type 2': ' <   > ',
+    'Type 3': ' v   v ',
+    'Type 4': '\\/   \\/',
+    'Type 5': '/\\   /\\',
   },
   Head: {
-    'None': '',
-    'Punk': '///',
-    'Horns': '/-/',
-    'Curly Hair': '```',
-    'Bald': '___'
+    'None': '     ',
+    'Punk': ' /// ',
+    'Horns': ' /-/ ',
+    'Curly Hair': ' ``` ',
+    'Bald': ' ___ '
   },
   Face: {
-    'None': '',
+    'None': '       ',
     'Suspicious': '(o.0)',
     'Sleeping': '(-.-)',
-    'Eyes Open': '(o.o)',
+    'Eyes Open': ' (o.o) ',
     'Wide-eyed': '(0.0)'
   },
   Mouth: {
-    'None': '',
-    'Normal': '---',
-    'Monster': 'vvv',
-    'Cigarette': '--,'
+    'None': '     ',
+    'Normal': ' --- ',
+    'Monster': ' vvv ',
+    'Cigarette': ' --, '
   },
   Body: {
-    'None': '',
+    'None': '       ',
     'Muscular': '{=|=}',
     'Suit': '{\\:/}',
     'Priest': '(\\+/)',
@@ -107,7 +108,7 @@ export default function Petz({ ownerNFTImage }) {
   const [selectedMouth, setSelectedMouth] = useState('Normal');
   const [selectedBody, setSelectedBody] = useState('Suit');
 
-  // 3. Robust logic to combine and center the ASCII art
+  // 3. This is the corrected logic from your backup file.
   const asciiArt = useMemo(() => {
     const ears = catTraits.Ears[selectedEars] || catTraits.Ears['None'];
     const head = catTraits.Head[selectedHead] || catTraits.Head['None'];
@@ -115,24 +116,11 @@ export default function Petz({ ownerNFTImage }) {
     const mouth = catTraits.Mouth[selectedMouth] || catTraits.Mouth['None'];
     const body = catTraits.Body[selectedBody] || catTraits.Body['None'];
     
-    // Construct the head line without extra spaces
-    const headLine = `${ears.left}${head}${ears.right}`;
+    // This logic correctly combines the pre-padded parts.
+    const firstLine = `${ears.slice(0, 2)}${head.trim()}${ears.slice(-2)}`;
     
-    // Create an array of lines that have content
-    const lines = [headLine, face, mouth, body].filter(line => line.trim() !== '');
-    
-    // Find the longest line to calculate centering
-    const maxLength = Math.max(...lines.map(line => line.length), 0);
-
-    // Pad each line to be centered relative to the longest line
-    const paddedLines = lines.map(line => {
-        const paddingNeeded = maxLength - line.length;
-        const leftPadding = Math.floor(paddingNeeded / 2);
-        const rightPadding = paddingNeeded - leftPadding;
-        return ' '.repeat(leftPadding) + line + ' '.repeat(rightPadding);
-    });
-
-    return paddedLines.join('\n');
+    const lines = [firstLine, face, mouth, body].filter(line => line.trim() !== '');
+    return lines.join('\n');
   }, [selectedEars, selectedHead, selectedFace, selectedMouth, selectedBody]);
 
   return (
