@@ -2,15 +2,15 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// 1. Data is now un-padded. Centering is handled dynamically.
+// 1. Corrected data structure. Ears are now split into left/right parts.
 const catTraits = {
   Ears: {
-    'None': '',
-    'Type 1': '^   ^',
-    'Type 2': '<   >',
-    'Type 3': 'v   v',
-    'Type 4': '\\/   \\/',
-    'Type 5': '/\\   /\\',
+    'None': { left: '', right: '' },
+    'Type 1': { left: '^', right: '^' },
+    'Type 2': { left: '<', right: '>' },
+    'Type 3': { left: 'v', right: 'v' },
+    'Type 4': { left: '\\/', right: '\\/' },
+    'Type 5': { left: '/\\', right: '/\\' },
   },
   Head: {
     'None': '',
@@ -41,7 +41,7 @@ const catTraits = {
   }
 };
 
-// NEW: Custom Dropdown Component with updated styling and logic
+// Helper component for a styled dropdown (from your preferred version)
 const TraitSelector = ({ label, options, selected, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -67,7 +67,6 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
       >
         <div className="flex items-center">
             <span className="font-bold">{label}</span>
-            {/* UPDATED: Logic to show attribute only when it's not 'None' */}
             {selected !== 'None' && (
                 <>
                     <span className="mx-2 text-gray-400">•</span>
@@ -75,7 +74,6 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
                 </>
             )}
         </div>
-        {/* Pixelated Arrow */}
         <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
            <path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" />
         </svg>
@@ -87,7 +85,6 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
             <button
               key={optionName}
               onClick={() => handleSelect(optionName)}
-              // UPDATED: Hover effect is now a 1px bottom border
               className="w-full text-left p-2 flex items-center border-b border-transparent hover:border-black dark:hover:border-white"
               style={{ fontFamily: "'Cygnito Mono', monospace" }}
             >
@@ -104,42 +101,42 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
 
 export default function Petz({ ownerNFTImage }) {
   // State for all the new selectable parts, defaulting to 'None'
-  const [selectedEars, setSelectedEars] = useState('None');
-  const [selectedHead, setSelectedHead] = useState('None');
+  const [selectedEars, setSelectedEars] = useState('Type 4');
+  const [selectedHead, setSelectedHead] = useState('Punk');
   const [selectedFace, setSelectedFace] = useState('Eyes Open');
   const [selectedMouth, setSelectedMouth] = useState('Normal');
-  const [selectedBody, setSelectedBody] = useState('None');
+  const [selectedBody, setSelectedBody] = useState('Suit');
 
-  // Combine the selected parts to create the final ASCII art
+  // 3. Robust logic to combine and center the ASCII art
   const asciiArt = useMemo(() => {
-    const ears = catTraits.Ears[selectedEars] || '       ';
-    const head = catTraits.Head[selectedHead] || '       ';
-    const face = catTraits.Face[selectedFace] || '       ';
-    const mouth = catTraits.Mouth[selectedMouth] || '       ';
-    const body = catTraits.Body[selectedBody] || '       ';
+    const ears = catTraits.Ears[selectedEars] || catTraits.Ears['None'];
+    const head = catTraits.Head[selectedHead] || catTraits.Head['None'];
+    const face = catTraits.Face[selectedFace] || catTraits.Face['None'];
+    const mouth = catTraits.Mouth[selectedMouth] || catTraits.Mouth['None'];
+    const body = catTraits.Body[selectedBody] || catTraits.Body['None'];
     
-    // Combine ears and head for the first line
-    const firstLine = `${ears.slice(0, 1)}${head}${ears.slice(-1)}`;
+    // Construct the head line with proper spacing for ears
+    const headLine = `${ears.left}${head ? ` ${head} ` : '   '}${ears.right}`;
     
-    // Filter out empty lines if 'None' is selected
-    const lines = [firstLine, face, mouth, body].filter(line => line.trim() !== '');
+    // Create an array of lines that have content
+    const lines = [headLine, face, mouth, body].filter(line => line.trim() !== '');
     
     // Find the longest line to calculate centering
     const maxLength = Math.max(...lines.map(line => line.length), 0);
 
-    // Pad each line to be centered
+    // Pad each line to be centered relative to the longest line
     const paddedLines = lines.map(line => {
-        const padding = Math.floor((maxLength - line.length) / 2);
-        return ' '.repeat(padding) + line;
+        const paddingNeeded = maxLength - line.length;
+        const leftPadding = Math.floor(paddingNeeded / 2);
+        const rightPadding = paddingNeeded - leftPadding;
+        return ' '.repeat(leftPadding) + line + ' '.repeat(rightPadding);
     });
 
     return paddedLines.join('\n');
   }, [selectedEars, selectedHead, selectedFace, selectedMouth, selectedBody]);
 
   return (
-    // UPDATED: Removed p-4 from this container
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
-       {/* UPDATED: Font changed back to Doto */}
       <style jsx global>{`
         @import url('[https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap](https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap)');
       `}</style>
@@ -165,7 +162,6 @@ export default function Petz({ ownerNFTImage }) {
 
       {/* Trait Customization Controls */}
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
-        {/* UPDATED: Reduced gap between dropdowns */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <TraitSelector 
             label="Ears"
