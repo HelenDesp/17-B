@@ -1,8 +1,8 @@
 // /components/Petz.js
 "use client";
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo } from 'react';
 
-// Data structure from the file you provided
+// Data structure
 const catData = {
   Shapes: {
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -60,7 +60,7 @@ const TraitSelector = ({ label, options, selected, onChange, isOpen, onToggle })
   );
 };
 
-// NEW: Modal component for selecting shapes or traits
+// Modal component for selecting shapes or traits
 const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
@@ -96,18 +96,6 @@ export default function Petz({ ownerNFTImage }) {
   // State for modals and dropdowns
   const [openModal, setOpenModal] = useState(null); // 'shapes' or 'traits'
   const [openDropdown, setOpenDropdown] = useState(null);
-  
-  const controlsRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (controlsRef.current && !controlsRef.current.contains(event.target)) {
-        setOpenDropdown(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const asciiArtLines = useMemo(() => {
     const ears = catData.Traits.Ears[selectedEars] || '';
@@ -146,6 +134,12 @@ export default function Petz({ ownerNFTImage }) {
 
   const toggleDropdown = (label) => setOpenDropdown(prev => (prev === label ? null : label));
 
+  // CORRECTED: Function to close modal and reset dropdown state
+  const handleCloseModal = () => {
+      setOpenModal(null);
+      setOpenDropdown(null);
+  };
+
   return (
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white relative overflow-hidden">
       <style jsx global>{`@import url('https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap');`}</style>
@@ -164,29 +158,32 @@ export default function Petz({ ownerNFTImage }) {
       </div>
       
       {/* REBUILT Controls Section */}
-      <div ref={controlsRef} className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white space-y-2">
-        {/* Shapes Button */}
-        <button onClick={() => setOpenModal('shapes')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-            <span className="font-bold">Shapes</span>
-            <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
-        </button>
-        
-        {/* Traits Button */}
-        <button onClick={() => setOpenModal('traits')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-            <span className="font-bold">Traits</span>
-            <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
-        </button>
+      <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
+        {/* CORRECTED: Buttons are now in a flex container on one line */}
+        <div className="flex items-center space-x-2">
+            {/* Shapes Button */}
+            <button onClick={() => setOpenModal('shapes')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+                <span className="font-bold">Shapes</span>
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
+            </button>
+            
+            {/* Traits Button */}
+            <button onClick={() => setOpenModal('traits')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+                <span className="font-bold">Traits</span>
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
+            </button>
+        </div>
       </div>
 
       {/* Shapes Modal */}
-      <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={() => setOpenModal(null)}>
+      <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
         <TraitSelector label="Head" options={catData.Shapes.Head} selected={headShape} onChange={setHeadShape} isOpen={openDropdown === 'Head Shape'} onToggle={() => toggleDropdown('Head Shape')} />
         <TraitSelector label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onChange={setSnoutShape} isOpen={openDropdown === 'Snout Shape'} onToggle={() => toggleDropdown('Snout Shape')} />
         <TraitSelector label="Body" options={catData.Shapes.Body} selected={bodyShape} onChange={setBodyShape} isOpen={openDropdown === 'Body Shape'} onToggle={() => toggleDropdown('Body Shape')} />
       </SelectionModal>
 
       {/* Traits Modal */}
-      <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={() => setOpenModal(null)}>
+      <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
         <TraitSelector label="Ears" options={catData.Traits.Ears} selected={selectedEars} onChange={setSelectedEars} isOpen={openDropdown === 'Ears'} onToggle={() => toggleDropdown('Ears')} />
         <TraitSelector label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onChange={setSelectedHeadwear} isOpen={openDropdown === 'Headwear'} onToggle={() => toggleDropdown('Headwear')} />
         <TraitSelector label="Face" options={catData.Traits.Face} selected={selectedFace} onChange={setSelectedFace} isOpen={openDropdown === 'Face'} onToggle={() => toggleDropdown('Face')} />
