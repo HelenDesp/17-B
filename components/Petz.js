@@ -2,15 +2,15 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// 1. Updated data structure for Ears to handle multi-character parts
+// 1. Data is now un-padded. Centering is handled dynamically.
 const catTraits = {
   Ears: {
-    'None': { left: '', right: '' },
-    'Type 1': { left: '^', right: '^' },
-    'Type 2': { left: '<', right: '>' },
-    'Type 3': { left: 'v', right: 'v' },
-    'Type 4': { left: '\\/', right: '\\/' },
-    'Type 5': { left: '/\\', right: '/\\' },
+    'None': '',
+    'Type 1': '^   ^',
+    'Type 2': '<   >',
+    'Type 3': 'v   v',
+    'Type 4': '\\/   \\/',
+    'Type 5': '/\\   /\\',
   },
   Head: {
     'None': '',
@@ -41,7 +41,7 @@ const catTraits = {
   }
 };
 
-// Helper component for a styled dropdown
+// NEW: Custom Dropdown Component with updated styling and logic
 const TraitSelector = ({ label, options, selected, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -67,6 +67,7 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
       >
         <div className="flex items-center">
             <span className="font-bold">{label}</span>
+            {/* UPDATED: Logic to show attribute only when it's not 'None' */}
             {selected !== 'None' && (
                 <>
                     <span className="mx-2 text-gray-400">•</span>
@@ -103,30 +104,30 @@ const TraitSelector = ({ label, options, selected, onChange }) => {
 
 export default function Petz({ ownerNFTImage }) {
   // State for all the new selectable parts, defaulting to 'None'
-  const [selectedEars, setSelectedEars] = useState('Type 1');
-  const [selectedHead, setSelectedHead] = useState('Punk');
+  const [selectedEars, setSelectedEars] = useState('None');
+  const [selectedHead, setSelectedHead] = useState('None');
   const [selectedFace, setSelectedFace] = useState('Eyes Open');
   const [selectedMouth, setSelectedMouth] = useState('Normal');
-  const [selectedBody, setSelectedBody] = useState('Suit');
+  const [selectedBody, setSelectedBody] = useState('None');
 
   // Combine the selected parts to create the final ASCII art
   const asciiArt = useMemo(() => {
-    const ears = catTraits.Ears[selectedEars] || { left: '', right: '' };
-    const head = catTraits.Head[selectedHead] || '';
-    const face = catTraits.Face[selectedFace] || '';
-    const mouth = catTraits.Mouth[selectedMouth] || '';
-    const body = catTraits.Body[selectedBody] || '';
+    const ears = catTraits.Ears[selectedEars] || '       ';
+    const head = catTraits.Head[selectedHead] || '       ';
+    const face = catTraits.Face[selectedFace] || '       ';
+    const mouth = catTraits.Mouth[selectedMouth] || '       ';
+    const body = catTraits.Body[selectedBody] || '       ';
     
-    // Construct the first line by combining ears and head
-    const firstLine = `${ears.left}${head ? ` ${head} ` : '   '}${ears.right}`;
+    // Combine ears and head for the first line
+    const firstLine = `${ears.slice(0, 1)}${head}${ears.slice(-1)}`;
     
-    // Create an array of lines that have content
+    // Filter out empty lines if 'None' is selected
     const lines = [firstLine, face, mouth, body].filter(line => line.trim() !== '');
     
     // Find the longest line to calculate centering
     const maxLength = Math.max(...lines.map(line => line.length), 0);
 
-    // Pad each line to be centered relative to the longest line
+    // Pad each line to be centered
     const paddedLines = lines.map(line => {
         const padding = Math.floor((maxLength - line.length) / 2);
         return ' '.repeat(padding) + line;
@@ -138,6 +139,7 @@ export default function Petz({ ownerNFTImage }) {
   return (
     // UPDATED: Removed p-4 from this container
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white">
+       {/* UPDATED: Font changed back to Doto */}
       <style jsx global>{`
         @import url('[https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap](https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap)');
       `}</style>
