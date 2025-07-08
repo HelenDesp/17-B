@@ -29,22 +29,17 @@ const TraitSelector = ({ label, options, selected, onChange, isOpen, onToggle })
     } else {
       onChange(optionName);
     }
-    onToggle(); // Close dropdown after selection
+    onToggle();
   };
   const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
   return (
     <div className="relative w-full">
       <button onClick={onToggle} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-        <div className="flex items-center">
-            <span className="font-bold">{label}</span>
-            {selected !== 'None' && (
-                <>
-                    <span className="mx-1 text-gray-400">•</span>
-                    <span className="font-normal">{selected}</span>
-                </>
-            )}
+        <span className="font-bold">{label}</span>
+        <div className="flex items-center space-x-2">
+            <span className="font-normal">{selected}</span>
+            <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
         </div>
-        <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
       </button>
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border-2 border-black dark:border-white rounded-md z-10 max-h-48 overflow-y-auto">
@@ -60,12 +55,13 @@ const TraitSelector = ({ label, options, selected, onChange, isOpen, onToggle })
   );
 };
 
-// Modal component for selecting shapes or traits
+// UPDATED: Modal component for selecting shapes or traits
 const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="absolute inset-0 bg-gray-300 dark:bg-gray-800 z-20 flex flex-col p-4">
+        // Added 50% background opacity and a backdrop blur effect
+        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col p-4">
             <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-xl text-gray-800 dark:text-gray-200">{title}</h3>
                 <button onClick={onClose} className="p-2 border-2 border-black dark:border-white rounded-md">
@@ -133,8 +129,7 @@ export default function Petz({ ownerNFTImage }) {
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedFace, selectedSnoutTrait, selectedOutfit, selectedFeet]);
 
   const toggleDropdown = (label) => setOpenDropdown(prev => (prev === label ? null : label));
-
-  // CORRECTED: Function to close modal and reset dropdown state
+  
   const handleCloseModal = () => {
       setOpenModal(null);
       setOpenDropdown(null);
@@ -157,17 +152,13 @@ export default function Petz({ ownerNFTImage }) {
         </div>
       </div>
       
-      {/* REBUILT Controls Section */}
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
-        {/* CORRECTED: Buttons are now in a flex container on one line */}
         <div className="flex items-center space-x-2">
-            {/* Shapes Button */}
             <button onClick={() => setOpenModal('shapes')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
                 <span className="font-bold">Shapes</span>
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
             </button>
             
-            {/* Traits Button */}
             <button onClick={() => setOpenModal('traits')} className="w-full flex items-center justify-between p-2 border-2 border-black dark:border-white bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
                 <span className="font-bold">Traits</span>
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z M10 0v2h2v2h-2v2h2v2h2V0z"/></svg>
