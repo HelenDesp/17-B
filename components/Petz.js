@@ -2,7 +2,7 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// Data structure
+// UPDATED: Data structure with Face split into Eyes and Nose
 const catData = {
   Shapes: {
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -12,7 +12,8 @@ const catData = {
   Traits: {
     Ears: { 'None': '', 'Type 1': '^   ^', 'Type 2': '<   >', 'Type 3': 'v   v', 'Antennas': 'q   p', 'Type 5': '\\/   \\/', 'Type 6': '/\\   /\\' },
     Headwear: { 'None': '', 'Punk': '///', 'Horns': '/-/', 'Curly hair': '~~~', 'Bald': '___' },
-    Face: { 'None': '', 'Meth (Suspicious)': 'o.0', 'Sleeping': '-.-', 'Eyes open': 'o.o', 'Wide-eyed': '0.0' },
+    Eyes: { 'None': '', 'Meth (Suspicious)': 'o 0', 'Sleeping': '- -', 'Eyes Open': 'o o', 'Wide-Eyed': '0 0' },
+    Nose: { 'None': '', 'Round': 'o', 'Dog': 'Y', 'Crest': '.', 'More': '_' },
     Snout: { 'None': '', 'Normal': '---', 'Monster': 'vvv', 'Cigarette': '--,', 'Wolf': 'o' },
     Outfit: { 'None': '', 'Muscular': '=|=', 'Suit': '\\:/', 'Priest': '\\+/', 'Bombol': "'\"'" },
     Feet: { 'None': '', 'Standard': '==', 'Owl': '=,,=' },
@@ -64,16 +65,14 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-// UPDATED: Modal component
+// Modal component
 const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
         <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col">
             <div className="flex justify-between items-center p-4 pb-0 mb-4">
-                {/* UPDATED: Title tag is now <p> */}
                 <p className="font-bold text-xl text-gray-800 dark:text-gray-200">{title}</p>
-                {/* UPDATED: New close button */}
                 <button
                   className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
                   onClick={onClose}
@@ -99,7 +98,9 @@ export default function Petz({ ownerNFTImage }) {
   // State for Traits
   const [selectedEars, setSelectedEars] = useState('Type 1');
   const [selectedHeadwear, setSelectedHeadwear] = useState('None');
-  const [selectedFace, setSelectedFace] = useState('Eyes open');
+  // UPDATED: Replaced Face state with Eyes and Nose
+  const [selectedEyes, setSelectedEyes] = useState('Eyes Open');
+  const [selectedNose, setSelectedNose] = useState('Crest');
   const [selectedSnoutTrait, setSelectedSnoutTrait] = useState('Normal');
   const [selectedOutfit, setSelectedOutfit] = useState('Suit');
   const [selectedFeet, setSelectedFeet] = useState('Standard');
@@ -112,7 +113,9 @@ export default function Petz({ ownerNFTImage }) {
     const ears = catData.Traits.Ears[selectedEars] || '';
     const headwear = catData.Traits.Headwear[selectedHeadwear] || '';
     const hShape = catData.Shapes.Head[headShape] || '';
-    const face = catData.Traits.Face[selectedFace] || '';
+    // UPDATED: Get Eyes and Nose data
+    const eyes = catData.Traits.Eyes[selectedEyes] || '';
+    const nose = catData.Traits.Nose[selectedNose] || '';
     const sShape = catData.Shapes.Snout[snoutShape] || '';
     const snoutTrait = catData.Traits.Snout[selectedSnoutTrait] || '';
     const bShape = catData.Shapes.Body[bodyShape] || '';
@@ -128,8 +131,17 @@ export default function Petz({ ownerNFTImage }) {
     } else {
         line1 = ears;
     }
+    
+    // UPDATED: Combine Eyes and Nose to create the face line
+    let faceLine = '';
+    if (eyes.includes(' ')) {
+        const eyeParts = eyes.split(' ');
+        faceLine = `${eyeParts[0]}${nose}${eyeParts[1]}`;
+    } else {
+        faceLine = nose;
+    }
 
-    const line2 = hShape ? `${hShape.slice(0, 1)}${face}${hShape.slice(-1)}` : face;
+    const line2 = hShape ? `${hShape.slice(0, 1)}${faceLine}${hShape.slice(-1)}` : faceLine;
     const line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     const line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     const line5 = feet;
@@ -141,7 +153,8 @@ export default function Petz({ ownerNFTImage }) {
         return ' '.repeat(padding) + line;
     });
     return paddedLines;
-  }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedFace, selectedSnoutTrait, selectedOutfit, selectedFeet]);
+    // UPDATED: Added new dependencies to useMemo
+  }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet]);
 
   const toggleItem = (item) => {
     setOpenItem(prev => (prev === item ? null : item));
@@ -183,18 +196,20 @@ export default function Petz({ ownerNFTImage }) {
       </div>
 
       <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
-        <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Head'} onToggle={() => toggleItem('Head')} />
-        <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Snout'} onToggle={() => toggleItem('Snout')} />
-        <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Body'} onToggle={() => toggleItem('Body')} />
+        <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Shape:Head'} onToggle={() => toggleItem('Shape:Head')} />
+        <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Shape:Snout'} onToggle={() => toggleItem('Shape:Snout')} />
+        <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Shape:Body'} onToggle={() => toggleItem('Shape:Body')} />
       </SelectionModal>
 
+      {/* UPDATED: Accordion Items for Traits */}
       <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
-        <AccordionItem label="Ears" options={catData.Traits.Ears} selected={selectedEars} onSelect={setSelectedEars} isOpen={openItem === 'Ears'} onToggle={() => toggleItem('Ears')} />
-        <AccordionItem label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Headwear'} onToggle={() => toggleItem('Headwear')} />
-        <AccordionItem label="Face" options={catData.Traits.Face} selected={selectedFace} onSelect={setSelectedFace} isOpen={openItem === 'Face'} onToggle={() => toggleItem('Face')} />
-        <AccordionItem label="Snout" options={catData.Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Snout'} onToggle={() => toggleItem('Snout')} />
-        <AccordionItem label="Outfit" options={catData.Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Outfit'} onToggle={() => toggleItem('Outfit')} />
-        <AccordionItem label="Feet" options={catData.Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Feet'} onToggle={() => toggleItem('Feet')} />
+        <AccordionItem label="Ears" options={catData.Traits.Ears} selected={selectedEars} onSelect={setSelectedEars} isOpen={openItem === 'Trait:Ears'} onToggle={() => toggleItem('Trait:Ears')} />
+        <AccordionItem label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Trait:Headwear'} onToggle={() => toggleItem('Trait:Headwear')} />
+        <AccordionItem label="Eyes" options={catData.Traits.Eyes} selected={selectedEyes} onSelect={setSelectedEyes} isOpen={openItem === 'Trait:Eyes'} onToggle={() => toggleItem('Trait:Eyes')} />
+        <AccordionItem label="Nose" options={catData.Traits.Nose} selected={selectedNose} onSelect={setSelectedNose} isOpen={openItem === 'Trait:Nose'} onToggle={() => toggleItem('Trait:Nose')} />
+        <AccordionItem label="Snout" options={catData.Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Trait:Snout'} onToggle={() => toggleItem('Trait:Snout')} />
+        <AccordionItem label="Outfit" options={catData.Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
+        <AccordionItem label="Feet" options={catData.Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
       </SelectionModal>
     </div>
   );
