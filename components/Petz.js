@@ -52,7 +52,6 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                         <button
                             key={optionName}
                             onClick={() => handleSelect(optionName)}
-                            // UPDATED: Reduced vertical padding for less space
                             className="w-full text-left py-1 px-2 flex items-center border-b border-transparent hover:border-black dark:hover:border-white"
                         >
                             <span className="mr-2 text-lg">•</span>
@@ -65,16 +64,22 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-// Modal component
+// UPDATED: Modal component
 const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
         <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col">
             <div className="flex justify-between items-center p-4 pb-0 mb-4">
-                <h3 className="font-bold text-xl text-gray-800 dark:text-gray-200">{title}</h3>
-                <button onClick={onClose} className="p-2 border-2 border-black dark:border-white rounded-md">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M0 0h2v2H0V0zm2 2h2v2H2V2zm2 2h2v2H4V4zm2 2h2v2H6V6zm2 2h2v2H8V8zm2 2h2v2h-2v-2zm2 2h2v2h-2v-2zm-2-2h2v2h-2v-2zm-2-2h2v2H8V8zM6 8h2v2H6V8zM4 6h2v2H4V6zM2 4h2v2H2V4zm0-2h2v2H2V2zm2-2h2v2H4V0zm2 0h2v2H6V0zm2 0h2v2H8V0zm2 0h2v2h-2V0z"/></svg>
+                {/* UPDATED: Title tag is now <p> */}
+                <p className="font-bold text-xl text-gray-800 dark:text-gray-200">{title}</p>
+                {/* UPDATED: New close button */}
+                <button
+                  className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                  onClick={onClose}
+                  aria-label="Close"
+                >
+                  <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
             </div>
             <div className="space-y-2 flex-grow overflow-y-auto px-4 pb-4">
@@ -98,7 +103,7 @@ export default function Petz({ ownerNFTImage }) {
   const [selectedSnoutTrait, setSelectedSnoutTrait] = useState('Normal');
   const [selectedOutfit, setSelectedOutfit] = useState('Suit');
   const [selectedFeet, setSelectedFeet] = useState('Standard');
-  
+
   // State for modals and accordions
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
@@ -123,7 +128,7 @@ export default function Petz({ ownerNFTImage }) {
     } else {
         line1 = ears;
     }
-    
+
     const line2 = hShape ? `${hShape.slice(0, 1)}${face}${hShape.slice(-1)}` : face;
     const line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     const line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
@@ -137,11 +142,11 @@ export default function Petz({ ownerNFTImage }) {
     });
     return paddedLines;
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedFace, selectedSnoutTrait, selectedOutfit, selectedFeet]);
-  
+
   const toggleItem = (item) => {
     setOpenItem(prev => (prev === item ? null : item));
   };
-  
+
   const handleCloseModal = () => {
       setOpenModal(null);
       setOpenItem(null);
@@ -150,7 +155,7 @@ export default function Petz({ ownerNFTImage }) {
   return (
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white relative overflow-hidden">
       <style jsx global>{`@import url('https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap');`}</style>
-      
+
       <div className="w-full h-auto relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center py-2">
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         <div className="z-10 p-2">
@@ -163,17 +168,15 @@ export default function Petz({ ownerNFTImage }) {
           </div>
         </div>
       </div>
-      
+
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
         <div className="flex items-center space-x-2">
             <button onClick={() => setOpenModal('shapes')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'shapes' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
                 <span className="font-bold">Shapes</span>
-                {/* UPDATED: Arrow icon now matches */}
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
             </button>
             <button onClick={() => setOpenModal('traits')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'traits' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
                 <span className="font-bold">Traits</span>
-                {/* UPDATED: Arrow icon now matches */}
                 <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
             </button>
         </div>

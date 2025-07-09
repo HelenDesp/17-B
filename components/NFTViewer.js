@@ -228,8 +228,8 @@ export default function NFTViewer({
                         className="h-12 w-12 object-cover border border-black dark:border-white"
                     />
                     <div>
-                        <h3 className="text-sm text-gray-500 dark:text-gray-400">{activePetzNFT.name}</h3>
-                        <p className="text-base font-normal text-gray-800 dark:text-white">Your Companion</p>
+                        <p className="text-base text-gray-500 dark:text-gray-400">{activePetzNFT.name}</p>
+                        <p className="text-sm font-normal text-gray-800 dark:text-white">Your Companion</p>
                     </div>
                 </div>
                 <button
