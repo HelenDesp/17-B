@@ -2,7 +2,7 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// UPDATED: Data structure with Face split into Eyes and Nose
+// Data structure
 const catData = {
   Shapes: {
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -98,7 +98,6 @@ export default function Petz({ ownerNFTImage }) {
   // State for Traits
   const [selectedEars, setSelectedEars] = useState('Type 1');
   const [selectedHeadwear, setSelectedHeadwear] = useState('None');
-  // UPDATED: Replaced Face state with Eyes and Nose
   const [selectedEyes, setSelectedEyes] = useState('Eyes Open');
   const [selectedNose, setSelectedNose] = useState('Crest');
   const [selectedSnoutTrait, setSelectedSnoutTrait] = useState('Normal');
@@ -113,7 +112,6 @@ export default function Petz({ ownerNFTImage }) {
     const ears = catData.Traits.Ears[selectedEars] || '';
     const headwear = catData.Traits.Headwear[selectedHeadwear] || '';
     const hShape = catData.Shapes.Head[headShape] || '';
-    // UPDATED: Get Eyes and Nose data
     const eyes = catData.Traits.Eyes[selectedEyes] || '';
     const nose = catData.Traits.Nose[selectedNose] || '';
     const sShape = catData.Shapes.Snout[snoutShape] || '';
@@ -132,11 +130,12 @@ export default function Petz({ ownerNFTImage }) {
         line1 = ears;
     }
     
-    // UPDATED: Combine Eyes and Nose to create the face line
+    // UPDATED: Logic to handle 'None' nose selection
     let faceLine = '';
     if (eyes.includes(' ')) {
         const eyeParts = eyes.split(' ');
-        faceLine = `${eyeParts[0]}${nose}${eyeParts[1]}`;
+        const joiningChar = selectedNose === 'None' ? ' ' : nose;
+        faceLine = eyeParts.join(joiningChar);
     } else {
         faceLine = nose;
     }
@@ -153,7 +152,6 @@ export default function Petz({ ownerNFTImage }) {
         return ' '.repeat(padding) + line;
     });
     return paddedLines;
-    // UPDATED: Added new dependencies to useMemo
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet]);
 
   const toggleItem = (item) => {
@@ -201,7 +199,6 @@ export default function Petz({ ownerNFTImage }) {
         <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Shape:Body'} onToggle={() => toggleItem('Shape:Body')} />
       </SelectionModal>
 
-      {/* UPDATED: Accordion Items for Traits */}
       <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
         <AccordionItem label="Ears" options={catData.Traits.Ears} selected={selectedEars} onSelect={setSelectedEars} isOpen={openItem === 'Trait:Ears'} onToggle={() => toggleItem('Trait:Ears')} />
         <AccordionItem label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Trait:Headwear'} onToggle={() => toggleItem('Trait:Headwear')} />
