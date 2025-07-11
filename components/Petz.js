@@ -2,7 +2,7 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// Data structure
+// UPDATED: Data structure with new Accessories trait
 const catData = {
   Shapes: {
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -17,6 +17,7 @@ const catData = {
     Snout: { 'None': '', 'Normal': '---', 'Monster': 'vvv', 'Cigarette': '--,', 'Wolf': 'o' },
     Outfit: { 'None': '', 'Muscular': '=|=', 'Suit': '\\:/', 'Priest': '\\+/', 'Bombol': "'\"'" },
     Feet: { 'None': '', 'Standard': '==', 'Owl': '=,,=' },
+    Accessories: { 'None': '', 'Whiskers Head Regular': '><', 'Whiskers Head Parallel': '==', 'Whiskers Snout Regular': '><', 'Whiskers Snout Parallel': '==', 'Wings': '//\\\\', 'Tail Cat': '_', 'Tail Dog': '@', 'Tail Hamster': 'o', 'Tail Curl': 'c' },
   }
 };
 
@@ -103,12 +104,15 @@ export default function Petz({ ownerNFTImage }) {
   const [selectedSnoutTrait, setSelectedSnoutTrait] = useState('Normal');
   const [selectedOutfit, setSelectedOutfit] = useState('Suit');
   const [selectedFeet, setSelectedFeet] = useState('Standard');
+  // UPDATED: Added state for Accessories
+  const [selectedAccessory, setSelectedAccessory] = useState('None');
 
   // State for modals and accordions
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
 
   const asciiArtLines = useMemo(() => {
+    // --- 1. Get all selected parts ---
     const ears = catData.Traits.Ears[selectedEars] || '';
     const headwear = catData.Traits.Headwear[selectedHeadwear] || '';
     const hShape = catData.Shapes.Head[headShape] || '';
@@ -119,40 +123,70 @@ export default function Petz({ ownerNFTImage }) {
     const bShape = catData.Shapes.Body[bodyShape] || '';
     const outfit = catData.Traits.Outfit[selectedOutfit] || '';
     const feet = catData.Traits.Feet[selectedFeet] || '';
+    const accessory = catData.Traits.Accessories[selectedAccessory] || '';
 
-    let line1;
+    // --- 2. Construct base lines ---
+    let line1; // Ears / Headwear
     if (selectedHeadwear !== 'None' && selectedEars !== 'None' && ears.includes('   ')) {
         const earParts = ears.split('   ');
         line1 = `${earParts[0]}${headwear}${earParts[1]}`;
-    } else if (selectedHeadwear !== 'None') {
-        line1 = headwear;
-    } else {
-        line1 = ears;
-    }
+    } else if (selectedHeadwear !== 'None') { line1 = headwear; } 
+    else { line1 = ears; }
     
-    // UPDATED: Logic to handle 'None' nose selection
-    let faceLine = '';
+    let faceLine = ''; // Eyes + Nose
     if (eyes.includes(' ')) {
         const eyeParts = eyes.split(' ');
         const joiningChar = selectedNose === 'None' ? ' ' : nose;
         faceLine = eyeParts.join(joiningChar);
-    } else {
-        faceLine = nose;
+    } else { faceLine = nose; }
+
+    let line2 = hShape ? `${hShape.slice(0, 1)}${faceLine}${hShape.slice(-1)}` : faceLine;
+    let line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
+    let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
+    let line5 = feet;
+    
+    // --- 3. Apply accessories (except tail) before centering ---
+    let tailAccessory = null;
+    switch(selectedAccessory) {
+        case 'Whiskers Head Regular':
+        case 'Whiskers Head Parallel':
+            line2 = `${accessory[0]}${line2}${accessory[1]}`;
+            break;
+        case 'Whiskers Snout Regular':
+        case 'Whiskers Snout Parallel':
+            line3 = `${accessory[0]}${line3}${accessory[1]}`;
+            break;
+        case 'Wings':
+            const leftWing = accessory.slice(0, 2);
+            const rightWing = accessory.slice(2);
+            line4 = `${leftWing}${line4}${rightWing}`;
+            break;
+        case 'Tail Cat':
+        case 'Tail Dog':
+        case 'Tail Hamster':
+        case 'Tail Curl':
+            tailAccessory = accessory;
+            break;
     }
 
-    const line2 = hShape ? `${hShape.slice(0, 1)}${faceLine}${hShape.slice(-1)}` : faceLine;
-    const line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
-    const line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
-    const line5 = feet;
-
-    const lines = [line1, line2, line3, line4, line5].filter(line => line.trim() !== '');
+    // --- 4. Center all lines based on max length ---
+    const lines = [line1, line2, line3, line4, line5].filter(line => line.trim() !== '' || !!line);
     const maxLength = Math.max(...lines.map(line => line.length), 0);
-    const paddedLines = lines.map(line => {
+    let paddedLines = lines.map(line => {
         const padding = Math.floor((maxLength - line.length) / 2);
         return ' '.repeat(padding) + line;
     });
+
+    // --- 5. Apply tail accessory after centering ---
+    if (tailAccessory) {
+      const feetLineIndex = paddedLines.findIndex(line => line.includes(feet));
+      if (feetLineIndex !== -1) {
+        paddedLines[feetLineIndex] = `${tailAccessory}${paddedLines[feetLineIndex]}`;
+      }
+    }
+    
     return paddedLines;
-  }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet]);
+  }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedAccessory]);
 
   const toggleItem = (item) => {
     setOpenItem(prev => (prev === item ? null : item));
@@ -207,6 +241,8 @@ export default function Petz({ ownerNFTImage }) {
         <AccordionItem label="Snout" options={catData.Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Trait:Snout'} onToggle={() => toggleItem('Trait:Snout')} />
         <AccordionItem label="Outfit" options={catData.Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
         <AccordionItem label="Feet" options={catData.Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
+        {/* UPDATED: Added Accessories accordion item */}
+        <AccordionItem label="Accessories" options={catData.Traits.Accessories} selected={selectedAccessory} onSelect={setSelectedAccessory} isOpen={openItem === 'Trait:Accessories'} onToggle={() => toggleItem('Trait:Accessories')} />
       </SelectionModal>
     </div>
   );
