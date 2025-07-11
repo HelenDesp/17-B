@@ -2,7 +2,7 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// UPDATED: Data structure with corrected tail and new array format for paired accessories
+// UPDATED: Data structure for tails now uses the left/right part logic
 const catData = {
   Shapes: {
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -17,17 +17,18 @@ const catData = {
     Snout: { 'None': '', 'Normal': '---', 'Monster': 'vvv', 'Cigarette': '--,', 'Wolf': 'o' },
     Outfit: { 'None': '', 'Muscular': '=|=', 'Suit': '\\:/', 'Priest': '\\+/', 'Bombol': "'\"'" },
     Feet: { 'None': '', 'Standard': '==', 'Owl': '=,,=' },
-    Accessories: { 
-        'None': '', 
-        'Whiskers Head Regular': ['>', '<'], 
-        'Whiskers Head Parallel': ['=', '='], 
-        'Whiskers Snout Regular': ['>', '<'], 
-        'Whiskers Snout Parallel': ['=', '='], 
-        'Wings': ['//', '\\\\'], 
-        'Tail Cat': '\\_', 
-        'Tail Dog': '@', 
-        'Tail Hamster': 'oo', 
-        'Tail Curl': 'cc' 
+    Accessories: {
+        'None': '',
+        'Whiskers Head Regular': ['>', '<'],
+        'Whiskers Head Parallel': ['=', '='],
+        'Whiskers Snout Regular': ['>', '<'],
+        'Whiskers Snout Parallel': ['=', '='],
+        'Wings': ['//', '\\\\'],
+        // Tails are now an array with a right-side empty space for balancing
+        'Tail Cat': ['\\_', '  '],
+        'Tail Dog': ['@', ' '],
+        'Tail Hamster': ['o', ' '],
+        'Tail Curl': ['c', ' '],
     },
   }
 };
@@ -132,15 +133,15 @@ export default function Petz({ ownerNFTImage }) {
     const bShape = catData.Shapes.Body[bodyShape] || '';
     const outfit = catData.Traits.Outfit[selectedOutfit] || '';
     const feet = catData.Traits.Feet[selectedFeet] || '';
-    const accessory = catData.Traits.Accessories[selectedAccessory] || '';
+    const accessory = catData.Traits.Accessories[selectedAccessory];
 
     let line1;
     if (selectedHeadwear !== 'None' && selectedEars !== 'None' && ears.includes('   ')) {
         const earParts = ears.split('   ');
         line1 = `${earParts[0]}${headwear}${earParts[1]}`;
-    } else if (selectedHeadwear !== 'None') { line1 = headwear; } 
+    } else if (selectedHeadwear !== 'None') { line1 = headwear; }
     else { line1 = ears; }
-    
+
     let faceLine = '';
     if (eyes.includes(' ')) {
         const eyeParts = eyes.split(' ');
@@ -152,37 +153,49 @@ export default function Petz({ ownerNFTImage }) {
     let line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     let line5 = feet;
-    
-    // UPDATED: All accessories are now applied before centering
+
+    // Apply all accessories before centering
     switch(selectedAccessory) {
+        // UPDATED: Hardcoding regular whiskers to bypass spacing bug
         case 'Whiskers Head Regular':
-        case 'Whiskers Head Parallel':
-            line2 = `${accessory[0]}${line2}${accessory[1]}`;
+            line2 = `>${line2}<`;
             break;
         case 'Whiskers Snout Regular':
+            line3 = `>${line3}<`;
+            break;
+        // Apply other paired accessories from the data array
+        case 'Whiskers Head Parallel':
         case 'Whiskers Snout Parallel':
-            line3 = `${accessory[0]}${line3}${accessory[1]}`;
-            break;
         case 'Wings':
-            line4 = `${accessory[0]}${line4}${accessory[1]}`;
-            break;
         case 'Tail Cat':
         case 'Tail Dog':
         case 'Tail Hamster':
         case 'Tail Curl':
-            line5 = `${accessory}${line5}`;
+            // Determine which line to apply the accessory to
+            if (selectedAccessory.includes('Head')) {
+                line2 = `${accessory[0]}${line2}${accessory[1]}`;
+            } else if (selectedAccessory.includes('Snout')) {
+                line3 = `${accessory[0]}${line3}${accessory[1]}`;
+            } else if (selectedAccessory.includes('Wings')) {
+                line4 = `${accessory[0]}${line4}${accessory[1]}`;
+            } else if (selectedAccessory.includes('Tail')) {
+                line5 = `${accessory[0]}${line5}${accessory[1]}`;
+            }
             break;
     }
 
-    const lines = [line1, line2, line3, line4, line5].filter(line => line.trim() !== '' || !!line);
-    const maxLength = Math.max(...lines.map(line => line.length), 0);
-    const paddedLines = lines.map(line => {
-        const padding = Math.floor((maxLength - line.length) / 2);
-        return ' '.repeat(padding) + line;
-    });
+    const lines = [line1, line2, line3, line4, line5];
+    const maxLength = Math.max(...lines.map(line => line ? line.length : 0));
     
-    return paddedLines;
+    const paddedLines = lines.map(line => {
+        const currentLine = line || '';
+        const padding = Math.floor((maxLength - currentLine.length) / 2);
+        return ' '.repeat(padding) + currentLine;
+    });
+
+    return paddedLines.filter(line => line.trim() !== '' || !!line);
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedAccessory]);
+
 
   const toggleItem = (item) => {
     setOpenItem(prev => (prev === item ? null : item));
