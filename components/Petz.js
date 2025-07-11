@@ -2,7 +2,7 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// Data structure
+// UPDATED: Data structure with corrected tail and new array format for paired accessories
 const catData = {
   Shapes: {
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -17,7 +17,18 @@ const catData = {
     Snout: { 'None': '', 'Normal': '---', 'Monster': 'vvv', 'Cigarette': '--,', 'Wolf': 'o' },
     Outfit: { 'None': '', 'Muscular': '=|=', 'Suit': '\\:/', 'Priest': '\\+/', 'Bombol': "'\"'" },
     Feet: { 'None': '', 'Standard': '==', 'Owl': '=,,=' },
-    Accessories: { 'None': '', 'Whiskers Head Regular': '><', 'Whiskers Head Parallel': '==', 'Whiskers Snout Regular': '><', 'Whiskers Snout Parallel': '==', 'Wings': '//\\\\', 'Tail Cat': '\_', 'Tail Dog': '@', 'Tail Hamster': 'o', 'Tail Curl': 'c' },
+    Accessories: { 
+        'None': '', 
+        'Whiskers Head Regular': ['>', '<'], 
+        'Whiskers Head Parallel': ['=', '='], 
+        'Whiskers Snout Regular': ['>', '<'], 
+        'Whiskers Snout Parallel': ['=', '='], 
+        'Wings': ['//', '\\\\'], 
+        'Tail Cat': '\\_', 
+        'Tail Dog': '@', 
+        'Tail Hamster': 'o', 
+        'Tail Curl': 'c' 
+    },
   }
 };
 
@@ -121,8 +132,7 @@ export default function Petz({ ownerNFTImage }) {
     const bShape = catData.Shapes.Body[bodyShape] || '';
     const outfit = catData.Traits.Outfit[selectedOutfit] || '';
     const feet = catData.Traits.Feet[selectedFeet] || '';
-    // UPDATED: Trim accessory data to remove potential whitespace issues
-    const accessory = (catData.Traits.Accessories[selectedAccessory] || '').trim();
+    const accessory = catData.Traits.Accessories[selectedAccessory] || '';
 
     let line1;
     if (selectedHeadwear !== 'None' && selectedEars !== 'None' && ears.includes('   ')) {
@@ -143,7 +153,7 @@ export default function Petz({ ownerNFTImage }) {
     let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     let line5 = feet;
     
-    let tailAccessory = null;
+    // UPDATED: All accessories are now applied before centering
     switch(selectedAccessory) {
         case 'Whiskers Head Regular':
         case 'Whiskers Head Parallel':
@@ -154,31 +164,22 @@ export default function Petz({ ownerNFTImage }) {
             line3 = `${accessory[0]}${line3}${accessory[1]}`;
             break;
         case 'Wings':
-            const leftWing = accessory.slice(0, 2);
-            const rightWing = accessory.slice(2);
-            line4 = `${leftWing}${line4}${rightWing}`;
+            line4 = `${accessory[0]}${line4}${accessory[1]}`;
             break;
         case 'Tail Cat':
         case 'Tail Dog':
         case 'Tail Hamster':
         case 'Tail Curl':
-            tailAccessory = accessory;
+            line5 = `${accessory}${line5}`;
             break;
     }
 
     const lines = [line1, line2, line3, line4, line5].filter(line => line.trim() !== '' || !!line);
     const maxLength = Math.max(...lines.map(line => line.length), 0);
-    let paddedLines = lines.map(line => {
+    const paddedLines = lines.map(line => {
         const padding = Math.floor((maxLength - line.length) / 2);
         return ' '.repeat(padding) + line;
     });
-
-    if (tailAccessory) {
-      const feetLineIndex = paddedLines.findIndex(line => line.includes(feet));
-      if (feetLineIndex !== -1) {
-        paddedLines[feetLineIndex] = `${tailAccessory}${paddedLines[feetLineIndex]}`;
-      }
-    }
     
     return paddedLines;
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedAccessory]);
