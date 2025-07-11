@@ -175,28 +175,26 @@ export default function Petz({ ownerNFTImage }) {
             break;
     }
 
-    // First, center all lines except feet
-    const lines = [line1, line2, line3, line4].filter(line => line.trim() !== '' || !!line);
-    const maxLength = Math.max(...lines.map(line => line.length), 0);
-    const paddedLines = lines.map(line => {
-        const padding = Math.floor((maxLength - line.length) / 2);
+    // Calculate max length of body lines only (exclude feet from centering calculation)
+    const bodyLines = [line1, line2, line3, line4].filter(line => line.trim() !== '');
+    const maxBodyLength = Math.max(...bodyLines.map(line => line.length), 0);
+    
+    // Center body lines based on body width only
+    const paddedLines = bodyLines.map(line => {
+        const padding = Math.floor((maxBodyLength - line.length) / 2);
         return ' '.repeat(padding) + line;
     });
     
-    // Handle feet centering separately - center feet to match the body width, then add tail
-    let centeredFeet = '';
+    // Handle feet - center feet based on body width, then add tail to the left
     if (line5.trim() !== '') {
-        const feetPadding = Math.floor((maxLength - line5.length) / 2);
-        centeredFeet = ' '.repeat(feetPadding) + line5;
-    }
-    
-    // Add tail to the left of centered feet
-    if (tailAccessory) {
-        centeredFeet = tailAccessory + centeredFeet;
-    }
-    
-    // Add the feet line to the result
-    if (centeredFeet.trim() !== '') {
+        const feetPadding = Math.floor((maxBodyLength - line5.length) / 2);
+        let centeredFeet = ' '.repeat(feetPadding) + line5;
+        
+        // Add tail to the left of the centered feet
+        if (tailAccessory) {
+            centeredFeet = tailAccessory + centeredFeet;
+        }
+        
         paddedLines.push(centeredFeet);
     }
     
