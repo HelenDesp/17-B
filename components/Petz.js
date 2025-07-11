@@ -26,8 +26,8 @@ const catData = {
         'Wings': ['//', '\\\\'], 
         'Tail Cat': '\\_', 
         'Tail Dog': '@', 
-        'Tail Hamster': 'o', 
-        'Tail Curl': 'c' 
+        'Tail Hamster': 'oo', 
+        'Tail Curl': 'cc' 
     },
   }
 };
@@ -152,9 +152,8 @@ export default function Petz({ ownerNFTImage }) {
     let line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     let line5 = feet;
-    let tailAccessory = '';
     
-    // Handle accessories - separate tail handling from other accessories
+    // UPDATED: All accessories are now applied before centering
     switch(selectedAccessory) {
         case 'Whiskers Head Regular':
         case 'Whiskers Head Parallel':
@@ -171,32 +170,16 @@ export default function Petz({ ownerNFTImage }) {
         case 'Tail Dog':
         case 'Tail Hamster':
         case 'Tail Curl':
-            tailAccessory = accessory;
+            line5 = `${accessory}${line5}`;
             break;
     }
 
-    // Calculate max length of body lines only (exclude feet from centering calculation)
-    const bodyLines = [line1, line2, line3, line4].filter(line => line.trim() !== '');
-    const maxBodyLength = Math.max(...bodyLines.map(line => line.length), 0);
-    
-    // Center body lines based on body width only
-    const paddedLines = bodyLines.map(line => {
-        const padding = Math.floor((maxBodyLength - line.length) / 2);
+    const lines = [line1, line2, line3, line4, line5].filter(line => line.trim() !== '' || !!line);
+    const maxLength = Math.max(...lines.map(line => line.length), 0);
+    const paddedLines = lines.map(line => {
+        const padding = Math.floor((maxLength - line.length) / 2);
         return ' '.repeat(padding) + line;
     });
-    
-    // Handle feet - center feet based on body width, then add tail to the left
-    if (line5.trim() !== '') {
-        const feetPadding = Math.floor((maxBodyLength - line5.length) / 2);
-        let centeredFeet = ' '.repeat(feetPadding) + line5;
-        
-        // Add tail to the left of the centered feet
-        if (tailAccessory) {
-            centeredFeet = tailAccessory + centeredFeet;
-        }
-        
-        paddedLines.push(centeredFeet);
-    }
     
     return paddedLines;
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedAccessory]);
