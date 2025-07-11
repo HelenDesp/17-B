@@ -170,7 +170,7 @@ export default function Petz({ ownerNFTImage }) {
         case 'Tail Dog':
         case 'Tail Hamster':
         case 'Tail Curl':
-            line5 = `${accessory}${line5}`;
+            line5 = `${accessory[0]}${line5}${accessory[1]}`;
             break;
     }
 
