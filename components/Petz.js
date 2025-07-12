@@ -9,7 +9,7 @@ const catData = {
     Body: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
   },
   Traits: {
-    Ears: { 'None': '', 'Type 1': '^   ^', 'Type 2': '<   >', 'Type 3': 'v   v', 'Antennas': 'q   p', 'Type 5': '\\/   \\/', 'Type 6': '/\\   /\\' },
+    Ears: { 'None': '', 'Pointy': '^   ^', 'Elven': '<   >', 'Type 3': 'v   v', 'Antennas': 'q   p', 'Type 5': '\\/   \\/', 'Type 6': '/\\   /\\' },
     Headwear: { 'None': '', 'Punk': '///', 'Horns': '/-/', 'Curly hair': '~~~', 'Bald': '___' },
     Eyes: { 'None': '', 'Meth (Suspicious)': 'o 0', 'Sleeping': '- -', 'Eyes Open': 'o o', 'Wide-Eyed': '0 0' },
     Nose: { 'None': '', 'Round': 'o', 'Dog': 'Y', 'Crest': '.', 'More': '_' },
@@ -109,7 +109,7 @@ export default function Petz({ ownerNFTImage }) {
   const [snoutShape, setSnoutShape] = useState('Round');
   const [bodyShape, setBodyShape] = useState('Round');
 
-  const [selectedEars, setSelectedEars] = useState('Type 1');
+  const [selectedEars, setSelectedEars] = useState('Pointy');
   const [selectedHeadwear, setSelectedHeadwear] = useState('None');
   const [selectedEyes, setSelectedEyes] = useState('Eyes Open');
   const [selectedNose, setSelectedNose] = useState('Crest');
@@ -139,11 +139,23 @@ export default function Petz({ ownerNFTImage }) {
     const tail = catData.Traits.Tail[selectedTail];
 
     let line1;
-    if (selectedHeadwear !== 'None' && selectedEars !== 'None' && ears.includes('   ')) {
+    if (selectedEars === 'Elven') {
         const earParts = ears.split('   ');
-        line1 = `${earParts[0]}${headwear}${earParts[1]}`;
-    } else if (selectedHeadwear !== 'None') { line1 = headwear; }
-    else { line1 = ears; }
+        const middleContent = selectedHeadwear !== 'None' ? headwear : '   ';
+        line1 = (
+            <>
+                <span style={{ marginLeft: '5px' }}>{earParts[0]}</span>
+                {middleContent}
+                {earParts[1]}
+            </>
+        );
+    } else {
+        if (selectedHeadwear !== 'None' && selectedEars !== 'None' && ears.includes('   ')) {
+            const earParts = ears.split('   ');
+            line1 = `${earParts[0]}${headwear}${earParts[1]}`;
+        } else if (selectedHeadwear !== 'None') { line1 = headwear; }
+        else { line1 = ears; }
+    }
 
     let faceLine = '';
     if (eyes.includes(' ')) {
@@ -194,6 +206,10 @@ export default function Petz({ ownerNFTImage }) {
 
     const lineLengths = lines.map((line, index) => {
         if (typeof line === 'string') return line.length;
+        if (index === 0) {
+            const middleContent = selectedHeadwear !== 'None' ? headwear : '   ';
+            return 1 + middleContent.length + 1;
+        }
         if (index === 1) return originalLine2.length + 2;
         if (index === 2) return originalLine3.length + 2;
         return 0;
@@ -236,23 +252,26 @@ export default function Petz({ ownerNFTImage }) {
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         <div className="z-10 p-2">
           <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000' }}>
-			{asciiArtLines.map((line, index) => {
-			  const style = { 
-				marginTop: index > 0 ? '-0.5rem' : 0,
-				position: 'relative', // Enable precise positioning
-			  };
+            {asciiArtLines.map((line, index) => {
+              const style = { 
+                marginTop: index > 0 ? '-0.5rem' : 0,
+                position: 'relative',
+              };
 
-			  // If this is a whisker line that we adjusted, apply the corrective nudge
-			  if ((index === 1 && selectedWhiskers === 'Head Regular') || (index === 2 && selectedWhiskers === 'Snout Regular')) {
-				style.left = '-2.5px'; // Nudge the entire line left by half of the -5px margin
-			  }
+              if ((index === 1 && selectedWhiskers === 'Head Regular') || (index === 2 && selectedWhiskers === 'Snout Regular')) {
+                style.left = '-2.5px'; 
+              }
 
-			  return (
-				<div key={index} style={style} >
-				  {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
-				</div>
-			  );
-			})}
+              if (index === 0 && selectedEars === 'Elven') {
+                style.left = '-2.5px';
+              }
+
+              return (
+                <div key={index} style={style} >
+                  {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
