@@ -236,11 +236,23 @@ export default function Petz({ ownerNFTImage }) {
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         <div className="z-10 p-2">
           <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000' }}>
-            {asciiArtLines.map((line, index) => (
-              <div key={index} style={{ marginTop: index > 0 ? '-0.5rem' : 0 }} >
-                {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
-              </div>
-            ))}
+			{asciiArtLines.map((line, index) => {
+			  const style = { 
+				marginTop: index > 0 ? '-0.5rem' : 0,
+				position: 'relative', // Enable precise positioning
+			  };
+
+			  // If this is a whisker line that we adjusted, apply the corrective nudge
+			  if ((index === 1 && selectedWhiskers === 'Head Regular') || (index === 2 && selectedWhiskers === 'Snout Regular')) {
+				style.left = '-2.5px'; // Nudge the entire line left by half of the -5px margin
+			  }
+
+			  return (
+				<div key={index} style={style} >
+				  {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
+				</div>
+			  );
+			})}
           </div>
         </div>
       </div>
