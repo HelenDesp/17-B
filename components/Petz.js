@@ -183,9 +183,9 @@ export default function Petz({ ownerNFTImage }) {
             <>
               o
               <span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}>
-                <span style={{ position: 'absolute', left: 0, top: 0, zIndex: 1 }}>-</span>
+                <span style={{ position: 'absolute', left: 0, top: -40, zIndex: 1 }}>-</span>
                 {selectedNose !== 'None' && (
-                  <span style={{ position: 'absolute', left: 0, top: '0.4em', zIndex: 2 }}>{nose}</span>
+                  <span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{nose}</span>
                 )}
               </span>
               o
