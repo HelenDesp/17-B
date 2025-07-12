@@ -175,17 +175,24 @@ export default function Petz({ ownerNFTImage }) {
         else { line1 = earsTop; }
     }
 
-    let faceLine = '';
-    let line2b_face = null; // NEW: Content for the second head line (for nose under glasses)
+    let faceLine;
+    let originalFaceLine;
 
     if (selectedEyes === 'Glasses') {
-        faceLine = catData.Traits.Eyes.Glasses; // 'o-o'
-        if (selectedNose !== 'None') {
-            // Create the content for the line below the glasses, padding the nose
-            line2b_face = ` ${nose} `; 
-        }
+        originalFaceLine = 'o-o';
+        faceLine = (
+            <>
+              o
+              <span style={{ display: 'inline-block', position: 'relative', width: '1ch', height: '1em' }}>
+                <span style={{ position: 'absolute', left: 0, top: 0, zIndex: 1 }}>-</span>
+                {selectedNose !== 'None' && (
+                  <span style={{ position: 'absolute', left: 0, top: '0.4em', zIndex: 2 }}>{nose}</span>
+                )}
+              </span>
+              o
+            </>
+        );
     } else {
-        // Original logic for all other eyes
         if (eyes.includes(' ')) {
             const eyeParts = eyes.split(' ');
             const joiningChar = selectedNose === 'None' ? ' ' : nose;
@@ -193,35 +200,32 @@ export default function Petz({ ownerNFTImage }) {
         } else {
             faceLine = nose;
         }
+        originalFaceLine = faceLine;
     }
 
-    let line2 = hShape ? `${hShape.slice(0, 1)}${faceLine}${hShape.slice(-1)}` : faceLine;
-    // NEW: Create the full second head line if needed
-    let line2b = line2b_face ? (hShape ? `${hShape.slice(0, 1)}${line2b_face}${hShape.slice(-1)}` : line2b_face) : null;
+    let line2 = hShape ? <>{hShape.slice(0, 1)}{faceLine}{hShape.slice(-1)}</> : faceLine;
     let line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     let line5 = feet;
 
-    let originalLine2 = line2;
+    let originalLine2 = hShape ? `${hShape.slice(0, 1)}${originalFaceLine}${hShape.slice(-1)}` : originalFaceLine;
     let originalLine3 = line3;
 
-    // Accessories (Ears Head, Whiskers Head) apply ONLY to the top head line (line2)
     if (earsHead) {
         const earParts = earsHead.split('   ');
         if (selectedEarsHead === 'Elven') {
             line2 = <><span style={{ marginRight: '5px' }}>{earParts[0]}</span>{line2}{earParts[1]}</>;
         } else {
-            line2 = `${earParts[0]}${line2}${earParts[1]}`;
+            line2 = <>{earParts[0]}{line2}{earParts[1]}</>;
         }
     }
     
     if (whiskers) {
-        const currentLine2isJsx = typeof line2 !== 'string';
         if (selectedWhiskers.includes('Head')) {
             if (selectedWhiskers === 'Head Regular') {
-                line2 = <>{whiskers[0]}{currentLine2isJsx ? line2 : originalLine2}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
+                line2 = <>{whiskers[0]}{line2}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
             } else {
-                line2 = `${whiskers[0]}${currentLine2isJsx ? line2 : originalLine2}${whiskers[1]}`;
+                line2 = <>{whiskers[0]}{line2}{whiskers[1]}</>;
             }
         }
         if (selectedWhiskers.includes('Snout')) {
@@ -247,33 +251,25 @@ export default function Petz({ ownerNFTImage }) {
         }
     }
 
-    // NEW: Dynamically assemble the lines array
-    const lines = [line1, line2];
-    if (line2b) {
-        lines.push(line2b);
-    }
-    lines.push(line3, line4, line5);
+    const lines = [line1, line2, line3, line4, line5];
 
     const lineLengths = lines.map((line, index) => {
-        // Find the index of line3, which shifts if line2b exists
-        const hasLine2b = line2b !== null;
-        const line3Index = hasLine2b ? 3 : 2;
-
         if (typeof line === 'string') return line.length;
 
-        // Calculate length for JSX lines
-        if (index === 0) { // Ears Top (Elven)
+        if (index === 0) {
             const middleContent = selectedHeadwear !== 'None' ? headwear : '   ';
             return 1 + middleContent.length + 1;
         }
-        if (index === 1) { // line2 (Head)
+        if (index === 1) {
             let len = originalLine2.length;
             if (earsHead) len += earsHead.replace('   ', '').length;
             if (whiskers && selectedWhiskers.includes('Head')) len += 2;
             return len;
         }
-        if (index === line3Index) { // line3 (Snout)
-            return originalLine3.length + 2;
+        if (index === 2) {
+            let len = originalLine3.length;
+            if (whiskers && selectedWhiskers.includes('Snout')) len += 2;
+            return len;
         }
         return 0;
     });
@@ -322,19 +318,14 @@ export default function Petz({ ownerNFTImage }) {
               };
 
               let leftCorrection = 0;
-              // Nudge for Ears Top
               if (index === 0 && selectedEarsTop === 'Elven') {
                 leftCorrection -= 2.5;
               }
-              // Nudge for Line 2 accessories
               if (index === 1) {
                   if (selectedEarsHead === 'Elven') leftCorrection -= 2.5;
                   if (selectedWhiskers === 'Head Regular') leftCorrection -= 2.5;
               }
-              // Nudge for Line 3 accessories
-              const hasLine2b = selectedEyes === 'Glasses' && selectedNose !== 'None';
-              const line3Index = hasLine2b ? 3 : 2;
-              if (index === line3Index && selectedWhiskers === 'Snout Regular') {
+              if (index === 2 && selectedWhiskers === 'Snout Regular') {
                 leftCorrection -= 2.5; 
               }
               
