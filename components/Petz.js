@@ -9,8 +9,9 @@ const catData = {
     Body: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
   },
   Traits: {
-    EarsTop: { 'None': '', 'Pointy': '^   ^', 'Antennas': 'q   p', 'Horns': 'v   v', 'Arches': '/\\   /\\' },
-    EarsHead: { 'None': '', 'Elven': ['<', '>'], 'Folds': ['\\', '/'] },
+    // UPDATED: Both Ear traits now have the same full list of string-based options
+    EarsTop: { 'None': '', 'Pointy': '^   ^', 'Elven': '<   >', 'Type 3': 'v   v', 'Antennas': 'q   p', 'Type 5': '\\/   \\/', 'Type 6': '/\\   /\\' },
+    EarsHead: { 'None': '', 'Pointy': '^   ^', 'Elven': '<   >', 'Type 3': 'v   v', 'Antennas': 'q   p', 'Type 5': '\\/   \\/', 'Type 6': '/\\   /\\' },
     Headwear: { 'None': '', 'Punk': '///', 'Horns': '/-/', 'Curly hair': '~~~', 'Bald': '___' },
     Eyes: { 'None': '', 'Meth (Suspicious)': 'o 0', 'Sleeping': '- -', 'Eyes Open': 'o o', 'Wide-Eyed': '0 0' },
     Nose: { 'None': '', 'Round': 'o', 'Dog': 'Y', 'Crest': '.', 'More': '_' },
@@ -160,25 +161,32 @@ export default function Petz({ ownerNFTImage }) {
     let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     let line5 = feet;
 
-    const originalLine2 = line2;
-    let line2Length = originalLine2.length;
+    // Logic for line2 accessories
+    let line2Final = line2;
+    let line2Length = line2.length;
 
     if (earsHead) {
-        line2Length += (earsHead[0] || '').length + (earsHead[1] || '').length;
+        const earParts = earsHead.split('   ');
+        const leftEar = earParts[0];
+        const rightEar = earParts[1];
+        line2Length += (leftEar || '').length + (rightEar || '').length;
+
         if (selectedEarsHead === 'Elven') {
-            line2 = <><span style={{ marginRight: '5px' }}>{earsHead[0]}</span>{line2}{earsHead[1]}</>;
+            line2Final = <><span style={{ marginRight: '5px' }}>{leftEar}</span>{line2Final}{rightEar}</>;
         } else {
-            line2 = `${earsHead[0]}${line2}${earsHead[1]}`;
+            line2Final = `${leftEar}${line2Final}${rightEar}`;
         }
     }
 
     if (whiskers) {
-        line2Length += (whiskers[0] || '').length + (whiskers[1] || '').length;
-        const isStyled = typeof line2 !== 'string';
+        const leftWhisker = whiskers[0];
+        const rightWhisker = whiskers[1];
+        line2Length += (leftWhisker || '').length + (rightWhisker || '').length;
+
         if (selectedWhiskers === 'Head Regular') {
-            line2 = <>{'>'}{isStyled ? line2 : originalLine2}<span style={{ marginLeft: '-5px' }}>{'<'}</span></>;
+            line2Final = <>{leftWhisker}{line2Final}<span style={{ marginLeft: '-5px' }}>{rightWhisker}</span></>;
         } else {
-            line2 = <>{whiskers[0]}{isStyled ? line2 : originalLine2}{whiskers[1]}</>;
+            line2Final = <>{leftWhisker}{line2Final}{rightWhisker}</>;
         }
     }
     
@@ -196,19 +204,19 @@ export default function Petz({ ownerNFTImage }) {
         }
     }
 
-    const lines = [line1, line2, line3, line4, line5];
+    const lines = [line1, line2Final, line3, line4, line5];
 
     const lineLengths = lines.map((line, index) => {
         if (index === 1) return line2Length;
         if (typeof line === 'string') return line.length;
-        return 0; // Fallback for any other potential JSX lines
+        return 0;
     });
 
     const maxLength = Math.max(...lineLengths.filter(len => len > 0));
 
     const paddedLines = lines.map((line, index) => {
         const currentLength = lineLengths[index];
-        if(currentLength === 0 && !line) return '';
+        if(currentLength === 0 && (typeof line !== 'object' && !line)) return '';
         const padding = ' '.repeat(Math.floor((maxLength - currentLength) / 2));
 
         if (typeof line === 'string') {
@@ -286,8 +294,8 @@ export default function Petz({ ownerNFTImage }) {
       </SelectionModal>
 
       <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
-        <AccordionItem label="Ears (Top)" options={catData.Traits.EarsTop} selected={selectedEarsTop} onSelect={setSelectedEarsTop} isOpen={openItem === 'Trait:EarsTop'} onToggle={() => toggleItem('Trait:EarsTop')} />
-        <AccordionItem label="Ears (Head)" options={catData.Traits.EarsHead} selected={selectedEarsHead} onSelect={setSelectedEarsHead} isOpen={openItem === 'Trait:EarsHead'} onToggle={() => toggleItem('Trait:EarsHead')} />
+        <AccordionItem label="Ears Top" options={catData.Traits.EarsTop} selected={selectedEarsTop} onSelect={setSelectedEarsTop} isOpen={openItem === 'Trait:EarsTop'} onToggle={() => toggleItem('Trait:EarsTop')} />
+        <AccordionItem label="Ears Head" options={catData.Traits.EarsHead} selected={selectedEarsHead} onSelect={setSelectedEarsHead} isOpen={openItem === 'Trait:EarsHead'} onToggle={() => toggleItem('Trait:EarsHead')} />
         <AccordionItem label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Trait:Headwear'} onToggle={() => toggleItem('Trait:Headwear')} />
         <AccordionItem label="Eyes" options={catData.Traits.Eyes} selected={selectedEyes} onSelect={setSelectedEyes} isOpen={openItem === 'Trait:Eyes'} onToggle={() => toggleItem('Trait:Eyes')} />
         <AccordionItem label="Nose" options={catData.Traits.Nose} selected={selectedNose} onSelect={setSelectedNose} isOpen={openItem === 'Trait:Nose'} onToggle={() => toggleItem('Trait:Nose')} />
