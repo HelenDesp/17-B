@@ -31,8 +31,8 @@ const catData = {
     Tail: {
         'None': '',
         'Cat': ['\\_', '  '],
-        'Dog': ['@', '@'],
-        'Hamster': ['o', '0'],
+        'Dog': ['@', ' '],
+        'Hamster': ['o', ' '],
         'Curl': ['c', ' '],
     },
   }
@@ -177,8 +177,8 @@ export default function Petz({ ownerNFTImage }) {
         line4 = `${wings[0]}${line4}${wings[1]}`;
     }
 	if (tail) {
-		// Replace a regular trailing space with a non-breaking space to prevent trimming
-		const rightTail = tail[1] === ' ' ? '\u00A0' : tail[1];
+		// Replace all regular spaces with non-breaking spaces to ensure they render
+		const rightTail = tail[1].replace(/ /g, '\u00A0');
 		line5 = `${tail[0]}${line5}${rightTail}`;
 	}
 
