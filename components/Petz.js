@@ -2,7 +2,6 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// UPDATED: Data structure with corrected 'Dog' tail data
 const catData = {
   Shapes: {
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -38,7 +37,6 @@ const catData = {
   }
 };
 
-// Accordion Item component for individual traits
 const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
     const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
 
@@ -83,7 +81,6 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-// Modal component
 const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
@@ -108,12 +105,10 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
 
 
 export default function Petz({ ownerNFTImage }) {
-  // State for Shapes
   const [headShape, setHeadShape] = useState('Round');
   const [snoutShape, setSnoutShape] = useState('Round');
   const [bodyShape, setBodyShape] = useState('Round');
 
-  // State for Traits
   const [selectedEars, setSelectedEars] = useState('Type 1');
   const [selectedHeadwear, setSelectedHeadwear] = useState('None');
   const [selectedEyes, setSelectedEyes] = useState('Eyes Open');
@@ -125,12 +120,8 @@ export default function Petz({ ownerNFTImage }) {
   const [selectedWings, setSelectedWings] = useState('None');
   const [selectedTail, setSelectedTail] = useState('None');
 
-
-  // State for modals and accordions
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
-
-// /components/Petz.js
 
   const asciiArtLines = useMemo(() => {
     const ears = catData.Traits.Ears[selectedEars] || '';
@@ -166,7 +157,6 @@ export default function Petz({ ownerNFTImage }) {
     let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     let line5 = feet;
 
-    // A variable to hold the original string for length calculation if it becomes JSX
     let originalLine2 = line2;
     let originalLine3 = line3;
 
@@ -175,14 +165,14 @@ export default function Petz({ ownerNFTImage }) {
             line2 = <>{'>'}{line2}<span style={{ marginLeft: '-4px' }}>{'<'}</span></>;
         } else if (selectedWhiskers.includes('Head')) {
             line2 = `${whiskers[0]}${line2}${whiskers[1]}`;
-            originalLine2 = line2; // Update original since it's still a string
+            originalLine2 = line2;
         }
 
         if (selectedWhiskers === 'Snout Regular') {
             line3 = <>{'>'}{line3}<span style={{ marginLeft: '-4px' }}>{'<'}</span></>;
         } else if (selectedWhiskers.includes('Snout')) {
             line3 = `${whiskers[0]}${line3}${whiskers[1]}`;
-            originalLine3 = line3; // Update original since it's still a string
+            originalLine3 = line3;
         }
     }
 
@@ -202,17 +192,15 @@ export default function Petz({ ownerNFTImage }) {
 
     const lines = [line1, line2, line3, line4, line5];
 
-    // UPDATED: Calculate length correctly for strings and JSX elements
     const lineLengths = lines.map((line, index) => {
         if (typeof line === 'string') return line.length;
-        if (index === 1) return originalLine2.length + 2; // For Head Regular
-        if (index === 2) return originalLine3.length + 2; // For Snout Regular
+        if (index === 1) return originalLine2.length + 2;
+        if (index === 2) return originalLine3.length + 2;
         return 0;
     });
 
     const maxLength = Math.max(...lineLengths);
 
-    // UPDATED: Pad strings and JSX elements correctly
     const paddedLines = lines.map((line, index) => {
         const currentLength = lineLengths[index];
         const padding = ' '.repeat(Math.floor((maxLength - currentLength) / 2));
@@ -220,14 +208,13 @@ export default function Petz({ ownerNFTImage }) {
         if (typeof line === 'string') {
             return padding + line;
         } else {
-            // If it's JSX, return a new JSX element with the padding
             return <>{padding}{line}</>;
         }
     });
 
     return paddedLines.filter(line => {
         if (typeof line === 'string') return line.trim() !== '';
-        return true; // Keep JSX elements
+        return true;
     });
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
 
@@ -251,7 +238,7 @@ export default function Petz({ ownerNFTImage }) {
           <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000' }}>
             {asciiArtLines.map((line, index) => (
               <div key={index} style={{ marginTop: index > 0 ? '-0.5rem' : 0 }} >
-                {line.trim() === '' ? '\u00A0' : line}
+                {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
               </div>
             ))}
           </div>
