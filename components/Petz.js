@@ -19,9 +19,9 @@ const catData = {
     Feet: { 'None': '', 'Standard': '==', 'Owl': '=,,=' },
     Whiskers: {
         'None': '',
-        'Head Regular': ['>', '<'],
+        'Head Regular': ['> ', '<'], // Added a space after >
         'Head Parallel': ['=', '='],
-        'Snout Regular': ['>', '<'],
+        'Snout Regular': ['> ', '<'], // Added a space after >
         'Snout Parallel': ['=', '='],
     },
     Wings: {
@@ -165,14 +165,14 @@ export default function Petz({ ownerNFTImage }) {
     let line5 = feet;
 
     // UPDATED: Apply all accessory logic BEFORE padding
-    if (whiskers) {
-        if (selectedWhiskers.includes('Head')) {
-            // Using hardcoded strings for regular whiskers to bypass potential font/rendering space issue
-            line2 = selectedWhiskers.includes('Regular') ? `>${line2}<` : `${whiskers[0]}${line2}${whiskers[1]}`;
-        } else if (selectedWhiskers.includes('Snout')) {
-            line3 = selectedWhiskers.includes('Regular') ? `>${line3}<` : `${whiskers[0]}${line3}${whiskers[1]}`;
-        }
-    }
+	if (whiskers) {
+		// This simplified logic now works for all whisker types by using the data directly
+		if (selectedWhiskers.includes('Head')) {
+			line2 = `${whiskers[0]}${line2}${whiskers[1]}`;
+		} else if (selectedWhiskers.includes('Snout')) {
+			line3 = `${whiskers[0]}${line3}${whiskers[1]}`;
+		}
+	}
     if (wings) {
         line4 = `${wings[0]}${line4}${wings[1]}`;
     }
