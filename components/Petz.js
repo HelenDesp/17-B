@@ -2,7 +2,7 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// UPDATED: Data structure with Whiskers, Wings, and Tail as standalone traits
+// Data structure with corrected tail data
 const catData = {
   Shapes: {
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -17,23 +17,17 @@ const catData = {
     Snout: { 'None': '', 'Normal': '---', 'Monster': 'vvv', 'Cigarette': '--,', 'Wolf': 'o' },
     Outfit: { 'None': '', 'Muscular': '=|=', 'Suit': '\\:/', 'Priest': '\\+/', 'Bombol': "'\"'" },
     Feet: { 'None': '', 'Standard': '==', 'Owl': '=,,=' },
-    Whiskers: {
+    Accessories: {
         'None': '',
-        'Head Regular': ['>', '<'],
-        'Head Parallel': ['=', '='],
-        'Snout Regular': ['>', '<'],
-        'Snout Parallel': ['=', '='],
-    },
-    Wings: {
-        'None': '',
-        'Standard': ['//', '\\\\'],
-    },
-    Tail: {
-        'None': '',
-        'Cat': ['\\_', '  '],
-        'Dog': ['@', ' '],
-        'Hamster': ['o', ' '],
-        'Curl': ['c', ' '],
+        'Whiskers Head Regular': ['>', '<'],
+        'Whiskers Head Parallel': ['=', '='],
+        'Whiskers Snout Regular': ['>', '<'],
+        'Whiskers Snout Parallel': ['=', '='],
+        'Wings': ['//', '\\\\'],
+        'Tail Cat': '\\_',
+        'Tail Dog': '@',
+        'Tail Hamster': 'o',
+        'Tail Curl': 'c'
     },
   }
 };
@@ -121,11 +115,7 @@ export default function Petz({ ownerNFTImage }) {
   const [selectedSnoutTrait, setSelectedSnoutTrait] = useState('Normal');
   const [selectedOutfit, setSelectedOutfit] = useState('Suit');
   const [selectedFeet, setSelectedFeet] = useState('Standard');
-  // UPDATED: Replaced selectedAccessory with three new states
-  const [selectedWhiskers, setSelectedWhiskers] = useState('None');
-  const [selectedWings, setSelectedWings] = useState('None');
-  const [selectedTail, setSelectedTail] = useState('None');
-
+  const [selectedAccessory, setSelectedAccessory] = useState('None');
 
   // State for modals and accordions
   const [openModal, setOpenModal] = useState(null);
@@ -142,10 +132,8 @@ export default function Petz({ ownerNFTImage }) {
     const bShape = catData.Shapes.Body[bodyShape] || '';
     const outfit = catData.Traits.Outfit[selectedOutfit] || '';
     const feet = catData.Traits.Feet[selectedFeet] || '';
-    // UPDATED: Get data for the three new traits
-    const whiskers = catData.Traits.Whiskers[selectedWhiskers];
-    const wings = catData.Traits.Wings[selectedWings];
-    const tail = catData.Traits.Tail[selectedTail];
+    const accessory = catData.Traits.Accessories[selectedAccessory];
+    const accessoryName = selectedAccessory;
 
     let line1;
     if (selectedHeadwear !== 'None' && selectedEars !== 'None' && ears.includes('   ')) {
@@ -164,20 +152,37 @@ export default function Petz({ ownerNFTImage }) {
     let line2 = hShape ? `${hShape.slice(0, 1)}${faceLine}${hShape.slice(-1)}` : faceLine;
     let line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
-    let line5 = feet;
+    let line5 = feet; // Base feet, tail is handled later
 
-    // UPDATED: Apply each new trait separately
-    if (whiskers) {
-        if (selectedWhiskers.includes('Head')) {
-            line2 = selectedWhiskers.includes('Regular') ? `>${line2}<` : `${whiskers[0]}${line2}${whiskers[1]}`;
-        } else if (selectedWhiskers.includes('Snout')) {
-            line3 = selectedWhiskers.includes('Regular') ? `>${line3}<` : `${whiskers[0]}${line3}${whiskers[1]}`;
+    let tailAccessory = null;
+
+    if (accessory) {
+        switch(accessoryName) {
+            case 'Whiskers Head Regular':
+                line2 = `>${line2}<`;
+                break;
+            case 'Whiskers Snout Regular':
+                line3 = `>${line3}<`;
+                break;
+            case 'Whiskers Head Parallel':
+            case 'Whiskers Snout Parallel':
+                 if (accessoryName.includes('Head')) {
+                    line2 = `${accessory[0]}${line2}${accessory[1]}`;
+                } else {
+                    line3 = `${accessory[0]}${line3}${accessory[1]}`;
+                }
+                break;
+            case 'Wings':
+                line4 = `${accessory[0]}${line4}${accessory[1]}`;
+                break;
+            case 'Tail Cat':
+            case 'Tail Dog':
+            case 'Tail Hamster':
+            case 'Tail Curl':
+                tailAccessory = accessory;
+                break;
         }
     }
-    if (wings) {
-        line4 = `${wings[0]}${line4}${wings[1]}`;
-    }
-    // Tails are applied after centering, using the 'tail' variable
 
     const lines = [line1, line2, line3, line4, line5];
     const maxLength = Math.max(...lines.map(line => line ? line.length : 0));
@@ -185,14 +190,15 @@ export default function Petz({ ownerNFTImage }) {
     const finalLines = [];
     lines.forEach((line, index) => {
         const currentLine = line || '';
+        // UPDATED: Special centering logic for feet and tail
         if (index === lines.length - 1) { // Is this the feet line?
-            const padding = Math.floor((maxLength - feet.length) / 2);
-            let paddedFeet = ' '.repeat(padding) + feet;
-            if (tail) {
-                // Prepend the tail part and append the balancing space
-                finalLines.push(tail[0] + paddedFeet + tail[1]);
+            const paddingToCenterFeet = Math.floor((maxLength - feet.length) / 2);
+            if (tailAccessory) {
+                const paddingLeftOfTail = paddingToCenterFeet - tailAccessory.length;
+                const safePadding = Math.max(0, paddingLeftOfTail);
+                finalLines.push(' '.repeat(safePadding) + tailAccessory + feet);
             } else {
-                finalLines.push(paddedFeet);
+                finalLines.push(' '.repeat(paddingToCenterFeet) + feet);
             }
         } else {
             const padding = Math.floor((maxLength - currentLine.length) / 2);
@@ -201,7 +207,7 @@ export default function Petz({ ownerNFTImage }) {
     });
 
     return finalLines.filter(line => line.trim() !== '' || !!line);
-  }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
+  }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedAccessory]);
 
 
   const toggleItem = (item) => {
@@ -249,7 +255,6 @@ export default function Petz({ ownerNFTImage }) {
         <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Shape:Body'} onToggle={() => toggleItem('Shape:Body')} />
       </SelectionModal>
 
-      {/* UPDATED: Traits modal now has the standalone traits */}
       <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
         <AccordionItem label="Ears" options={catData.Traits.Ears} selected={selectedEars} onSelect={setSelectedEars} isOpen={openItem === 'Trait:Ears'} onToggle={() => toggleItem('Trait:Ears')} />
         <AccordionItem label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Trait:Headwear'} onToggle={() => toggleItem('Trait:Headwear')} />
@@ -258,9 +263,7 @@ export default function Petz({ ownerNFTImage }) {
         <AccordionItem label="Snout" options={catData.Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Trait:Snout'} onToggle={() => toggleItem('Trait:Snout')} />
         <AccordionItem label="Outfit" options={catData.Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
         <AccordionItem label="Feet" options={catData.Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
-        <AccordionItem label="Whiskers" options={catData.Traits.Whiskers} selected={selectedWhiskers} onSelect={setSelectedWhiskers} isOpen={openItem === 'Trait:Whiskers'} onToggle={() => toggleItem('Trait:Whiskers')} />
-        <AccordionItem label="Wings" options={catData.Traits.Wings} selected={selectedWings} onSelect={setSelectedWings} isOpen={openItem === 'Trait:Wings'} onToggle={() => toggleItem('Trait:Wings')} />
-        <AccordionItem label="Tail" options={catData.Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
+        <AccordionItem label="Accessories" options={catData.Traits.Accessories} selected={selectedAccessory} onSelect={setSelectedAccessory} isOpen={openItem === 'Trait:Accessories'} onToggle={() => toggleItem('Trait:Accessories')} />
       </SelectionModal>
     </div>
   );
