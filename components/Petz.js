@@ -162,14 +162,14 @@ export default function Petz({ ownerNFTImage }) {
 
     if (whiskers) {
         if (selectedWhiskers === 'Head Regular') {
-            line2 = <>{'>'}{line2}<span style={{ marginLeft: '-4px' }}>{'<'}</span></>;
+            line2 = <>{'>'}{line2}<span style={{ marginLeft: '-5px' }}>{'<'}</span></>;
         } else if (selectedWhiskers.includes('Head')) {
             line2 = `${whiskers[0]}${line2}${whiskers[1]}`;
             originalLine2 = line2;
         }
 
         if (selectedWhiskers === 'Snout Regular') {
-            line3 = <>{'>'}{line3}<span style={{ marginLeft: '-4px' }}>{'<'}</span></>;
+            line3 = <>{'>'}{line3}<span style={{ marginLeft: '-5px' }}>{'<'}</span></>;
         } else if (selectedWhiskers.includes('Snout')) {
             line3 = `${whiskers[0]}${line3}${whiskers[1]}`;
             originalLine3 = line3;
