@@ -25,8 +25,8 @@ const catData = {
         'Whiskers Snout Parallel': ['=', '='],
         'Wings': ['//', '\\\\'],
         'Tail Cat': '\\_',
-        'Tail Dog': '@',
-        'Tail Hamster': 'o',
+        'Tail Dog': ['//', '\\\\'],
+        'Tail Hamster': ['@', ' '],
         'Tail Curl': 'c'
     },
   }
