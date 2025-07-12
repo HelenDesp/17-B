@@ -19,9 +19,9 @@ const catData = {
     Feet: { 'None': '', 'Standard': '==', 'Owl': '=,,=' },
     Whiskers: {
         'None': '',
-        'Head Regular': ['>\u2009', '<'], // Added a thin space
+        'Head Regular': ['>', '<'],
         'Head Parallel': ['=', '='],
-        'Snout Regular': ['>\u2009', '<'], // Added a thin space
+        'Snout Regular': ['>', '<'],
         'Snout Parallel': ['=', '='],
     },
     Wings: {
@@ -130,6 +130,8 @@ export default function Petz({ ownerNFTImage }) {
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
 
+// /components/Petz.js
+
   const asciiArtLines = useMemo(() => {
     const ears = catData.Traits.Ears[selectedEars] || '';
     const headwear = catData.Traits.Headwear[selectedHeadwear] || '';
@@ -164,43 +166,69 @@ export default function Petz({ ownerNFTImage }) {
     let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     let line5 = feet;
 
-    // UPDATED: Apply all accessory logic BEFORE padding
-	if (whiskers) {
-		// This logic now works for all whisker types by using the data directly
-		if (selectedWhiskers.includes('Head')) {
-			line2 = `${whiskers[0]}${line2}${whiskers[1]}`;
-		} else if (selectedWhiskers.includes('Snout')) {
-			line3 = `${whiskers[0]}${line3}${whiskers[1]}`;
-		}
-	}
+    // A variable to hold the original string for length calculation if it becomes JSX
+    let originalLine2 = line2;
+    let originalLine3 = line3;
+
+    if (whiskers) {
+        if (selectedWhiskers === 'Head Regular') {
+            line2 = <>{'>'}{line2}<span style={{ marginLeft: '-4px' }}>{'<'}</span></>;
+        } else if (selectedWhiskers.includes('Head')) {
+            line2 = `${whiskers[0]}${line2}${whiskers[1]}`;
+            originalLine2 = line2; // Update original since it's still a string
+        }
+
+        if (selectedWhiskers === 'Snout Regular') {
+            line3 = <>{'>'}{line3}<span style={{ marginLeft: '-4px' }}>{'<'}</span></>;
+        } else if (selectedWhiskers.includes('Snout')) {
+            line3 = `${whiskers[0]}${line3}${whiskers[1]}`;
+            originalLine3 = line3; // Update original since it's still a string
+        }
+    }
+
     if (wings) {
         line4 = `${wings[0]}${line4}${wings[1]}`;
     }
-	if (tail) {
-		// Replace all regular spaces with non-breaking spaces to ensure they render
-		const rightTail = tail[1].replace(/ /g, '\u00A0');
-		const leftTail = tail[0];
 
-		if (selectedFeet === 'None') {
-			// If there are no feet, the tail goes on the outside of the body line
-			line4 = `${leftTail}${line4}${rightTail}`;
-		} else {
-			// Otherwise, the tail stays on the outside of the feet line
-			line5 = `${leftTail}${line5}${rightTail}`;
-		}
-	}
+    if (tail) {
+        const rightTail = tail[1].replace(/ /g, '\u00A0');
+        const leftTail = tail[0];
+        if (selectedFeet === 'None') {
+            line4 = `${leftTail}${line4}${rightTail}`;
+        } else {
+            line5 = `${leftTail}${line5}${rightTail}`;
+        }
+    }
 
     const lines = [line1, line2, line3, line4, line5];
-    const maxLength = Math.max(...lines.map(line => line ? line.length : 0));
 
-    // A single, simple padding logic for all lines
-    const paddedLines = lines.map(line => {
-        const currentLine = line || '';
-        const padding = Math.floor((maxLength - currentLine.length) / 2);
-        return ' '.repeat(padding) + currentLine;
+    // UPDATED: Calculate length correctly for strings and JSX elements
+    const lineLengths = lines.map((line, index) => {
+        if (typeof line === 'string') return line.length;
+        if (index === 1) return originalLine2.length + 2; // For Head Regular
+        if (index === 2) return originalLine3.length + 2; // For Snout Regular
+        return 0;
     });
 
-    return paddedLines.filter(line => (line || '').trim() !== '');
+    const maxLength = Math.max(...lineLengths);
+
+    // UPDATED: Pad strings and JSX elements correctly
+    const paddedLines = lines.map((line, index) => {
+        const currentLength = lineLengths[index];
+        const padding = ' '.repeat(Math.floor((maxLength - currentLength) / 2));
+
+        if (typeof line === 'string') {
+            return padding + line;
+        } else {
+            // If it's JSX, return a new JSX element with the padding
+            return <>{padding}{line}</>;
+        }
+    });
+
+    return paddedLines.filter(line => {
+        if (typeof line === 'string') return line.trim() !== '';
+        return true; // Keep JSX elements
+    });
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
 
 
