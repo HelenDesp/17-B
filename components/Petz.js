@@ -9,7 +9,7 @@ const catData = {
     Body: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
   },
   Traits: {
-    // UPDATED: Both Ear traits now have the same full list of string-based options
+    // UPDATED: Split Ears into two traits
     EarsTop: { 'None': '', 'Pointy': '^   ^', 'Elven': '<   >', 'Type 3': 'v   v', 'Antennas': 'q   p', 'Type 5': '\\/   \\/', 'Type 6': '/\\   /\\' },
     EarsHead: { 'None': '', 'Pointy': '^   ^', 'Elven': '<   >', 'Type 3': 'v   v', 'Antennas': 'q   p', 'Type 5': '\\/   \\/', 'Type 6': '/\\   /\\' },
     Headwear: { 'None': '', 'Punk': '///', 'Horns': '/-/', 'Curly hair': '~~~', 'Bald': '___' },
@@ -111,6 +111,7 @@ export default function Petz({ ownerNFTImage }) {
   const [snoutShape, setSnoutShape] = useState('Round');
   const [bodyShape, setBodyShape] = useState('Round');
 
+  // UPDATED: State for new ear traits
   const [selectedEarsTop, setSelectedEarsTop] = useState('Pointy');
   const [selectedEarsHead, setSelectedEarsHead] = useState('None');
   const [selectedHeadwear, setSelectedHeadwear] = useState('None');
@@ -127,6 +128,7 @@ export default function Petz({ ownerNFTImage }) {
   const [openItem, setOpenItem] = useState(null);
 
   const asciiArtLines = useMemo(() => {
+    // UPDATED: Get data for new ear traits
     const earsTop = catData.Traits.EarsTop[selectedEarsTop] || '';
     const earsHead = catData.Traits.EarsHead[selectedEarsHead] || '';
     const headwear = catData.Traits.Headwear[selectedHeadwear] || '';
@@ -142,12 +144,26 @@ export default function Petz({ ownerNFTImage }) {
     const wings = catData.Traits.Wings[selectedWings];
     const tail = catData.Traits.Tail[selectedTail];
 
+    // --- LINE 1 LOGIC (Ears Top) ---
     let line1;
-    if (selectedHeadwear !== 'None' && selectedEarsTop !== 'None' && earsTop.includes('   ')) {
+    // Special styling for "Elven" Ears Top
+    if (selectedEarsTop === 'Elven') {
         const earParts = earsTop.split('   ');
-        line1 = `${earParts[0]}${headwear}${earParts[1]}`;
-    } else if (selectedHeadwear !== 'None') { line1 = headwear; }
-    else { line1 = earsTop; }
+        const middleContent = selectedHeadwear !== 'None' ? headwear : '   ';
+        line1 = (
+            <>
+                <span style={{ marginRight: '5px' }}>{earParts[0]}</span>
+                {middleContent}
+                {earParts[1]}
+            </>
+        );
+    } else { // Standard logic for other Ears Top
+        if (selectedHeadwear !== 'None' && selectedEarsTop !== 'None' && earsTop.includes('   ')) {
+            const earParts = earsTop.split('   ');
+            line1 = `${earParts[0]}${headwear}${earParts[1]}`;
+        } else if (selectedHeadwear !== 'None') { line1 = headwear; }
+        else { line1 = earsTop; }
+    }
 
     let faceLine = '';
     if (eyes.includes(' ')) {
@@ -156,40 +172,48 @@ export default function Petz({ ownerNFTImage }) {
         faceLine = eyeParts.join(joiningChar);
     } else { faceLine = nose; }
 
+    // --- LINE 2 AND 3 BASE ---
     let line2 = hShape ? `${hShape.slice(0, 1)}${faceLine}${hShape.slice(-1)}` : faceLine;
     let line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     let line5 = feet;
 
-    // Logic for line2 accessories
-    let line2Final = line2;
-    let line2Length = line2.length;
+    // Keep original lines for length calculation before they become JSX
+    let originalLine2 = line2;
+    let originalLine3 = line3;
 
+    // --- NEW: EARS HEAD LOGIC (Line 2) ---
     if (earsHead) {
         const earParts = earsHead.split('   ');
-        const leftEar = earParts[0];
-        const rightEar = earParts[1];
-        line2Length += (leftEar || '').length + (rightEar || '').length;
-
         if (selectedEarsHead === 'Elven') {
-            line2Final = <><span style={{ marginRight: '5px' }}>{leftEar}</span>{line2Final}{rightEar}</>;
+            line2 = <><span style={{ marginRight: '5px' }}>{earParts[0]}</span>{line2}{earParts[1]}</>;
         } else {
-            line2Final = `${leftEar}${line2Final}${rightEar}`;
-        }
-    }
-
-    if (whiskers) {
-        const leftWhisker = whiskers[0];
-        const rightWhisker = whiskers[1];
-        line2Length += (leftWhisker || '').length + (rightWhisker || '').length;
-
-        if (selectedWhiskers === 'Head Regular') {
-            line2Final = <>{leftWhisker}{line2Final}<span style={{ marginLeft: '-5px' }}>{rightWhisker}</span></>;
-        } else {
-            line2Final = <>{leftWhisker}{line2Final}{rightWhisker}</>;
+            line2 = `${earParts[0]}${line2}${earParts[1]}`;
         }
     }
     
+    // --- WHISKERS LOGIC (Line 2 and 3) ---
+    if (whiskers) {
+        const currentLine2isJsx = typeof line2 !== 'string';
+        // Head Whiskers
+        if (selectedWhiskers.includes('Head')) {
+            if (selectedWhiskers === 'Head Regular') {
+                line2 = <>{whiskers[0]}{currentLine2isJsx ? line2 : originalLine2}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
+            } else {
+                line2 = `${whiskers[0]}${currentLine2isJsx ? line2 : originalLine2}${whiskers[1]}`;
+            }
+        }
+        // Snout Whiskers
+        if (selectedWhiskers.includes('Snout')) {
+            if (selectedWhiskers === 'Snout Regular') {
+                line3 = <>{whiskers[0]}{line3}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
+            } else {
+                line3 = `${whiskers[0]}${line3}${whiskers[1]}`;
+            }
+        }
+    }
+
+    // --- WINGS AND TAIL LOGIC ---
     if (wings) {
         line4 = `${wings[0]}${line4}${wings[1]}`;
     }
@@ -204,19 +228,33 @@ export default function Petz({ ownerNFTImage }) {
         }
     }
 
-    const lines = [line1, line2Final, line3, line4, line5];
+    const lines = [line1, line2, line3, line4, line5];
 
+    // --- CENTERING LOGIC ---
     const lineLengths = lines.map((line, index) => {
-        if (index === 1) return line2Length;
         if (typeof line === 'string') return line.length;
+
+        // Calculate length for JSX lines
+        if (index === 0) { // Ears Top (Elven)
+            const middleContent = selectedHeadwear !== 'None' ? headwear : '   ';
+            return 1 + middleContent.length + 1;
+        }
+        if (index === 1) { // Ears Head and/or Whiskers Head
+            let len = originalLine2.length;
+            if (earsHead) len += earsHead.replace('   ', '').length;
+            if (whiskers && selectedWhiskers.includes('Head')) len += 2;
+            return len;
+        }
+        if (index === 2) { // Whiskers Snout
+            return originalLine3.length + 2;
+        }
         return 0;
     });
 
-    const maxLength = Math.max(...lineLengths.filter(len => len > 0));
+    const maxLength = Math.max(...lineLengths);
 
     const paddedLines = lines.map((line, index) => {
         const currentLength = lineLengths[index];
-        if(currentLength === 0 && (typeof line !== 'object' && !line)) return '';
         const padding = ' '.repeat(Math.floor((maxLength - currentLength) / 2));
 
         if (typeof line === 'string') {
@@ -257,8 +295,19 @@ export default function Petz({ ownerNFTImage }) {
               };
 
               let leftCorrection = 0;
-              if (selectedEarsHead === 'Elven') leftCorrection -= 2.5;
-              if (selectedWhiskers === 'Head Regular') leftCorrection -= 2.5;
+              // Nudge for Ears Top
+              if (index === 0 && selectedEarsTop === 'Elven') {
+                leftCorrection -= 2.5;
+              }
+              // Nudge for Line 2 accessories
+              if (index === 1) {
+                  if (selectedEarsHead === 'Elven') leftCorrection -= 2.5;
+                  if (selectedWhiskers === 'Head Regular') leftCorrection -= 2.5;
+              }
+              // Nudge for Line 3 accessories
+              if (index === 2 && selectedWhiskers === 'Snout Regular') {
+                leftCorrection -= 2.5; 
+              }
               
               if (leftCorrection !== 0) {
                 style.left = `${leftCorrection}px`;
@@ -294,6 +343,7 @@ export default function Petz({ ownerNFTImage }) {
       </SelectionModal>
 
       <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
+        {/* UPDATED: Accordion items for new ear traits */}
         <AccordionItem label="Ears Top" options={catData.Traits.EarsTop} selected={selectedEarsTop} onSelect={setSelectedEarsTop} isOpen={openItem === 'Trait:EarsTop'} onToggle={() => toggleItem('Trait:EarsTop')} />
         <AccordionItem label="Ears Head" options={catData.Traits.EarsHead} selected={selectedEarsHead} onSelect={setSelectedEarsHead} isOpen={openItem === 'Trait:EarsHead'} onToggle={() => toggleItem('Trait:EarsHead')} />
         <AccordionItem label="Headwear" options={catData.Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Trait:Headwear'} onToggle={() => toggleItem('Trait:Headwear')} />
