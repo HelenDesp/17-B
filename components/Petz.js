@@ -2,7 +2,7 @@
 "use client";
 import { useState, useMemo } from 'react';
 
-// UPDATED: Data structure with corrected 'Dog' tail data
+// Data structure with standalone traits
 const catData = {
   Shapes: {
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -30,10 +30,10 @@ const catData = {
     },
     Tail: {
         'None': '',
-        'Cat': ['\\_', '  '],
-        'Dog': ['@', '@'],
-        'Hamster': ['o', '0'],
-        'Curl': ['c', ' '],
+        'Cat': '\\_',
+        'Dog': '@',
+        'Hamster': 'o',
+        'Curl': 'c',
     },
   }
 };
@@ -125,7 +125,6 @@ export default function Petz({ ownerNFTImage }) {
   const [selectedWings, setSelectedWings] = useState('None');
   const [selectedTail, setSelectedTail] = useState('None');
 
-
   // State for modals and accordions
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
@@ -164,10 +163,8 @@ export default function Petz({ ownerNFTImage }) {
     let line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     let line5 = feet;
 
-    // UPDATED: Apply all accessory logic BEFORE padding
     if (whiskers) {
         if (selectedWhiskers.includes('Head')) {
-            // Using hardcoded strings for regular whiskers to bypass potential font/rendering space issue
             line2 = selectedWhiskers.includes('Regular') ? `>${line2}<` : `${whiskers[0]}${line2}${whiskers[1]}`;
         } else if (selectedWhiskers.includes('Snout')) {
             line3 = selectedWhiskers.includes('Regular') ? `>${line3}<` : `${whiskers[0]}${line3}${whiskers[1]}`;
@@ -176,21 +173,31 @@ export default function Petz({ ownerNFTImage }) {
     if (wings) {
         line4 = `${wings[0]}${line4}${wings[1]}`;
     }
-    if (tail) {
-        line5 = `${tail[0]}${line5}${tail[1]}`;
-    }
-
+    
+    // UPDATED: New, precise centering logic for tails and feet
     const lines = [line1, line2, line3, line4, line5];
     const maxLength = Math.max(...lines.map(line => line ? line.length : 0));
 
-    // A single, simple padding logic for all lines
-    const paddedLines = lines.map(line => {
+    const finalLines = [];
+    lines.forEach((line, index) => {
         const currentLine = line || '';
-        const padding = Math.floor((maxLength - currentLine.length) / 2);
-        return ' '.repeat(padding) + currentLine;
+        // Handle all lines except the feet line first
+        if (index < lines.length - 1) {
+             const padding = Math.floor((maxLength - currentLine.length) / 2);
+             finalLines.push(' '.repeat(padding) + currentLine);
+        } else {
+            // Special handling for the feet line to ensure feet are centered
+            const paddingForFeet = Math.floor((maxLength - feet.length) / 2);
+            if (tail) {
+                const paddingLeftOfTail = Math.max(0, paddingForFeet - tail.length);
+                finalLines.push(' '.repeat(paddingLeftOfTail) + tail + feet);
+            } else {
+                finalLines.push(' '.repeat(paddingForFeet) + feet);
+            }
+        }
     });
 
-    return paddedLines.filter(line => (line || '').trim() !== '');
+    return finalLines.filter(line => (line || '').trim() !== '');
   }, [headShape, snoutShape, bodyShape, selectedEars, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
 
 
