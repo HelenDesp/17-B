@@ -144,7 +144,7 @@ export default function Petz({ ownerNFTImage }) {
         const middleContent = selectedHeadwear !== 'None' ? headwear : '   ';
         line1 = (
             <>
-                <span style={{ marginLeft: '5px' }}>{earParts[0]}</span>
+                <span style={{ marginRight: '5px' }}>{earParts[0]}</span>
                 {middleContent}
                 {earParts[1]}
             </>
