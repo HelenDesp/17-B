@@ -31,8 +31,8 @@ const catData = {
     Tail: {
         'None': '',
         'Cat': ['\\_', '  '],
-        'Dog': ['@', ' '],
-        'Hamster': ['o', ' '],
+        'Dog': ['@', '@'],
+        'Hamster': ['o', '0'],
         'Curl': ['c', ' '],
     },
   }
