@@ -19,9 +19,9 @@ const catData = {
     Feet: { 'None': '', 'Standard': '==', 'Owl': '=,,=' },
     Whiskers: {
         'None': '',
-        'Head Regular': ['> ', '<'], // Added a space after >
+        'Head Regular': ['>\u2009', '<'], // Added a thin space
         'Head Parallel': ['=', '='],
-        'Snout Regular': ['> ', '<'], // Added a space after >
+        'Snout Regular': ['>\u2009', '<'], // Added a thin space
         'Snout Parallel': ['=', '='],
     },
     Wings: {
@@ -166,7 +166,7 @@ export default function Petz({ ownerNFTImage }) {
 
     // UPDATED: Apply all accessory logic BEFORE padding
 	if (whiskers) {
-		// This simplified logic now works for all whisker types by using the data directly
+		// This logic now works for all whisker types by using the data directly
 		if (selectedWhiskers.includes('Head')) {
 			line2 = `${whiskers[0]}${line2}${whiskers[1]}`;
 		} else if (selectedWhiskers.includes('Snout')) {
