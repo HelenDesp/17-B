@@ -179,7 +179,15 @@ export default function Petz({ ownerNFTImage }) {
 	if (tail) {
 		// Replace all regular spaces with non-breaking spaces to ensure they render
 		const rightTail = tail[1].replace(/ /g, '\u00A0');
-		line5 = `${tail[0]}${line5}${rightTail}`;
+		const leftTail = tail[0];
+
+		if (selectedFeet === 'None') {
+			// If there are no feet, the tail goes on the outside of the body line
+			line4 = `${leftTail}${line4}${rightTail}`;
+		} else {
+			// Otherwise, the tail stays on the outside of the feet line
+			line5 = `${leftTail}${line5}${rightTail}`;
+		}
 	}
 
     const lines = [line1, line2, line3, line4, line5];
