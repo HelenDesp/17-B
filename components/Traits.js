@@ -1,0 +1,81 @@
+// /components/Traits.js
+
+export const Traits = {
+  EarsTop: {
+    'None': '',
+    'Pointy': '^   ^',
+    'Elven': '<   >',
+    'Type 3': 'v   v',
+    'Antennas': 'q   p',
+    'Type 5': '\\/   \\/',
+    'Type 6': '/\\   /\\',
+  },
+  EarsHead: {
+    'None': '',
+    'Pointy': '^   ^',
+    'Elven': '<   >',
+    'Type 3': 'v   v',
+    'Antennas': 'q   p',
+    'Type 5': '\\/   \\/',
+    'Type 6': '/\\   /\\',
+  },
+  Headwear: {
+    'None': '',
+    'Punk': '///',
+    'Horns': '/-/',
+    'Curly hair': '~~~',
+    'Bald': '___',
+  },
+  Eyes: {
+    'None': '',
+    'Glasses': 'o-o',
+    'Meth (Suspicious)': 'o 0',
+    'Sleeping': '- -',
+    'Eyes Open': 'o o',
+    'Wide-Eyed': '0 0',
+  },
+  Nose: {
+    'None': '',
+    'Round': 'o',
+    'Dog': 'Y',
+    'Crest': '.',
+    'More': '_',
+  },
+  Snout: {
+    'None': '',
+    'Normal': '---',
+    'Monster': 'vvv',
+    'Cigarette': '--,',
+    'Wolf': 'o',
+  },
+  Outfit: {
+    'None': '',
+    'Muscular': '=|=',
+    'Suit': '\\:/',
+    'Priest': '\\+/',
+    'Bombol': "'\"'",
+  },
+  Feet: {
+    'None': '',
+    'Standard': '==',
+    'Owl': '=,,=',
+  },
+  Whiskers: {
+    'None': '',
+    'Head Regular': ['>', '<'],
+    'Head Parallel': ['=', '='],
+    'Snout Regular': ['>', '<'],
+    'Snout Parallel': ['=', '='],
+  },
+  Wings: {
+    'None': '',
+    'Standard': ['//', '\\\\'],
+  },
+  Tail: {
+    'None': '',
+    'Cat': ['\\_', '  '],
+    'Dog': ['@', ' '],
+    'Hamster': ['o', ' '],
+    'Curl': ['c', ' '],
+  },
+};
