@@ -22,6 +22,7 @@ export const Traits = {
   Headwear: {
     'None': '',
     'Punk': '///',
+    'Unicorn': '_/_',
     'Horns': '/-/',
     'Curly hair': '~~~',
     'Bald': '___',
@@ -66,7 +67,6 @@ export const Traits = {
 	'Toga': '/~/',
 	'Sweater': 'x-x',
 	'Collar': '_^_',
-
 	'Kimono': '/🌸\\',
 	'Skull': '\\💀/',
 	'Peace': '_☮_',
@@ -89,7 +89,7 @@ export const Traits = {
 	'Volcano': '_🌋_',
 	'Paw': '_🐾_',
 	'Shamrock': '_☘︎_',
-	'Bowtie': '_⑅_',
+	'Wave': '_🌊_',
 	'Bowtie': '_⑅_',
 	'Bowtie': '_⑅_',
 	'Bowtie': '_⑅_',
