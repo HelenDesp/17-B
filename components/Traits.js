@@ -59,7 +59,8 @@ export const Traits = {
 	'Armor': '[#]',
 	'Scarf': '_w_',
 	'Tie': '_v_',
-	'Kimono': '/🌸🌸\\',
+	'Kimono': '/🌸\\',
+	'Skull': '\\💀/',
   },
   Feet: {
     'None': '',
