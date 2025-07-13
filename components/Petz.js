@@ -190,9 +190,9 @@ export default function Petz({ ownerNFTImage }) {
                 return (
                     <span key={i} style={{ 
                         textShadow: 'none', 
-                        fontSize: '0.8em', // Makes it smaller
+                        fontSize: '0.6em', // Makes it smaller
                         position: 'relative',
-                        left: '-3px' // Nudges it left
+                        left: '-2px' // Nudges it left
                     }}>
                         {char}
                     </span>
