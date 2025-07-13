@@ -1,7 +1,8 @@
 // /components/Petz.js
 "use client";
 import { useState, useMemo } from 'react';
-import { Traits } from './Traits.js'; // Importing Traits from the new file
+// UPDATED: Importing the new style objects along with Traits
+import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
 
 const catData = {
   Shapes: {
@@ -178,39 +179,33 @@ export default function Petz({ ownerNFTImage }) {
     let line2 = hShape ? <>{hShape.slice(0, 1)}{faceLine}{hShape.slice(-1)}</> : faceLine;
     let line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     
-    // --- UPDATED: Outfit logic for special characters ---
+    // --- REWRITTEN: Outfit logic using the "Style Reference" approach ---
     let line4;
-    const originalOutfit = outfit;
-    const specialCharRegex = /[^\u0000-\u00ff]/; // Regex to find emojis/special chars
+    const styleRef = outfitStyleMap[selectedOutfit]; // Check if the selected outfit has a style reference
 
-    if (specialCharRegex.test(originalOutfit)) {
-        const outfitParts = originalOutfit.split('');
+    if (styleRef && specialStyles[styleRef]) {
+        const styleToApply = specialStyles[styleRef]; // Get the style object from the library
+        const outfitParts = outfit.split('');
+        const specialCharRegex = /[^\u0000-\u00ff]/; // Regex to find emojis/special chars
+
         const styledOutfit = outfitParts.map((char, i) => {
             if (specialCharRegex.test(char)) {
-                return (
-                    <span key={i} style={{ 
-                        textShadow: 'none', 
-                        fontSize: '0.6em', // Makes it smaller
-                        position: 'relative',
-						top: '-7px',
-                        left: '-2px' // Nudges it left
-                    }}>
-                        {char}
-                    </span>
-                );
+                // Apply the specific style from the library
+                return <span key={i} style={styleToApply}>{char}</span>;
             }
             return char;
         });
         line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
     } else {
-        line4 = bShape ? `${bShape.slice(0, 1)}${originalOutfit}${bShape.slice(-1)}` : originalOutfit;
+        // Fallback for outfits without a special style
+        line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     }
 
     let line5 = feet;
 
     let originalLine2 = hShape ? `${hShape.slice(0, 1)}${originalFaceLine}${hShape.slice(-1)}` : originalFaceLine;
     let originalLine3 = line3;
-    let originalLine4 = bShape ? `${bShape.slice(0, 1)}${originalOutfit}${bShape.slice(-1)}` : originalOutfit;
+    let originalLine4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
 
     if (earsHead) {
         const earParts = earsHead.split('   ');

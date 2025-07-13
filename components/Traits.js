@@ -1,5 +1,48 @@
 // /components/Traits.js
 
+// NEW: A library of reusable style presets for special characters.
+export const specialStyles = {
+  Ssmall: {textShadow: 'none', fontSize: '0.5em', position: 'relative', top: '-7px', left: '-2px'},
+  Lsmall: {textShadow: 'none', fontSize: '0.55em', position: 'relative', top: '-7px', left: '-2px'},
+  default: {textShadow: 'none', fontSize: '0.6em', position: 'relative', top: '-7px', left: '-2px'},
+  Smedium: {textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-7px', left: '-2px'},
+  Mmedium: {textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-7px', left: '-2px'},
+  Lmedium: {textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-7px', left: '-2px'},
+  XLmedium: {textShadow: 'none', fontSize: '0.8em', position: 'relative', top: '-7px', left: '-2px'},
+  Slarge: {textShadow: 'none', fontSize: '0.85em', position: 'relative', top: '-7px', left: '-2px'},
+  Mlarge: {textShadow: 'none', fontSize: '0.9em', position: 'relative', top: '-7px', left: '-2px'},
+  Llarge: {textShadow: 'none', fontSize: '0.95em', position: 'relative', top: '-7px', left: '-2px'},
+  XLlarge: {textShadow: 'none', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px'},
+};
+
+// NEW: A map that links an outfit's name to a style preset from the library above.
+export const outfitStyleMap = {
+    'Kimono': 'default',
+    'Skull': 'default',
+    'Peace': 'Mmedium',
+    'Farcaster': 'default',
+    'Rocket': 'default',
+    'Snowflake': 'Mmedium',
+    'Alien': 'default',
+    'Atom': 'Lmedium',
+    'Swords': 'XLmedium',
+    'Biohazard': 'Smedium',
+    'Trident': 'default',
+    'Anchor': 'Mlarge',
+    'Diamond': 'default',
+    'Fireball': 'default',
+    'Yin Yang': 'Mmedium',
+    'Crown': 'default',
+    'Love': 'Smedium',
+    'Radioactive': 'Lmedium',
+    'Fleur-de-lis': 'Mmedium',
+    'Volcano': 'default',
+    'Paw': 'default',
+    'Shamrock': 'Lmedium',
+    'Wave': 'default',
+	'Bowtie': 'XLlarge',
+};
+
 export const Traits = {
   EarsTop: {
     'None': '',
@@ -72,7 +115,7 @@ export const Traits = {
 	'Peace': '_☮_',
 	'Farcaster': '|🏰|',
 	'Rocket': '/🚀/',
-	'Sowflake': '_❄️_',
+	'Snowflake': '_❄️_',
 	'Alien': '[👾]',
 	'Atom': '_⚛️_',
 	'Swords': '_⚔️_',
