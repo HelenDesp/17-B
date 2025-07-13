@@ -185,7 +185,7 @@ export const Traits = {
 	'Trophy': '_🏆_',
 	'Banana': '_🍌_',
 	'Pineapple': '_🍍_',
-	'Rainbow:': '/🌈\\',
+	'Rainbow': '/🌈\\',
 	'Gamer': '_🎮_',
 	'Crystal Ball': '-🔮-',
 	'Billiards': '|🎱|',
