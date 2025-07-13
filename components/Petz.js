@@ -192,7 +192,7 @@ export default function Petz({ ownerNFTImage }) {
                         textShadow: 'none', 
                         fontSize: '0.6em', // Makes it smaller
                         position: 'relative',
-						top: '-7px'
+						top: '-7px',
                         left: '-2px' // Nudges it left
                     }}>
                         {char}
