@@ -91,7 +91,7 @@ export default function Petz({ ownerNFTImage }) {
   const [selectedNose, setSelectedNose] = useState('Crest');
   const [selectedSnoutTrait, setSelectedSnoutTrait] = useState('Normal');
   const [selectedOutfit, setSelectedOutfit] = useState('Suit');
-  const [selectedFeet, setSelectedFeet] = useState('Standard');
+  const [selectedFeet, setSelectedFeet] = useState('Standing');
   const [selectedWhiskers, setSelectedWhiskers] = useState('None');
   const [selectedWings, setSelectedWings] = useState('None');
   const [selectedTail, setSelectedTail] = useState('None');
