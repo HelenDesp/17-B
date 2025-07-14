@@ -1,7 +1,6 @@
-// /components/Petz.js
+// /components/Palz.js
 "use client";
 import { useState, useMemo } from 'react';
-// UPDATED: Importing the new style objects along with Traits
 import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
 
 const catData = {
@@ -79,7 +78,7 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
 };
 
 
-export default function Petz({ ownerNFTImage }) {
+export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
   const [headShape, setHeadShape] = useState('Round');
   const [snoutShape, setSnoutShape] = useState('Round');
   const [bodyShape, setBodyShape] = useState('Round');
@@ -179,33 +178,35 @@ export default function Petz({ ownerNFTImage }) {
     let line2 = hShape ? <>{hShape.slice(0, 1)}{faceLine}{hShape.slice(-1)}</> : faceLine;
     let line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     
-    // --- REWRITTEN: Outfit logic using the "Style Reference" approach ---
     let line4;
-    const styleRef = outfitStyleMap[selectedOutfit]; // Check if the selected outfit has a style reference
+    const styleRef = outfitStyleMap[selectedOutfit];
 
     if (styleRef && specialStyles[styleRef]) {
-        const styleToApply = specialStyles[styleRef]; // Get the style object from the library
+        const styleToApply = specialStyles[styleRef];
         const outfitParts = outfit.split('');
-        const specialCharRegex = /[^\u0000-\u00ff]/; // Regex to find emojis/special chars
+        const specialCharRegex = /[^\u0000-\u00ff]/;
 
         const styledOutfit = outfitParts.map((char, i) => {
             if (specialCharRegex.test(char)) {
-                // Apply the specific style from the library
                 return <span key={i} style={styleToApply}>{char}</span>;
             }
             return char;
         });
         line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
     } else {
-        // Fallback for outfits without a special style
         line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     }
 
     let line5 = feet;
-
+    if (selectedFeet === 'Pointy') {
+        const feetParts = feet.split(' ');
+        line5 = <><span style={{ marginRight: '5px' }}>{feetParts[0]}</span> {feetParts[1]} {feetParts[2]}</>;
+    }
+    
     let originalLine2 = hShape ? `${hShape.slice(0, 1)}${originalFaceLine}${hShape.slice(-1)}` : originalFaceLine;
     let originalLine3 = line3;
     let originalLine4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
+    let originalLine5 = feet;
 
     if (earsHead) {
         const earParts = earsHead.split('   ');
@@ -218,14 +219,14 @@ export default function Petz({ ownerNFTImage }) {
     
     if (whiskers) {
         if (selectedWhiskers.includes('Head')) {
-            if (selectedWhiskers === 'Head Regular') {
+            if (selectedWhiskers === 'Head Sharp') {
                 line2 = <>{whiskers[0]}{line2}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
             } else {
                 line2 = <>{whiskers[0]}{line2}{whiskers[1]}</>;
             }
         }
         if (selectedWhiskers.includes('Snout')) {
-            if (selectedWhiskers === 'Snout Regular') {
+            if (selectedWhiskers === 'Snout Sharp') {
                 line3 = <>{whiskers[0]}{line3}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
             } else {
                 line3 = `${whiskers[0]}${line3}${whiskers[1]}`;
@@ -243,7 +244,8 @@ export default function Petz({ ownerNFTImage }) {
         if (selectedFeet === 'None') {
             line4 = <>{leftTail}{line4}{rightTail}</>;
         } else {
-            line5 = `${leftTail}${line5}${rightTail}`;
+            const currentLine5isJsx = typeof line5 !== 'string';
+            line5 = <>{leftTail}{currentLine5isJsx ? line5 : originalLine5}{rightTail}</>;
         }
     }
 
@@ -271,6 +273,11 @@ export default function Petz({ ownerNFTImage }) {
             let len = originalLine4.length;
             if (wings) len += (wings[0] + wings[1]).length;
             if (tail && selectedFeet === 'None') len += (tail[0] + tail[1]).length;
+            return len;
+        }
+        if (index === 4) {
+            let len = originalLine5.length;
+            if (tail && selectedFeet !== 'None') len += (tail[0] + tail[1]).length;
             return len;
         }
         return 0;
@@ -324,10 +331,13 @@ export default function Petz({ ownerNFTImage }) {
               }
               if (index === 1) {
                   if (selectedEarsHead === 'Elven') leftCorrection -= 2.5;
-                  if (selectedWhiskers === 'Head Regular') leftCorrection -= 2.5;
+                  if (selectedWhiskers === 'Head Sharp') leftCorrection -= 2.5;
               }
-              if (index === 2 && selectedWhiskers === 'Snout Regular') {
+              if (index === 2 && selectedWhiskers === 'Snout Sharp') {
                 leftCorrection -= 2.5; 
+              }
+              if (index === 4 && selectedFeet === 'Pointy') {
+                leftCorrection -= 2.5;
               }
               
               if (leftCorrection !== 0) {
