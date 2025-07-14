@@ -198,10 +198,11 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
     }
 
     let line5 = feet;
-    if (selectedFeet === 'Pointy') {
-        const feetParts = feet.split(' ');
-        line5 = <><span style={{ marginRight: '5px' }}>{feetParts[0]}</span> {feetParts[1]} {feetParts[2]}</>;
-    }
+	if (selectedFeet === 'Pointy') {
+		const leftCharacter = feet.substring(0, 1); // This will isolate the '<'
+		const remainingCharacters = feet.substring(1); // This will get the rest of the string '_ _>'
+		line5 = <><span style={{ marginRight: '5px' }}>{leftCharacter}</span>{remainingCharacters}</>;
+	}
     
     let originalLine2 = hShape ? `${hShape.slice(0, 1)}${originalFaceLine}${hShape.slice(-1)}` : originalFaceLine;
     let originalLine3 = line3;
