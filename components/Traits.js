@@ -133,7 +133,7 @@ export const Traits = {
 	'Jagged': 'vvv',
 	'Flare': '"',
 	'Grazer': 'H',
-	'Simpsons': '\\_)',  
+	'Simpsons': '/___\\',  
 	'Schnoz': 'U',
 	'Fu Manchu': '/ \\',
 	'Bulbous': '@',
