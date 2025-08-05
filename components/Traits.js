@@ -119,6 +119,7 @@ export const Traits = {
     'Crest': '.',
     'More': '_',
   },
+  Snout: {	
     'None': '',
     'Button': 'o',
     'Gator': '<=>',
