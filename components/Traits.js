@@ -103,6 +103,7 @@ export const Traits = {
     'Horns': '/-/',
     'Curly hair': '~~~',
     'Bald': '___',
+    'Bart': '|^^^|',  
   },
   Eyes: {
     'None': '',
