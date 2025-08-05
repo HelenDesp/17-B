@@ -286,7 +286,7 @@ export const Traits = {
     'Curl': ['@', ' '],
     'Puff': ['o', ' '],
 	'Inquisitive': ['?', ' '],
-	'Bobtail': ['Screw', ' '],
+	'Screw': ['c', ' '],
 	'Nub': ['.', ' '],
 	'Steady': ['-', ' '],
 	'Droopy': ['/', ' '],
