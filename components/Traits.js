@@ -84,7 +84,7 @@ export const Traits = {
     'Elven': '<   >',
     'Type 3': 'v   v',
     'Antennas': 'q   p',
-    'Type 5': '\\/   \\/',
+    'Teddy': '@   @',
     'Type 6': '/\\   /\\',
   },
   EarsHead: {
@@ -95,6 +95,8 @@ export const Traits = {
     'Antennas': 'q   p',
     'Type 5': '\\/   \\/',
     'Type 6': '/\\   /\\',
+    'DJ': '(   )',
+    'Human': '@   @',
   },
   Headwear: {
     'None': '',
