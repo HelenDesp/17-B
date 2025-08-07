@@ -118,7 +118,8 @@ export const Traits = {
 	'Frayed': '%   %',
 	'Aqua': '≈   ≈',
 	'Cobweb': 'x   x'
-	'Wave': '~   ~'  
+	'Wave': '~   ~'
+	'Striped': '=   ='  
   },
   Headwear: {
     'None': '',
