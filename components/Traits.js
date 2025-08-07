@@ -101,7 +101,7 @@ export const Traits = {
 	'Earmuffs': '@   @',
 	'Swirl': 'e   e',
 	'Earrings': ',   ,',
-	'Echo': '6   9',
+	'Curl': '6   9',
 	'Round': 'o   o',
 	'Gauges': '0   0',
 	'Loppy': 'U   U',
@@ -117,6 +117,8 @@ export const Traits = {
 	'Pixie': ''   '',
 	'Frayed': '%   %',
 	'Aqua': '≈   ≈',
+	'Cobweb': 'x   x'
+	'Wave': '~   ~'  
   },
   Headwear: {
     'None': '',
