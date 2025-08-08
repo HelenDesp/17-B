@@ -114,7 +114,7 @@ export const Traits = {
 	'Goat': '-   -',
 	'Multi': '8   8',
 	'Fluffy': '*   *',
-	'Pixie': ''   '',
+	'Pixie': "'   '",
 	'Frayed': '%   %',
 	'Aqua': '≈   ≈',
 	'Cobweb': 'x   x'
