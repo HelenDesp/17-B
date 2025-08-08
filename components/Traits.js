@@ -117,9 +117,9 @@ export const Traits = {
 	'Pixie': "'   '",
 	'Frayed': '%   %',
 	'Aqua': '≈   ≈',
-	'Cobweb': 'x   x'
-	'Wave': '~   ~'
-	'Striped': '=   ='  
+	'Cobweb': 'x   x',
+	'Wave': '~   ~',
+	'Striped': '=   =',  
   },
   Headwear: {
     'None': '',
