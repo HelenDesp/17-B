@@ -235,6 +235,7 @@ export const Traits = {
 	'Jagged': 'vvv',
 	'Teddy': 'I',  
 	'Flare': '"',
+	'Vader': '/|\\',  
 	'Grazer': 'H',
 	'Bill Top': '¯¯¯',
 	'Bill Middle': '---',
