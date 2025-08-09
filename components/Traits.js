@@ -243,6 +243,7 @@ export const Traits = {
 	'Fu Manchu': '/ \\',
 	'Bulbous': '@',
 	'Smirk': ',',
+	'Nostrils': '..',  
 	'Snarl': '~#~',
 	'Double': '8',
 	'Kawaii': 'owo',
@@ -251,6 +252,7 @@ export const Traits = {
 	'Cantinflas': ', ,',
 	'Scuba': 'd',
 	'Tusk': 'J',
+	'Sniffle': ';;'  
 	'Scarecrow': '-x-',
 	'Slot': '|',
 	'Blep': 'b',
