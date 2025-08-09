@@ -242,6 +242,7 @@ export const Traits = {
 	'Schnoz': 'U',
 	'Fu Manchu': '/ \\',
 	'Bulbous': '@',
+	'Fissure': '|',  
 	'Smirk': ',',
 	'Nostrils': '..',  
 	'Snarl': '~#~',
