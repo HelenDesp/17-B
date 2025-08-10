@@ -224,6 +224,7 @@ export const Traits = {
 	'Sniffle': ';',
 	'Tic-Tac-Toe': 'x',
 	'Beak': 'v',
+	'Buttons': ':',  
   },
   Snout: {	
     'None': '',
@@ -263,6 +264,7 @@ export const Traits = {
 	'Sniffle': ';;',  
 	'Scarecrow': '-x-',
 	'Slot': '|',
+	'Buttons': ':',  
 	'Blep': 'b',
 	'Loll': 'p',
 	'Android': '_T_',
