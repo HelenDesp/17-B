@@ -222,7 +222,7 @@ export const Traits = {
 	'Fissure': '|',
 	'Third Eye': 'o',
 	'Sniffle': ';',
-	'Tic-Tac-Toe': 'x'
+	'Tic-Tac-Toe': 'x',
 	'Beak': 'v',
   },
   Snout: {	
