@@ -420,7 +420,7 @@ export const Traits = {
 	'Hook': ['L', ' '],
 	'Serpent': ['~', ' '],
 	'Trident': ['W', ' '],
-	'Pom-pom': ['*', ' '],
+	'Starburst': ['*', ' '],
 	'Lasso': ['e', ' '],
   },
 };
