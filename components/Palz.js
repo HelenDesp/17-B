@@ -160,7 +160,8 @@ const asciiArtLines = useMemo(() => {
     } else {
         const leftPart = earsTop ? earsTop.split('   ')[0] : '';
         const rightPart = earsTop ? earsTop.split('   ')[1] : '';
-        const middlePart = selectedHeadwear !== 'None' ? styledHeadwear : (earsTop ? '   ' : '');
+        // CHANGE 1: Apply the shift to the headwear itself before placing it in the middle.
+        const middlePart = selectedHeadwear !== 'None' ? applyLeftShift(styledHeadwear) : (earsTop ? '   ' : '');
         line1 = <>{applyLeftShift(leftPart)}{middlePart}{rightPart}</>;
     }
 
@@ -176,7 +177,9 @@ const asciiArtLines = useMemo(() => {
     line2 = hShape ? <>{hShape.slice(0, 1)}{faceLine}{hShape.slice(-1)}</> : faceLine;
 
     // LINE 3: Snout
-    line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
+    // CHANGE 2: Construct the snout line, then apply the shift to the final result.
+    const rawLine3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
+    line3 = applyLeftShift(rawLine3);
     
     // LINE 4: Outfit & Body
     const styleRef = outfitStyleMap[selectedOutfit];
@@ -192,7 +195,6 @@ const asciiArtLines = useMemo(() => {
     line5 = applyLeftShift(feet);
 
     // --- RE-DEFINE ORIGINAL LINES FOR LENGTH CALCULATION ---
-    // This block is necessary for the centering logic to work correctly.
     let originalFaceLine;
     if (selectedEyes === 'Glasses') {
         originalFaceLine = 'o-o';
