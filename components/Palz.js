@@ -5,6 +5,7 @@ import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
 
 const catData = {
   Shapes: {
+	Headwear: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },  
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
     Snout: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
     Body: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '\\/', 'Chevron Down': '/\\', 'Curly': '{}', 'Square': '[]' },
@@ -78,16 +79,17 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
 };
 
 
-export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
+export default function Palz({ ownerNFTImage, palzTrait, nftId }) {
+  const [headwearShape, setHeadwearShape] = useState('None');	
   const [headShape, setHeadShape] = useState('Round');
   const [snoutShape, setSnoutShape] = useState('Round');
   const [bodyShape, setBodyShape] = useState('Round');
 
+  const [selectedHeadwear, setSelectedHeadwear] = useState('Curly');
   const [selectedEarsTop, setSelectedEarsTop] = useState('Teddy');
   const [selectedEarsHead, setSelectedEarsHead] = useState('None');
-  const [selectedHeadwear, setSelectedHeadwear] = useState('Curly');
   const [selectedEyes, setSelectedEyes] = useState('Open');
-  const [selectedNose, setSelectedNose] = useState('None');
+  const [selectedMien, setSelectedMien] = useState('None');
   const [selectedSnoutTrait, setSelectedSnoutTrait] = useState('Teddy');
   const [selectedOutfit, setSelectedOutfit] = useState('Suit');
   const [selectedFeet, setSelectedFeet] = useState('Paws');
@@ -113,12 +115,13 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
   };
 
   const asciiArtLines = useMemo(() => {
+    const headwear = Traits.Headwear[selectedHeadwear] || '';	  
     const earsTop = Traits.EarsTop[selectedEarsTop] || '';
     const earsHead = Traits.EarsHead[selectedEarsHead] || '';
-    const headwear = Traits.Headwear[selectedHeadwear] || '';
     const hShape = catData.Shapes.Head[headShape] || '';
+    const hwShape = catData.Shapes.Headwear[headwearShape] || '';
     const eyes = Traits.Eyes[selectedEyes] || '';
-    const nose = Traits.Nose[selectedNose] || '';
+    const mien = Traits.Mien[selectedMien] || '';
     const sShape = catData.Shapes.Snout[snoutShape] || '';
     const snoutTrait = Traits.Snout[selectedSnoutTrait] || '';
     const bShape = catData.Shapes.Body[bodyShape] || '';
@@ -128,10 +131,12 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
     const wings = Traits.Wings[selectedWings];
     const tail = Traits.Tail[selectedTail];
 
+    const styledHeadwear = hwShape ? `${hwShape.slice(0, 1)}${headwear}${hwShape.slice(-1)}` : headwear;
+
     let line1;
     if (selectedEarsTop === 'Elven') {
         const earParts = earsTop.split('   ');
-        const middleContent = selectedHeadwear !== 'None' ? headwear : '   ';
+        const middleContent = selectedHeadwear !== 'None' ? styledHeadwear : '   ';
         line1 = (
             <>
                 <span style={{ marginRight: '5px' }}>{earParts[0]}</span>
@@ -142,8 +147,8 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
     } else {
         if (selectedHeadwear !== 'None' && selectedEarsTop !== 'None' && earsTop.includes('   ')) {
             const earParts = earsTop.split('   ');
-            line1 = `${earParts[0]}${headwear}${earParts[1]}`;
-        } else if (selectedHeadwear !== 'None') { line1 = headwear; }
+            line1 = `${earParts[0]}${styledHeadwear}${earParts[1]}`;
+        } else if (selectedHeadwear !== 'None') { line1 = styledHeadwear; }
         else { line1 = earsTop; }
     }
 
@@ -157,8 +162,8 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
               o
               <span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}>
                 <span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>
-                {selectedNose !== 'None' && (
-                  <span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{nose}</span>
+                {selectedMien !== 'None' && (
+                  <span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>
                 )}
               </span>
               o
@@ -167,10 +172,10 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
     } else {
         if (eyes.includes(' ')) {
             const eyeParts = eyes.split(' ');
-            const joiningChar = selectedNose === 'None' ? ' ' : nose;
+            const joiningChar = selectedMien === 'None' ? ' ' : mien;
             faceLine = eyeParts.join(joiningChar);
         } else {
-            faceLine = nose;
+            faceLine = mien;
         }
         originalFaceLine = faceLine;
     }
@@ -301,7 +306,7 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
         if (typeof line === 'string') return line.trim() !== '';
         return true;
     });
-  }, [headShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedNose, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
+  }, [headwearShape, headShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedMien, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
 
 
   const toggleItem = (item) => {
@@ -369,17 +374,18 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
       </div>
 
       <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
+	    <AccordionItem label="Headwear" options={catData.Shapes.Headwear} selected={headwearShape} onSelect={setHeadwearShape} isOpen={openItem === 'Shape:Headwear'} onToggle={() => toggleItem('Shape:Headwear')} />
         <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Shape:Head'} onToggle={() => toggleItem('Shape:Head')} />
         <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Shape:Snout'} onToggle={() => toggleItem('Shape:Snout')} />
         <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Shape:Body'} onToggle={() => toggleItem('Shape:Body')} />
       </SelectionModal>
 
       <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
+        <AccordionItem label="Headwear" options={Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Trait:Headwear'} onToggle={() => toggleItem('Trait:Headwear')} />
         <AccordionItem label="Ears Top" options={Traits.EarsTop} selected={selectedEarsTop} onSelect={setSelectedEarsTop} isOpen={openItem === 'Trait:EarsTop'} onToggle={() => toggleItem('Trait:EarsTop')} />
         <AccordionItem label="Ears Head" options={Traits.EarsHead} selected={selectedEarsHead} onSelect={handleSetSelectedEarsHead} isOpen={openItem === 'Trait:EarsHead'} onToggle={() => toggleItem('Trait:EarsHead')} />
-        <AccordionItem label="Headwear" options={Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Trait:Headwear'} onToggle={() => toggleItem('Trait:Headwear')} />
         <AccordionItem label="Eyes" options={Traits.Eyes} selected={selectedEyes} onSelect={setSelectedEyes} isOpen={openItem === 'Trait:Eyes'} onToggle={() => toggleItem('Trait:Eyes')} />
-        <AccordionItem label="Nose" options={Traits.Nose} selected={selectedNose} onSelect={setSelectedNose} isOpen={openItem === 'Trait:Nose'} onToggle={() => toggleItem('Trait:Nose')} />
+        <AccordionItem label="Mien" options={Traits.Mien} selected={selectedMien} onSelect={setSelectedMien} isOpen={openItem === 'Trait:Mien'} onToggle={() => toggleItem('Trait:Mien')} />
         <AccordionItem label="Snout" options={Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Trait:Snout'} onToggle={() => toggleItem('Trait:Snout')} />
         <AccordionItem label="Outfit" options={Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
         <AccordionItem label="Feet" options={Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
