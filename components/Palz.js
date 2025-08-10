@@ -133,125 +133,97 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) {
 
     const styledHeadwear = hwShape ? `${hwShape.slice(0, 1)}${headwear}${hwShape.slice(-1)}` : headwear;
 
-    let line1;
-    if (selectedEarsTop === 'Elven') {
-        const earParts = earsTop.split('   ');
-        const middleContent = selectedHeadwear !== 'None' ? styledHeadwear : '   ';
-        line1 = (
-            <>
-                <span style={{ marginRight: '5px' }}>{earParts[0]}</span>
-                {middleContent}
-                {earParts[1]}
-            </>
-        );
-    } else {
-        if (selectedHeadwear !== 'None' && selectedEarsTop !== 'None' && earsTop.includes('   ')) {
-            const earParts = earsTop.split('   ');
-            line1 = `${earParts[0]}${styledHeadwear}${earParts[1]}`;
-        } else if (selectedHeadwear !== 'None') { line1 = styledHeadwear; }
-        else { line1 = earsTop; }
-    }
-
-    let faceLine;
-    let originalFaceLine;
-
-    if (selectedEyes === 'Glasses') {
-        originalFaceLine = 'o-o';
-        faceLine = (
-            <>
-              o
-              <span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}>
-                <span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>
-                {selectedMien !== 'None' && (
-                  <span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>
-                )}
-              </span>
-              o
-            </>
-        );
-    } else {
-        if (eyes.includes(' ')) {
-            const eyeParts = eyes.split(' ');
-            const joiningChar = selectedMien === 'None' ? ' ' : mien;
-            faceLine = eyeParts.join(joiningChar);
-        } else {
-            faceLine = mien;
-        }
-        originalFaceLine = faceLine;
-    }
-
-    let line2 = hShape ? <>{hShape.slice(0, 1)}{faceLine}{hShape.slice(-1)}</> : faceLine;
-    let line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
-    
+let line1;
+    let line2;
+    let line3;
     let line4;
-    const styleRef = outfitStyleMap[selectedOutfit];
+    let line5;
 
+    // Helper function for applying the style
+    const applyLeftShift = (text) => {
+        if (typeof text === 'string' && text.startsWith('<')) {
+            const firstChar = text.substring(0, 1);
+            const rest = text.substring(1);
+            return <><span style={{ marginRight: '5px' }}>{firstChar}</span>{rest}</>;
+        }
+        return text;
+    };
+
+    // LINE 1: Headwear & Top Ears
+    if (earsTop && !earsTop.includes('   ')) { // Handles ears like '^ ^' that don't have a middle space
+        line1 = applyLeftShift(earsTop);
+    } else { // Handles ears with a middle space, or just headwear
+        const leftPart = earsTop ? earsTop.split('   ')[0] : '';
+        const rightPart = earsTop ? earsTop.split('   ')[1] : '';
+        const middlePart = selectedHeadwear !== 'None' ? styledHeadwear : (earsTop ? '   ' : '');
+        line1 = <>{applyLeftShift(leftPart)}{middlePart}{rightPart}</>;
+    }
+
+    // LINE 2: Head & Eyes
+    let faceLine;
+    if (selectedEyes === 'Glasses') {
+        faceLine = (
+            <>o<span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}><span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>{selectedMien !== 'None' && (<span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>)}</span>o</>
+        );
+    } else {
+        faceLine = eyes.includes(' ') ? eyes.split(' ').join(selectedMien === 'None' ? ' ' : mien) : mien;
+    }
+    line2 = hShape ? <>{hShape.slice(0, 1)}{faceLine}{hShape.slice(-1)}</> : faceLine;
+
+    // LINE 3: Snout
+    line3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
+    
+    // LINE 4: Outfit & Body
+    const styleRef = outfitStyleMap[selectedOutfit];
     if (styleRef && specialStyles[styleRef]) {
         const styleToApply = specialStyles[styleRef];
         const outfitParts = outfit.split('');
         const specialCharRegex = /[^\u0000-\u00ff]/;
-
-        const styledOutfit = outfitParts.map((char, i) => {
-            if (specialCharRegex.test(char)) {
-                return <span key={i} style={styleToApply}>{char}</span>;
-            }
-            return char;
-        });
+        const styledOutfit = outfitParts.map((char, i) => specialCharRegex.test(char) ? <span key={i} style={styleToApply}>{char}</span> : char);
         line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
     } else {
         line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     }
 
-    let line5 = feet;
-	if (selectedFeet === 'Pointy') {
-		const leftCharacter = feet.substring(0, 1); // This will isolate the '<'
-		const remainingCharacters = feet.substring(1); // This will get the rest of the string '_ _>'
-		line5 = <><span style={{ marginRight: '5px' }}>{leftCharacter}</span>{remainingCharacters}</>;
-	}
-    
-    let originalLine2 = hShape ? `${hShape.slice(0, 1)}${originalFaceLine}${hShape.slice(-1)}` : originalFaceLine;
-    let originalLine3 = line3;
-    let originalLine4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
-    let originalLine5 = feet;
+    // LINE 5: Feet
+    line5 = applyLeftShift(feet);
 
+    // MODIFIERS (Whiskers, Wings, etc.)
     if (earsHead) {
         const earParts = earsHead.split('   ');
-        if (selectedEarsHead === 'Elven') {
-            line2 = <><span style={{ marginRight: '5px' }}>{earParts[0]}</span>{line2}{earParts[1]}</>;
-        } else {
-            line2 = <>{earParts[0]}{line2}{earParts[1]}</>;
-        }
+        line2 = <>{applyLeftShift(earParts[0])}{line2}{earParts[1]}</>;
     }
     
     if (whiskers) {
         if (selectedWhiskers.includes('Head')) {
+            const leftWhisker = applyLeftShift(whiskers[0]);
             if (selectedWhiskers === 'Head Sharp') {
-                line2 = <>{whiskers[0]}{line2}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
+                line2 = <>{leftWhisker}{line2}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
             } else {
-                line2 = <>{whiskers[0]}{line2}{whiskers[1]}</>;
+                line2 = <>{leftWhisker}{line2}{whiskers[1]}</>;
             }
         }
         if (selectedWhiskers.includes('Snout')) {
+            const leftWhisker = applyLeftShift(whiskers[0]);
             if (selectedWhiskers === 'Snout Sharp') {
-                line3 = <>{whiskers[0]}{line3}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
+                line3 = <>{leftWhisker}{line3}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
             } else {
-                line3 = `${whiskers[0]}${line3}${whiskers[1]}`;
+                line3 = `${leftWhisker}${line3}${whiskers[1]}`;
             }
         }
     }
 
     if (wings) {
-        line4 = <>{wings[0]}{line4}{wings[1]}</>;
+        line4 = <>{applyLeftShift(wings[0])}{line4}{wings[1]}</>;
     }
 
     if (tail) {
         const rightTail = tail[1].replace(/ /g, '\u00A0');
-        const leftTail = tail[0];
+        const leftTail = applyLeftShift(tail[0]);
         if (selectedFeet === 'None') {
             line4 = <>{leftTail}{line4}{rightTail}</>;
         } else {
-            const currentLine5isJsx = typeof line5 !== 'string';
-            line5 = <>{leftTail}{currentLine5isJsx ? line5 : originalLine5}{rightTail}</>;
+            line5 = <>{leftTail}{line5}{rightTail}</>;
         }
     }
 
@@ -327,42 +299,6 @@ return paddedLines;
               const style = { 
                 position: 'relative',
               };
-
-              let needsCorrection = false;
-              const traits = Traits; // To simplify access
-
-              // This logic checks if the leftmost ASCII character for the relevant trait on each line is '<'
-              if (index === 0) { // Line 1: Top Ears or Headwear
-                  const topEars = traits.EarsTop[selectedEarsTop] || '';
-                  const headwear = traits.Headwear[selectedHeadwear] || '';
-                  
-                  // Correction is needed if the ears are at the start and begin with '<', 
-                  // OR if there are no ears and the headwear begins with '<'.
-                  if (topEars && topEars.startsWith('<')) {
-                      needsCorrection = true;
-                  } else if (!topEars && headwear.startsWith('<')) {
-                      needsCorrection = true;
-                  }
-              } else if (index === 1) { // Line 2: Head Ears or Head Whiskers
-                  const headEars = traits.EarsHead[selectedEarsHead] || '';
-                  const whiskers = traits.Whiskers[selectedWhiskers];
-                  const headWhiskers = whiskers && selectedWhiskers.includes('Head') ? whiskers[0] : '';
-                  needsCorrection = headEars.startsWith('<') || headWhiskers === '<';
-              } else if (index === 2) { // Line 3: Snout Whiskers
-                  const whiskers = traits.Whiskers[selectedWhiskers];
-                  const snoutWhiskers = whiskers && selectedWhiskers.includes('Snout') ? whiskers[0] : '';
-                  needsCorrection = snoutWhiskers === '<';
-              } else if (index === 3) { // Line 4: Wings
-                  const leftWing = (traits.Wings[selectedWings] || [])[0] || '';
-                  needsCorrection = leftWing === '<';
-              } else if (index === 4) { // Line 5: Feet
-                  needsCorrection = (traits.Feet[selectedFeet] || '').startsWith('<');
-              }
-              
-              if (needsCorrection) {
-                style.left = '-2.5px';
-              }
-
               return (
                 <div key={index} style={style} >
                   {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
