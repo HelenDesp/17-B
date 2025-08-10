@@ -302,11 +302,8 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) {
         }
     });
 
-    return paddedLines.filter(line => {
-        if (typeof line === 'string') return line.trim() !== '';
-        return true;
-    });
-  }, [headwearShape, headShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedMien, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
+return paddedLines;
+  }, [headShape, headwearShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedMien, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
 
 
   const toggleItem = (item) => {
@@ -326,28 +323,34 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) {
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         <div className="z-10 p-2">
           <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
-            {asciiArtLines.map((line, index) => {
+             {asciiArtLines.map((line, index) => {
               const style = { 
                 position: 'relative',
               };
 
-              let leftCorrection = 0;
-              if (index === 0 && selectedEarsTop === 'Elven') {
-                leftCorrection -= 2.5;
-              }
-              if (index === 1) {
-                  if (selectedEarsHead === 'Elven') leftCorrection -= 2.5;
-                  if (selectedWhiskers === 'Head Sharp') leftCorrection -= 2.5;
-              }
-              if (index === 2 && selectedWhiskers === 'Snout Sharp') {
-                leftCorrection -= 2.5; 
-              }
-              if (index === 4 && selectedFeet === 'Pointy') {
-                leftCorrection -= 2.5;
+              let needsCorrection = false;
+
+              // This logic checks if the leftmost ASCII character for the relevant trait on each line is '<'
+              if (index === 0) { // Line 1: Top Ears
+                  needsCorrection = (Traits.EarsTop[selectedEarsTop] || '').startsWith('<');
+              } else if (index === 1) { // Line 2: Head Ears or Head Whiskers
+                  const headEars = Traits.EarsHead[selectedEarsHead] || '';
+                  const whiskers = Traits.Whiskers[selectedWhiskers];
+                  const headWhiskers = whiskers && selectedWhiskers.includes('Head') ? whiskers[0] : '';
+                  needsCorrection = headEars.startsWith('<') || headWhiskers === '<';
+              } else if (index === 2) { // Line 3: Snout Whiskers
+                  const whiskers = Traits.Whiskers[selectedWhiskers];
+                  const snoutWhiskers = whiskers && selectedWhiskers.includes('Snout') ? whiskers[0] : '';
+                  needsCorrection = snoutWhiskers === '<';
+              } else if (index === 3) { // Line 4: Wings
+                  const leftWing = (Traits.Wings[selectedWings] || [])[0] || '';
+                  needsCorrection = leftWing === '<';
+              } else if (index === 4) { // Line 5: Feet
+                  needsCorrection = (Traits.Feet[selectedFeet] || '').startsWith('<');
               }
               
-              if (leftCorrection !== 0) {
-                style.left = `${leftCorrection}px`;
+              if (needsCorrection) {
+                style.left = '-2.5px';
               }
 
               return (
