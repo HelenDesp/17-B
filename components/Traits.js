@@ -221,6 +221,9 @@ export const Traits = {
 	'Septum': 'I',
 	'Fissure': '|',
 	'Third Eye': 'o',
+	'Sniffle': ';',
+	'Tic-Tac-Toe': 'x'
+	'Beak': 'v',
   },
   Snout: {	
     'None': '',
@@ -257,7 +260,7 @@ export const Traits = {
 	'Cantinflas': ', ,',
 	'Scuba': 'd',
 	'Tusk': 'J',
-	'Sniffle': ';;'  
+	'Sniffle': ';;',  
 	'Scarecrow': '-x-',
 	'Slot': '|',
 	'Blep': 'b',
