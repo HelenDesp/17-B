@@ -87,7 +87,7 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) { // RENAMED
   const [selectedEarsHead, setSelectedEarsHead] = useState('None');
   const [selectedHeadwear, setSelectedHeadwear] = useState('Curly');
   const [selectedEyes, setSelectedEyes] = useState('Open');
-  const [selectedNose, setSelectedNose] = useState('Crest');
+  const [selectedNose, setSelectedNose] = useState('None');
   const [selectedSnoutTrait, setSelectedSnoutTrait] = useState('Teddy');
   const [selectedOutfit, setSelectedOutfit] = useState('Suit');
   const [selectedFeet, setSelectedFeet] = useState('Paws');
