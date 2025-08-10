@@ -139,7 +139,7 @@ const asciiArtLines = useMemo(() => {
             const rest = text.substring(1);
             return (
                 <>
-                    <span style={{ position: 'relative', left: '-2.5px' }}>{firstChar}</span>
+                    <span style={{ position: 'relative', left: '-5px' }}>{firstChar}</span>
                     {rest}
                 </>
             );
