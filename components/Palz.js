@@ -114,7 +114,7 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) {
     }
   };
 
-  const asciiArtLines = useMemo(() => {
+const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
     const earsTop = Traits.EarsTop[selectedEarsTop] || '';
     const earsHead = Traits.EarsHead[selectedEarsHead] || '';
@@ -130,16 +130,9 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) {
     const whiskers = Traits.Whiskers[selectedWhiskers];
     const wings = Traits.Wings[selectedWings];
     const tail = Traits.Tail[selectedTail];
-
     const styledHeadwear = hwShape ? `${hwShape.slice(0, 1)}${headwear}${hwShape.slice(-1)}` : headwear;
 
-let line1;
-    let line2;
-    let line3;
-    let line4;
-    let line5;
-
-    // Helper function for applying the style
+    // Helper function for applying the alignment style
     const applyLeftShift = (text) => {
         if (typeof text === 'string' && text.startsWith('<')) {
             const firstChar = text.substring(0, 1);
@@ -149,10 +142,17 @@ let line1;
         return text;
     };
 
+    // --- BASE LINE CONSTRUCTION ---
+    let line1;
+    let line2;
+    let line3;
+    let line4;
+    let line5;
+
     // LINE 1: Headwear & Top Ears
-    if (earsTop && !earsTop.includes('   ')) { // Handles ears like '^ ^' that don't have a middle space
+    if (earsTop && !earsTop.includes('   ')) {
         line1 = applyLeftShift(earsTop);
-    } else { // Handles ears with a middle space, or just headwear
+    } else {
         const leftPart = earsTop ? earsTop.split('   ')[0] : '';
         const rightPart = earsTop ? earsTop.split('   ')[1] : '';
         const middlePart = selectedHeadwear !== 'None' ? styledHeadwear : (earsTop ? '   ' : '');
@@ -177,9 +177,7 @@ let line1;
     const styleRef = outfitStyleMap[selectedOutfit];
     if (styleRef && specialStyles[styleRef]) {
         const styleToApply = specialStyles[styleRef];
-        const outfitParts = outfit.split('');
-        const specialCharRegex = /[^\u0000-\u00ff]/;
-        const styledOutfit = outfitParts.map((char, i) => specialCharRegex.test(char) ? <span key={i} style={styleToApply}>{char}</span> : char);
+        const styledOutfit = outfit.split('').map((char, i) => (/[^\u0000-\u00ff]/).test(char) ? <span key={i} style={styleToApply}>{char}</span> : char);
         line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
     } else {
         line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
@@ -188,7 +186,20 @@ let line1;
     // LINE 5: Feet
     line5 = applyLeftShift(feet);
 
-    // MODIFIERS (Whiskers, Wings, etc.)
+    // --- RE-DEFINE ORIGINAL LINES FOR LENGTH CALCULATION ---
+    // This block is necessary for the centering logic to work correctly.
+    let originalFaceLine;
+    if (selectedEyes === 'Glasses') {
+        originalFaceLine = 'o-o';
+    } else {
+        originalFaceLine = eyes.includes(' ') ? eyes.split(' ').join(selectedMien === 'None' ? ' ' : mien) : mien;
+    }
+    let originalLine2 = hShape ? `${hShape.slice(0, 1)}${originalFaceLine}${hShape.slice(-1)}` : originalFaceLine;
+    let originalLine3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
+    let originalLine4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
+    let originalLine5 = feet;
+
+    // --- MODIFIERS (Adding traits around the base lines) ---
     if (earsHead) {
         const earParts = earsHead.split('   ');
         line2 = <>{applyLeftShift(earParts[0])}{line2}{earParts[1]}</>;
@@ -223,12 +234,13 @@ let line1;
         if (selectedFeet === 'None') {
             line4 = <>{leftTail}{line4}{rightTail}</>;
         } else {
-            line5 = <>{leftTail}{line5}{rightTail}</>;
+            const currentLine5isJsx = typeof line5 !== 'string';
+            line5 = <>{leftTail}{currentLine5isJsx ? line5 : originalLine5}{rightTail}</>;
         }
     }
 
+    // --- CENTERING LOGIC ---
     const lines = [line1, line2, line3, line4, line5];
-
     const lineLengths = lines.map((line, index) => {
         if (typeof line === 'string') return line.length;
 
@@ -262,19 +274,13 @@ let line1;
     });
 
     const maxLength = Math.max(...lineLengths);
-
     const paddedLines = lines.map((line, index) => {
         const currentLength = lineLengths[index];
         const padding = ' '.repeat(Math.floor((maxLength - currentLength) / 2));
-
-        if (typeof line === 'string') {
-            return padding + line;
-        } else {
-            return <>{padding}{line}</>;
-        }
+        return (typeof line === 'string') ? (padding + line) : <>{padding}{line}</>;
     });
 
-return paddedLines;
+    return paddedLines;
   }, [headShape, headwearShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedMien, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
 
 
