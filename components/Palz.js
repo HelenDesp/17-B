@@ -272,17 +272,23 @@ const asciiArtLines = useMemo(() => {
             }
             return len;
         }
-        if (index === 1) {
-            let len = originalLine2.length;
-            if (earsHead) len += earsHead.replace('   ', '').length;
-            if (whiskers && selectedWhiskers.includes('Head')) len += 2;
-            return len;
-        }
-        if (index === 2) {
-            let len = originalLine3.length;
-            if (whiskers && selectedWhiskers.includes('Snout')) len += 2;
-            return len;
-        }
+		if (index === 1) {
+			let len = originalLine2.length;
+			if (earsHead) len += earsHead.replace('   ', '').length;
+			if (whiskers && selectedWhiskers.includes('Head')) {
+				// 'Sharp' whiskers are visually shorter due to negative margin
+				len += (selectedWhiskers === 'Head Sharp' ? 1 : 2);
+			}
+			return len;
+		}
+		if (index === 2) {
+			let len = originalLine3.length;
+			if (whiskers && selectedWhiskers.includes('Snout')) {
+				// 'Sharp' whiskers are visually shorter due to negative margin
+				len += (selectedWhiskers === 'Snout Sharp' ? 1 : 2);
+			}
+			return len;
+		}
         if (index === 3) {
             let len = originalLine4.length;
             if (wings) len += (wings[0] + wings[1]).length;
