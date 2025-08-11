@@ -132,8 +132,8 @@ const asciiArtLines = useMemo(() => {
     const tail = Traits.Tail[selectedTail];
 
     // Helper function for applying the alignment style
-    const applyLeftShift = (text) => {
-        if (typeof text === 'string' && text.startsWith('<')) {
+    const applyShift = (text) => {
+        if (typeof text === 'string' && (text.startsWith('<') || text.startsWith('>'))) {
             const firstChar = text.substring(0, 1);
             const rest = text.substring(1);
             return (
@@ -166,14 +166,22 @@ const asciiArtLines = useMemo(() => {
         line1 = <>{applyLeftShift(leftPart)}{middlePart}{rightPart}</>;
     }
 
-    // LINE 2: Head & Eyes
+// LINE 2: Head & Eyes
     let faceLine;
     if (selectedEyes === 'Glasses') {
         faceLine = (
             <>o<span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}><span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>{selectedMien !== 'None' && (<span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>)}</span>o</>
         );
     } else {
-        faceLine = eyes.includes(' ') ? eyes.split(' ').join(selectedMien === 'None' ? ' ' : mien) : mien;
+        if (eyes.includes(' ')) {
+            const eyeParts = eyes.split(' ');
+            const leftEye = applyShift(eyeParts[0]); // Apply shift to the left eye
+            const rightEye = eyeParts[1];
+            const joiningChar = selectedMien === 'None' ? ' ' : mien;
+            faceLine = <>{leftEye}{joiningChar}{rightEye}</>;
+        } else {
+            faceLine = mien;
+        }
     }
     line2 = hShape ? <>{hShape.slice(0, 1)}{faceLine}{hShape.slice(-1)}</> : faceLine;
     
