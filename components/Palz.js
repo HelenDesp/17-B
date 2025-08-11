@@ -166,24 +166,45 @@ const asciiArtLines = useMemo(() => {
         line1 = <>{applyShift(leftPart)}{middlePart}{rightPart}</>;
     }
 
-    // LINE 2: Head & Eyes
-    let faceLine;
-    if (selectedEyes === 'Glasses') {
-        faceLine = (
-            <>o<span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}><span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>{selectedMien !== 'None' && (<span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>)}</span>o</>
-        );
-    } else {
-        if (eyes.includes(' ')) {
-            const eyeParts = eyes.split(' ');
-            const leftEye = applyShift(eyeParts[0]);
-            const rightEye = eyeParts[1];
-            const joiningChar = selectedMien === 'None' ? ' ' : mien;
-            faceLine = <>{leftEye}{joiningChar}{rightEye}</>;
-        } else {
-            faceLine = mien;
-        }
-    }
-    line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
+	// LINE 2: Head & Eyes
+	let faceLine;
+	if (selectedEyes === 'Glasses') {
+		faceLine = (
+			<>o<span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}><span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>{selectedMien !== 'None' && (<span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>)}</span>o</>
+		);
+	} else if (selectedEyes === 'Doubt') {
+		const eyeParts = eyes.split(' ');
+		const joiningChar = selectedMien === 'None' ? '' : mien;
+		faceLine = (
+			<>
+				{eyeParts[0]}
+				{joiningChar}
+				<span style={{ position: 'relative', marginLeft: '-0.5em' }}>{eyeParts[1]}</span>
+			</>
+		);
+	} else {
+		if (eyes.includes(' ')) {
+			const eyeParts = eyes.split(' ');
+			const leftEye = applyShift(eyeParts[0]);
+			const rightEye = eyeParts[1];
+
+			if (selectedMien !== 'None') {
+				// If there's a nose, use it as the spacer
+				faceLine = <>{leftEye}{mien}{rightEye}</>;
+			} else {
+				// If no nose, use the pixel-based spacer
+				faceLine = (
+					<>
+						{leftEye}
+						<span style={{ marginLeft: `${eyeSpacingPx}px` }}>{rightEye}</span>
+					</>
+				);
+			}
+		} else {
+			faceLine = mien;
+		}
+	}
+	line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
     
     // LINE 4: Outfit & Body
     const styleRef = outfitStyleMap[selectedOutfit];
