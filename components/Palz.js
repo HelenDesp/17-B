@@ -113,6 +113,20 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) {
       setSelectedEarsHead('None');
     }
   };
+  
+  const handleSetSelectedMien = (mienOption) => {
+    // First, set the mien that the user chose.
+    setSelectedMien(mienOption);
+
+    // Define the only Mien traits that are allowed to be worn with Glasses.
+    const allowedMienForGlasses = ['Bit', 'Neutral', 'Smirk'];
+
+    // If the current eyes are 'Glasses' AND the newly selected mien is NOT in our allowed list...
+    if (selectedEyes === 'Glasses' && !allowedMienForGlasses.includes(mienOption)) {
+      // ...then disable the glasses by switching the eyes to 'Open'.
+      setSelectedEyes('Open');
+    }
+  };  
 
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
@@ -174,8 +188,8 @@ const asciiArtLines = useMemo(() => {
 		);
 	} else if (selectedEyes === 'Doubt') {
 		// --- Controls for 'Doubt' Eyes ---
-		const doubtEyeLeftShiftPx = -5;   // Negative values move the left eye left, positive values move it right.
-		const doubtEyeSpacingPx = -3;    // Controls the space between the eyes.
+		const doubtEyeLeftShiftPx = -6;   // Negative values move the left eye left, positive values move it right.
+		const doubtEyeSpacingPx = -9;    // Controls the space between the eyes.
 		// ------------------------------------
 
 		const eyeParts = eyes.split(' ');
@@ -374,7 +388,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Ears Top" options={Traits.EarsTop} selected={selectedEarsTop} onSelect={setSelectedEarsTop} isOpen={openItem === 'Trait:EarsTop'} onToggle={() => toggleItem('Trait:EarsTop')} />
         <AccordionItem label="Ears Head" options={Traits.EarsHead} selected={selectedEarsHead} onSelect={handleSetSelectedEarsHead} isOpen={openItem === 'Trait:EarsHead'} onToggle={() => toggleItem('Trait:EarsHead')} />
         <AccordionItem label="Eyes" options={Traits.Eyes} selected={selectedEyes} onSelect={setSelectedEyes} isOpen={openItem === 'Trait:Eyes'} onToggle={() => toggleItem('Trait:Eyes')} />
-        <AccordionItem label="Mien" options={Traits.Mien} selected={selectedMien} onSelect={setSelectedMien} isOpen={openItem === 'Trait:Mien'} onToggle={() => toggleItem('Trait:Mien')} />
+        <AccordionItem label="Mien" options={Traits.Mien} selected={selectedMien} onSelect={handleSetSelectedMien} isOpen={openItem === 'Trait:Mien'} onToggle={() => toggleItem('Trait:Mien')} />
         <AccordionItem label="Snout" options={Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Trait:Snout'} onToggle={() => toggleItem('Trait:Snout')} />
         <AccordionItem label="Outfit" options={Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
         <AccordionItem label="Feet" options={Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
