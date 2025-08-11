@@ -223,7 +223,8 @@ const asciiArtLines = useMemo(() => {
     }
     
     // CORRECTED LOGIC FOR LINE 3 (SNOUT + WHISKERS)
-    const styledSnout = applyShift(sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait);
+	const styledSnoutTrait = applyShift(snoutTrait); // Style the trait first
+	const styledSnout = sShape ? <>{sShape.slice(0, 1)}{styledSnoutTrait}{sShape.slice(-1)}</> : styledSnoutTrait; // THEN wrap it in the shape
     if (whiskers && selectedWhiskers.includes('Snout')) {
         const leftWhisker = applyShift(whiskers[0]);
         // Simplified to remove special 'Sharp' styling
