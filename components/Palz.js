@@ -267,7 +267,7 @@ const asciiArtLines = useMemo(() => {
 			if (earsHead) len += earsHead.replace('   ', '').length;
 			if (whiskers && selectedWhiskers.includes('Head')) {
 				// 'Sharp' whiskers are visually shorter due to negative margin
-				len += (selectedWhiskers === 'Head Sharp' ? 0 : 2);
+				if (whiskers && selectedWhiskers.includes('Head')) len += 2;
 			}
 			return len;
 		}
@@ -275,7 +275,7 @@ const asciiArtLines = useMemo(() => {
 			let len = originalLine3.length;
 			if (whiskers && selectedWhiskers.includes('Snout')) {
 				// 'Sharp' whiskers are visually shorter due to negative margin
-				len += (selectedWhiskers === 'Snout Sharp' ? 0 : 2);
+				if (whiskers && selectedWhiskers.includes('Snout')) len += 2;
 			}
 			return len;
 		}
