@@ -216,14 +216,10 @@ const asciiArtLines = useMemo(() => {
         line2 = <>{applyShift(earParts[0])}{line2}{earParts[1]}</>;
     }
     
-    if (whiskers && selectedWhiskers.includes('Head')) {
-        const leftWhisker = applyShift(whiskers[0]);
-        if (selectedWhiskers === 'Head Sharp') {
-            line2 = <>{leftWhisker}{line2}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
-        } else {
-            line2 = <>{leftWhisker}{line2}{whiskers[1]}</>;
-        }
-    }
+	if (whiskers && selectedWhiskers.includes('Head')) {
+		const leftWhisker = applyShift(whiskers[0]);
+		line2 = <>{leftWhisker}{line2}{whiskers[1]}</>;
+	}
     
     // CORRECTED LOGIC FOR LINE 3 (SNOUT + WHISKERS)
     // Style the snout trait FIRST
@@ -231,16 +227,10 @@ const asciiArtLines = useMemo(() => {
     // THEN wrap it in the Snout Shape
     const styledSnout = sShape ? <>{sShape.slice(0, 1)}{styledSnoutTrait}{sShape.slice(-1)}</> : styledSnoutTrait;
 
-    if (whiskers && selectedWhiskers.includes('Snout')) {
-        const leftWhisker = applyShift(whiskers[0]);
-        if (selectedWhiskers === 'Snout Sharp') {
-            line3 = <>{leftWhisker}{styledSnout}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
-        } else {
-            line3 = <>{leftWhisker}{styledSnout}{whiskers[1]}</>;
-        }
-    } else {
-        line3 = styledSnout;
-    }
+	if (whiskers && selectedWhiskers.includes('Snout')) {
+		const leftWhisker = applyShift(whiskers[0]);
+		line3 = <>{leftWhisker}{styledSnout}{whiskers[1]}</>;
+	}
 
     if (wings) {
         line4 = <>{applyShift(wings[0])}{line4}{wings[1]}</>;
