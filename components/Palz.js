@@ -133,7 +133,7 @@ const asciiArtLines = useMemo(() => {
 
     // Helper function for applying the alignment style
     const applyShift = (text) => {
-        if (typeof text === 'string' && (text.startsWith('<') || text.startsWith('>'))) {
+        if (typeof text === 'string' && (text.startsWith('<') || text.startsWith('>') || text.startsWith('{'))) {
             const firstChar = text.substring(0, 1);
             const rest = text.substring(1);
             return (
