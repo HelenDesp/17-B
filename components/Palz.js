@@ -130,6 +130,7 @@ const asciiArtLines = useMemo(() => {
     const whiskers = Traits.Whiskers[selectedWhiskers];
     const wings = Traits.Wings[selectedWings];
     const tail = Traits.Tail[selectedTail];
+	const eyeSpacingPx = 5;
 
     // Helper function for applying the alignment style
     const applyShift = (text) => {
