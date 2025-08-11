@@ -12,6 +12,8 @@ const catData = {
   },
 };
 
+// /components/Palz.js
+
 const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
     const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
 
@@ -23,6 +25,21 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
         } else {
             onSelect(optionName);
         }
+    };
+
+    // Helper function to get the displayable ASCII for each trait
+    const getAsciiDisplay = (optionName) => {
+        if (optionName === 'Random' || optionName === 'None') {
+            return ''; // Don't show ASCII for "Random" or "None"
+        }
+        const value = options[optionName];
+
+        // If the trait is an array (like Wings, Tail, Whiskers), join it with a space
+        if (Array.isArray(value)) {
+            return value.join(' ');
+        }
+        // Otherwise, just return the string value
+        return value;
     };
 
     return (
@@ -44,10 +61,16 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                         <button
                             key={optionName}
                             onClick={() => handleSelect(optionName)}
-                            className="w-full text-left py-1 px-2 flex items-center border-b border-transparent hover:border-black dark:hover:border-white"
+                            className="w-full text-left py-1 px-2 flex items-center justify-between border-b border-transparent hover:border-black dark:hover:border-white"
                         >
-                            <span className="mr-2 text-lg">•</span>
-                            <span>{optionName}</span>
+                            <div className="flex items-center">
+                                <span className="mr-2 text-lg">•</span>
+                                <span>{optionName}</span>
+                            </div>
+                            {/* This is the new part that displays the ASCII art */}
+                            <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
+                                {getAsciiDisplay(optionName)}
+                            </span>
                         </button>
                     ))}
                 </div>
