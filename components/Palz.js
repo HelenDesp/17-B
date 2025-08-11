@@ -130,7 +130,6 @@ const asciiArtLines = useMemo(() => {
     const whiskers = Traits.Whiskers[selectedWhiskers];
     const wings = Traits.Wings[selectedWings];
     const tail = Traits.Tail[selectedTail];
-	const eyeSpacingPx = 5;
 
     // Helper function for applying the alignment style
     const applyShift = (text) => {
@@ -174,33 +173,26 @@ const asciiArtLines = useMemo(() => {
 			<>o<span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}><span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>{selectedMien !== 'None' && (<span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>)}</span>o</>
 		);
 	} else if (selectedEyes === 'Doubt') {
+		// CONTROL SPACING FOR 'DOUBT' EYES HERE
+		const doubtEyeSpacingPx = -3; // Use negative for less space, positive for more
+
 		const eyeParts = eyes.split(' ');
 		const joiningChar = selectedMien === 'None' ? '' : mien;
 		faceLine = (
 			<>
 				{eyeParts[0]}
 				{joiningChar}
-				<span style={{ position: 'relative', marginLeft: '-0.5em' }}>{eyeParts[1]}</span>
+				<span style={{ position: 'relative', marginLeft: `${doubtEyeSpacingPx}px` }}>{eyeParts[1]}</span>
 			</>
 		);
 	} else {
+		// This is the default logic for all other eye types
 		if (eyes.includes(' ')) {
 			const eyeParts = eyes.split(' ');
 			const leftEye = applyShift(eyeParts[0]);
 			const rightEye = eyeParts[1];
-
-			if (selectedMien !== 'None') {
-				// If there's a nose, use it as the spacer
-				faceLine = <>{leftEye}{mien}{rightEye}</>;
-			} else {
-				// If no nose, use the pixel-based spacer
-				faceLine = (
-					<>
-						{leftEye}
-						<span style={{ marginLeft: `${eyeSpacingPx}px` }}>{rightEye}</span>
-					</>
-				);
-			}
+			const joiningChar = selectedMien === 'None' ? ' ' : mien; // Reverted to default space
+			faceLine = <>{leftEye}{joiningChar}{rightEye}</>;
 		} else {
 			faceLine = mien;
 		}
