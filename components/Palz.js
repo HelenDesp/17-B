@@ -187,7 +187,6 @@ const asciiArtLines = useMemo(() => {
 				<span style={{ position: 'relative', marginLeft: `${doubtEyeSpacingPx}px` }}>{eyeParts[1]}</span>
 			</>
 		);
-	}
 	} else {
 		// This is the default logic for all other eye types
 		if (eyes.includes(' ')) {
