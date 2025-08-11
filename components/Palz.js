@@ -173,18 +173,21 @@ const asciiArtLines = useMemo(() => {
 			<>o<span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}><span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>{selectedMien !== 'None' && (<span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>)}</span>o</>
 		);
 	} else if (selectedEyes === 'Doubt') {
-		// CONTROL SPACING FOR 'DOUBT' EYES HERE
-		const doubtEyeSpacingPx = -3; // Use negative for less space, positive for more
+		// --- Controls for 'Doubt' Eyes ---
+		const doubtEyeLeftShiftPx = -5;   // Negative values move the left eye left, positive values move it right.
+		const doubtEyeSpacingPx = -3;    // Controls the space between the eyes.
+		// ------------------------------------
 
 		const eyeParts = eyes.split(' ');
 		const joiningChar = selectedMien === 'None' ? '' : mien;
 		faceLine = (
 			<>
-				{eyeParts[0]}
+				<span style={{ position: 'relative', left: `${doubtEyeLeftShiftPx}px` }}>{eyeParts[0]}</span>
 				{joiningChar}
 				<span style={{ position: 'relative', marginLeft: `${doubtEyeSpacingPx}px` }}>{eyeParts[1]}</span>
 			</>
 		);
+	}
 	} else {
 		// This is the default logic for all other eye types
 		if (eyes.includes(' ')) {
