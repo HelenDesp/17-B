@@ -226,7 +226,7 @@ const asciiArtLines = useMemo(() => {
             if (selectedWhiskers === 'Snout Sharp') {
                 line3 = <>{leftWhisker}{line3}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
             } else {
-                line3 = `${leftWhisker}${line3}${whiskers[1]}`;
+                line3 = <>{leftWhisker}{line3}{whiskers[1]}</>;
             }
         }
     }
