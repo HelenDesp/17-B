@@ -191,9 +191,9 @@ const asciiArtLines = useMemo(() => {
         const styleToApply = specialStyles[styleRef];
         const styledOutfit = outfit.split('').map((char, i) => (/[^\u0000-\u00ff]/).test(char) ? <span key={i} style={styleToApply}>{char}</span> : char);
         line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
-    } else {
-        line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
-    }
+	} else {
+		line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
+	}
 
     // LINE 5: Feet
     line5 = applyShift(feet);
