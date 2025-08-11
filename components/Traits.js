@@ -205,7 +205,6 @@ export const Traits = {
 	'Grouchy': 'v v',
 	'Anger': '` ´',
 	'Chagrin': '/ \\',
-	'Sympathy': '￣ ￣',
 	'Doubt': '￢ ￢',
 	'Cyclope': ' 0 ',
 	'Remorse': 'm m',
