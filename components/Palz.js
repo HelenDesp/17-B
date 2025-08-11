@@ -130,7 +130,6 @@ const asciiArtLines = useMemo(() => {
     const whiskers = Traits.Whiskers[selectedWhiskers];
     const wings = Traits.Wings[selectedWings];
     const tail = Traits.Tail[selectedTail];
-    const styledHeadwear = hwShape ? `${hwShape.slice(0, 1)}${headwear}${hwShape.slice(-1)}` : headwear;
 
     // Helper function for applying the alignment style
     const applyLeftShift = (text) => {
@@ -150,17 +149,20 @@ const asciiArtLines = useMemo(() => {
     // --- BASE LINE CONSTRUCTION ---
     let line1;
     let line2;
-    let line3; // We will define line3 later
+    let line3;
     let line4;
     let line5;
 
-    // LINE 1: Headwear & Top Ears
+    // CORRECTED LINE 1: Style the headwear trait FIRST, then wrap it in the Headwear Shape
+    const styledHeadwearTrait = applyLeftShift(headwear);
+    const styledHeadwear = hwShape ? <>{hwShape.slice(0, 1)}{styledHeadwearTrait}{hwShape.slice(-1)}</> : styledHeadwearTrait;
+
     if (earsTop && !earsTop.includes('   ')) {
         line1 = applyLeftShift(earsTop);
     } else {
         const leftPart = earsTop ? earsTop.split('   ')[0] : '';
         const rightPart = earsTop ? earsTop.split('   ')[1] : '';
-        const middlePart = selectedHeadwear !== 'None' ? applyLeftShift(styledHeadwear) : (earsTop ? '   ' : '');
+        const middlePart = selectedHeadwear !== 'None' ? styledHeadwear : (earsTop ? '   ' : '');
         line1 = <>{applyLeftShift(leftPart)}{middlePart}{rightPart}</>;
     }
 
@@ -206,7 +208,6 @@ const asciiArtLines = useMemo(() => {
         line2 = <>{applyLeftShift(earParts[0])}{line2}{earParts[1]}</>;
     }
     
-    // Whiskers on Head
     if (whiskers && selectedWhiskers.includes('Head')) {
         const leftWhisker = applyLeftShift(whiskers[0]);
         if (selectedWhiskers === 'Head Sharp') {
@@ -216,8 +217,12 @@ const asciiArtLines = useMemo(() => {
         }
     }
     
-    // REWRITTEN LOGIC FOR LINE 3 (SNOUT + WHISKERS)
-    const styledSnout = applyLeftShift(sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait);
+    // CORRECTED LOGIC FOR LINE 3 (SNOUT + WHISKERS)
+    // Style the snout trait FIRST
+    const styledSnoutTrait = applyLeftShift(snoutTrait);
+    // THEN wrap it in the Snout Shape
+    const styledSnout = sShape ? <>{sShape.slice(0, 1)}{styledSnoutTrait}{sShape.slice(-1)}</> : styledSnoutTrait;
+
     if (whiskers && selectedWhiskers.includes('Snout')) {
         const leftWhisker = applyLeftShift(whiskers[0]);
         if (selectedWhiskers === 'Snout Sharp') {
@@ -250,8 +255,14 @@ const asciiArtLines = useMemo(() => {
         if (typeof line === 'string') return line.length;
 
         if (index === 0) {
-            const middleContent = selectedHeadwear !== 'None' ? headwear : '   ';
-            return 1 + middleContent.length + 1;
+            let len = 0;
+            if (selectedEarsTop !== 'None' && earsTop.includes('   ')) {
+                len += earsTop.length;
+            }
+            if (selectedHeadwear !== 'None') {
+                len += headwear.length;
+            }
+            return len;
         }
         if (index === 1) {
             let len = originalLine2.length;
