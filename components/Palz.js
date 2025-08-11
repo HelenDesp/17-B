@@ -150,7 +150,7 @@ const asciiArtLines = useMemo(() => {
     // --- BASE LINE CONSTRUCTION ---
     let line1;
     let line2;
-    let line3;
+    let line3; // We will define line3 later
     let line4;
     let line5;
 
@@ -160,7 +160,6 @@ const asciiArtLines = useMemo(() => {
     } else {
         const leftPart = earsTop ? earsTop.split('   ')[0] : '';
         const rightPart = earsTop ? earsTop.split('   ')[1] : '';
-        // CHANGE 1: Apply the shift to the headwear itself before placing it in the middle.
         const middlePart = selectedHeadwear !== 'None' ? applyLeftShift(styledHeadwear) : (earsTop ? '   ' : '');
         line1 = <>{applyLeftShift(leftPart)}{middlePart}{rightPart}</>;
     }
@@ -175,11 +174,6 @@ const asciiArtLines = useMemo(() => {
         faceLine = eyes.includes(' ') ? eyes.split(' ').join(selectedMien === 'None' ? ' ' : mien) : mien;
     }
     line2 = hShape ? <>{hShape.slice(0, 1)}{faceLine}{hShape.slice(-1)}</> : faceLine;
-
-    // LINE 3: Snout
-    // CHANGE 2: Construct the snout line, then apply the shift to the final result.
-    const rawLine3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
-    line3 = applyLeftShift(rawLine3);
     
     // LINE 4: Outfit & Body
     const styleRef = outfitStyleMap[selectedOutfit];
@@ -212,23 +206,27 @@ const asciiArtLines = useMemo(() => {
         line2 = <>{applyLeftShift(earParts[0])}{line2}{earParts[1]}</>;
     }
     
-    if (whiskers) {
-        if (selectedWhiskers.includes('Head')) {
-            const leftWhisker = applyLeftShift(whiskers[0]);
-            if (selectedWhiskers === 'Head Sharp') {
-                line2 = <>{leftWhisker}{line2}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
-            } else {
-                line2 = <>{leftWhisker}{line2}{whiskers[1]}</>;
-            }
+    // Whiskers on Head
+    if (whiskers && selectedWhiskers.includes('Head')) {
+        const leftWhisker = applyLeftShift(whiskers[0]);
+        if (selectedWhiskers === 'Head Sharp') {
+            line2 = <>{leftWhisker}{line2}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
+        } else {
+            line2 = <>{leftWhisker}{line2}{whiskers[1]}</>;
         }
-        if (selectedWhiskers.includes('Snout')) {
-            const leftWhisker = applyLeftShift(whiskers[0]);
-            if (selectedWhiskers === 'Snout Sharp') {
-                line3 = <>{leftWhisker}{line3}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
-            } else {
-                line3 = <>{leftWhisker}{line3}{whiskers[1]}</>;
-            }
+    }
+    
+    // REWRITTEN LOGIC FOR LINE 3 (SNOUT + WHISKERS)
+    const styledSnout = applyLeftShift(sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait);
+    if (whiskers && selectedWhiskers.includes('Snout')) {
+        const leftWhisker = applyLeftShift(whiskers[0]);
+        if (selectedWhiskers === 'Snout Sharp') {
+            line3 = <>{leftWhisker}{styledSnout}<span style={{ marginLeft: '-5px' }}>{whiskers[1]}</span></>;
+        } else {
+            line3 = <>{leftWhisker}{styledSnout}{whiskers[1]}</>;
         }
+    } else {
+        line3 = styledSnout;
     }
 
     if (wings) {
@@ -288,7 +286,7 @@ const asciiArtLines = useMemo(() => {
     });
 
     return paddedLines;
-  }, [headShape, headwearShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedMien, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
+}, [headShape, headwearShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedMien, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
 
 
   const toggleItem = (item) => {
