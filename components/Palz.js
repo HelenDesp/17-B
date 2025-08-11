@@ -155,7 +155,7 @@ const asciiArtLines = useMemo(() => {
 
     // CORRECTED LINE 1: Style the headwear trait FIRST, then wrap it in the Headwear Shape
     const styledHeadwearTrait = applyShift(headwear);
-    const styledHeadwear = hwShape ? <>{hwShape.slice(0, 1)}{styledHeadwearTrait}{hwShape.slice(-1)}</> : styledHeadwearTrait;
+    const styledHeadwear = hwShape ? <>{applyShift(hwShape.slice(0, 1))}{styledHeadwearTrait}{hwShape.slice(-1)}</> : styledHeadwearTrait;
 
     if (earsTop && !earsTop.includes('   ')) {
         line1 = applyShift(earsTop);
@@ -183,7 +183,7 @@ const asciiArtLines = useMemo(() => {
             faceLine = mien;
         }
     }
-    line2 = hShape ? <>{hShape.slice(0, 1)}{faceLine}{hShape.slice(-1)}</> : faceLine;
+    line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
     
     // LINE 4: Outfit & Body
     const styleRef = outfitStyleMap[selectedOutfit];
@@ -192,7 +192,7 @@ const asciiArtLines = useMemo(() => {
         const styledOutfit = outfit.split('').map((char, i) => (/[^\u0000-\u00ff]/).test(char) ? <span key={i} style={styleToApply}>{char}</span> : char);
         line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
     } else {
-        line4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
+        line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
     }
 
     // LINE 5: Feet
@@ -224,7 +224,7 @@ const asciiArtLines = useMemo(() => {
     
     // CORRECTED LOGIC FOR LINE 3 (SNOUT + WHISKERS)
 	const styledSnoutTrait = applyShift(snoutTrait); // Style the trait first
-	const styledSnout = sShape ? <>{sShape.slice(0, 1)}{styledSnoutTrait}{sShape.slice(-1)}</> : styledSnoutTrait; // THEN wrap it in the shape
+	const styledSnout = sShape ? <>{applyShift(sShape.slice(0, 1))}{styledSnoutTrait}{sShape.slice(-1)}</> : styledSnoutTrait;
     if (whiskers && selectedWhiskers.includes('Snout')) {
         const leftWhisker = applyShift(whiskers[0]);
         // Simplified to remove special 'Sharp' styling
