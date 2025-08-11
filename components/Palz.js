@@ -28,36 +28,6 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     };
 
     // Helper function to get the displayable ASCII for each trait
-const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
-    const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
-
-    const handleSelect = (optionName) => {
-        if (optionName === 'Random') {
-            const availableOptions = Object.keys(options).filter(op => op !== 'None');
-            const randomOption = availableOptions[Math.floor(Math.random() * availableOptions.length)];
-            onSelect(randomOption);
-        } else {
-            onSelect(optionName);
-        }
-    };
-
-    // Helper function to get the displayable ASCII for each trait
-// /components/Palz.js
-
-const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
-    const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
-
-    const handleSelect = (optionName) => {
-        if (optionName === 'Random') {
-            const availableOptions = Object.keys(options).filter(op => op !== 'None');
-            const randomOption = availableOptions[Math.floor(Math.random() * availableOptions.length)];
-            onSelect(randomOption);
-        } else {
-            onSelect(optionName);
-        }
-    };
-
-    // Helper function to get the displayable ASCII for each trait
     const getAsciiDisplay = (optionName) => {
         if (optionName === 'Random' || optionName === 'None') {
             return ''; // Don't show ASCII for "Random" or "None"
@@ -80,12 +50,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
             >
                 <span className="font-bold">{label}</span>
                 <div className="flex items-center space-x-2">
-                    {/* --- MODIFIED SECTION START --- */}
-                    <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
-                        {getAsciiDisplay(selected)}
-                    </span>
                     <span className="font-normal">{selected}</span>
-                    {/* --- MODIFIED SECTION END --- */}
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
                 </div>
             </button>
@@ -102,6 +67,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                                 <span className="mr-2 text-lg">•</span>
                                 <span>{optionName}</span>
                             </div>
+                            {/* This is the new part that displays the ASCII art */}
                             <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
                                 {getAsciiDisplay(optionName)}
                             </span>
