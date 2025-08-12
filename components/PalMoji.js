@@ -540,7 +540,7 @@ const asciiArtLines = useMemo(() => {
                     placeholder="Enter a name..."
                     // The classes "bg-white" and "dark:bg-black" have been replaced with "bg-transparent"
                     className="mt-1 w-full p-2 border !border-black dark:!border-white bg-transparent text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
-                    style={{ boxShadow: 'none' }}
+                    style={{ boxShadow: 'none', backgroundColor: 'transparent' }}
                 />
             </div>
             {/* Requests 5, 6, 7: Buttons are swapped and styled */}
