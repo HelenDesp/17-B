@@ -87,12 +87,18 @@ export default function NFTViewer({
             {nfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 
-                <button 
-                  onClick={() => handleOpenPalMoji(nft)} // RENAMED
-                  className="absolute top-2 left-2 z-10 p-1.5 bg-pink-200/80 dark:bg-pink-800/80 rounded-full hover:bg-pink-300 dark:hover:bg-pink-700 transition-colors"
-                  aria-label="View Your PalMoji" // RENAMED
+                <button
+                  onClick={() => handleOpenPalMoji(nft)}
+                  className="absolute bottom-2 right-2 z-10 font-mono text-xl text-gray-800 dark:text-white hover:scale-110 transform transition-transform duration-200"
+                  aria-label="Create Your PalMoji"
+                  style={{
+                    fontFamily: '"Doto", monospace',
+                    fontWeight: 900,
+                    textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000',
+                    lineHeight: 0.9
+                  }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-600 dark:text-pink-300"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                  ^w^
                 </button>
 
                 <div className="absolute left-2 bottom-2 z-10">
