@@ -101,7 +101,7 @@ export default function NFTViewer({
                     textShadow: '0.2px 0 #000, -0.2px 0 #000, 0 0.2px #000, 0 -0.2px #000, 0.2px 0.2px #000, -0.2px -0.2px #000, 0.2px -0.2px #000, -0.2px 0.2px #000',
                     lineHeight: 0.9,
 					transform: scale(.7, 1),
-					font-size: 24px;
+					font-size: 24px
                   }}
                 >
                   ^w^
