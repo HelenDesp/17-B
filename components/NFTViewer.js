@@ -107,7 +107,7 @@ export default function NFTViewer({
                 >
                   {/* The icon is now built from three spans to be controlled */}
                   <span style={{ position: 'relative', top: `${iconEyeVerticalShift}px` }}>^</span>
-                  <span style={{ paddingLeft: `${iconEyeSpacing}px`, paddingRight: `${iconEyeSpacing}px` }}>w</span>
+                  <span style={{ marginLeft: `${iconEyeSpacing}px`, marginRight: `${iconEyeSpacing}px` }}>w</span>
                   <span style={{ position: 'relative', top: `${iconEyeVerticalShift}px` }}>^</span>
                 </button>
 				
