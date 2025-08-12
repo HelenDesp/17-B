@@ -187,6 +187,14 @@ const asciiArtLines = useMemo(() => {
     const whiskers = Traits.Whiskers[selectedWhiskers];
     const wings = Traits.Wings[selectedWings];
     const tail = Traits.Tail[selectedTail];
+	
+    // --- Controls for 'Aqua' Ears Top ---
+    const aquaEarsLeftShiftPx = 0;   // Negative moves the left ear left, positive moves it right.
+    const aquaEarsRightShiftPx = 0;  // Negative moves the right ear left, positive moves it right.
+    // ------------------------------------
+
+    // --- Controls for 'Slit' Snout ---
+    const slitSnoutShiftPx = 0;    // Controls horizontal position of the '≈' symbol.	
 
     // Helper function for applying the alignment style
     const applyShift = (text) => {
@@ -214,7 +222,18 @@ const asciiArtLines = useMemo(() => {
     const styledHeadwearTrait = applyShift(headwear);
     const styledHeadwear = hwShape ? <>{applyShift(hwShape.slice(0, 1))}{styledHeadwearTrait}{hwShape.slice(-1)}</> : styledHeadwearTrait;
 
-    if (earsTop && !earsTop.includes('   ')) {
+    // NEW LOGIC FOR LINE 1 with 'Aqua' Ears control
+    if (selectedEarsTop === 'Aqua') {
+        const earParts = earsTop.split('   '); // Splits "≈   ≈"
+        const middlePart = selectedHeadwear !== 'None' ? styledHeadwear : '   ';
+        line1 = (
+            <>
+                <span style={{ position: 'relative', left: `${aquaEarsLeftShiftPx}px` }}>{applyShift(earParts[0])}</span>
+                {middlePart}
+                <span style={{ position: 'relative', left: `${aquaEarsRightShiftPx}px` }}>{earParts[1]}</span>
+            </>
+        );
+    } else if (earsTop && !earsTop.includes('   ')) {
         line1 = applyShift(earsTop);
     } else {
         const leftPart = earsTop ? earsTop.split('   ')[0] : '';
@@ -295,17 +314,28 @@ const asciiArtLines = useMemo(() => {
         line2 = <>{leftWhisker}{line2}{whiskers[1]}</>;
     }
     
-    // CORRECTED LOGIC FOR LINE 3 (SNOUT + WHISKERS)
-	const styledSnoutTrait = applyShift(snoutTrait); // Style the trait first
+	// CORRECTED LOGIC FOR LINE 3 (SNOUT + WHISKERS) with 'Slit' Snout control
+	let styledSnoutTrait;
+	if (selectedSnoutTrait === 'Slit') {
+		const slitParts = snoutTrait.split('≈'); // Splits "\≈/" into ["\", "/"]
+		styledSnoutTrait = (
+			<>
+				{slitParts[0]}
+				<span style={{ position: 'relative', left: `${slitSnoutShiftPx}px` }}>≈</span>
+				{slitParts[1]}
+			</>
+		);
+	} else {
+		styledSnoutTrait = applyShift(snoutTrait); // Default styling for all other snouts
+	}
+
 	const styledSnout = sShape ? <>{applyShift(sShape.slice(0, 1))}{styledSnoutTrait}{sShape.slice(-1)}</> : styledSnoutTrait;
-    if (whiskers && selectedWhiskers.includes('Snout')) {
-        const leftWhisker = applyShift(whiskers[0]);
-        // Simplified to remove special 'Sharp' styling
-        line3 = <>{leftWhisker}{styledSnout}{whiskers[1]}</>;
-    } else {
-        // This 'else' block is critical and is now restored
-        line3 = styledSnout;
-    }
+	if (whiskers && selectedWhiskers.includes('Snout')) {
+		const leftWhisker = applyShift(whiskers[0]);
+		line3 = <>{leftWhisker}{styledSnout}{whiskers[1]}</>;
+	} else {
+		line3 = styledSnout;
+	}
 
     if (wings) {
         line4 = <>{applyShift(wings[0])}{line4}{wings[1]}</>;
