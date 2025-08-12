@@ -321,16 +321,14 @@ const asciiArtLines = useMemo(() => {
     if (selectedSnoutTrait === 'Slit') {
         const slitParts = snoutTrait.split('≈'); // Splits "\≈/"
 
-        // Calculate padding based on the single control variable
-        const paddingLeft = slitSnoutShiftPx < 0 ? Math.abs(slitSnoutShiftPx) : 0;
-        const paddingRight = slitSnoutShiftPx > 0 ? slitSnoutShiftPx : 0;
-
         styledSnoutTrait = (
             <>
                 {slitParts[0]}
                 <span style={{
-                    paddingLeft: `${paddingLeft}px`,
-                    paddingRight: `${paddingRight}px`
+                    position: 'relative',
+                    left: `${slitSnoutShiftPx}px`,
+                    paddingLeft: `${slitSnoutPaddingLeft}px`,
+                    paddingRight: `${slitSnoutPaddingRight}px`
                 }}>≈</span>
                 {slitParts[1]}
             </>
