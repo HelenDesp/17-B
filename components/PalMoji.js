@@ -538,7 +538,8 @@ const asciiArtLines = useMemo(() => {
                     value={tempName}
                     onChange={(e) => setTempName(e.target.value)}
                     placeholder="Enter a name..."
-                    className="mt-1 w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+                    // The classes "bg-white" and "dark:bg-black" have been replaced with "bg-transparent"
+                    className="mt-1 w-full p-2 border !border-black dark:!border-white bg-transparent text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
                     style={{ boxShadow: 'none' }}
                 />
             </div>
@@ -549,7 +550,8 @@ const asciiArtLines = useMemo(() => {
                         onNameChange(tempName);
                         handleCloseModal();
                     }}
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-gray-900 text-white dark:bg-white dark:text-black text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-white hover:text-black dark:hover:bg-gray-900 dark:hover:text-white"
+                    // Use the same classes as the "Close" button
+                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
                 >
                     Save Name
                 </button>
