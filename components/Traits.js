@@ -190,6 +190,7 @@ export const Traits = {
 	'Happy': '^ ^',
 	'Bored': '= =',
 	'Weepy': 'q p',
+	'Swoon': '9 9'  
 	'Bandage': '/ o',  
 	'Sob': 'T T',
 	'Slanted': '\\ /',
@@ -204,6 +205,7 @@ export const Traits = {
 	'Haughty': 'I I',
 	'Grouchy': 'v v',
 	'Anger': '` ´',
+	'Dazed': '6 6',
 	'Chagrin': '/ \\',
 	'Doubt': '￢ ￢',
 	'Cyclope': ' 0 ',
