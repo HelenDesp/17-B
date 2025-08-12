@@ -28,20 +28,6 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     };
 
     // Helper function to get the displayable ASCII for each trait
-const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
-    const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
-
-    const handleSelect = (optionName) => {
-        if (optionName === 'Random') {
-            const availableOptions = Object.keys(options).filter(op => op !== 'None');
-            const randomOption = availableOptions[Math.floor(Math.random() * availableOptions.length)];
-            onSelect(randomOption);
-        } else {
-            onSelect(optionName);
-        }
-    };
-
-    // Helper function to get the displayable ASCII for each trait
     const getAsciiDisplay = (optionName) => {
         if (optionName === 'Random' || optionName === 'None') {
             return ''; // Don't show ASCII for "Random" or "None"
@@ -88,6 +74,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                                 <span className="mr-2 text-lg">•</span>
                                 <span>{optionName}</span>
                             </div>
+                            {/* This is the new part that displays the ASCII art */}
                             <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
                                 {getAsciiDisplay(optionName)}
                             </span>
