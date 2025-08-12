@@ -199,7 +199,7 @@ const asciiArtLines = useMemo(() => {
     const slitSnoutPaddingRight = 3; // Adds empty space to the right of the '≈'
 
     // --- Controls for 'Anger' Eyes ---
-    const angerEyeRightShiftPx = -3; // Moves the right '´' character.
+    const angerEyeRightShiftPx = -4; // Moves the right '´' character.
     // ---------------------------------	
 
     // Helper function for applying the alignment style
