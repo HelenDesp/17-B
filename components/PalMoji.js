@@ -486,23 +486,25 @@ const asciiArtLines = useMemo(() => {
       </div>
 
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
-		<div className="grid grid-cols-3 gap-2">
-			{/* Shapes Button */}
-			<button onClick={() => setOpenModal('shapes')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'shapes' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-				<span className="font-bold">Shapes</span>
-				<svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
-			</button>
-			{/* Traits Button */}
-			<button onClick={() => setOpenModal('traits')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'traits' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-				<span className="font-bold">Traits</span>
-				<svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
-			</button>
-			{/* Name Button - NEW */}
-			<button onClick={() => setOpenModal('name')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'name' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-				<span className="font-bold">Name</span>
-				<svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
-			</button>
-		</div>
+        <div className="space-y-2">
+            {/* Row 1: Shapes and Traits */}
+            <div className="grid grid-cols-2 gap-2">
+                <button onClick={() => setOpenModal('shapes')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'shapes' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+                    <span className="font-bold">Shapes</span>
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
+                </button>
+                <button onClick={() => setOpenModal('traits')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'traits' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+                    <span className="font-bold">Traits</span>
+                    <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
+                </button>
+            </div>
+            {/* Row 2: Name Button */}
+            <div>
+                <button onClick={() => setOpenModal('name')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
+                    Name
+                </button>
+            </div>
+        </div>
       </div>
 
       <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
@@ -528,8 +530,8 @@ const asciiArtLines = useMemo(() => {
       {/* ===== NEW MODAL FOR NAMING ===== */}
       <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal}>
         <div className="space-y-4">
+            {/* Request 4: Label is removed */}
             <div>
-                <label htmlFor="palmoji-name" className="block text-base font-medium text-gray-700 dark:text-gray-100">Name</label>
                 <input
                     id="palmoji-name"
                     type="text"
@@ -540,21 +542,22 @@ const asciiArtLines = useMemo(() => {
                     style={{ boxShadow: 'none' }}
                 />
             </div>
-            <div className="flex justify-end space-x-3 pt-2">
-                 <button
-                    onClick={handleCloseModal}
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                >
-                    Close
-                </button>
+            {/* Requests 5, 6, 7: Buttons are swapped and styled */}
+            <div className="flex justify-between items-center pt-2">
                 <button
                     onClick={() => {
                         onNameChange(tempName);
                         handleCloseModal();
                     }}
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-gray-900 text-white dark:bg-white dark:text-black text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none"
+                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-gray-900 text-white dark:bg-white dark:text-black text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-white hover:text-black dark:hover:bg-gray-900 dark:hover:text-white"
                 >
                     Save Name
+                </button>
+                <button
+                    onClick={handleCloseModal}
+                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+                >
+                    Close
                 </button>
             </div>
         </div>
