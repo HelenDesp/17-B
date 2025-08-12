@@ -319,13 +319,18 @@ const asciiArtLines = useMemo(() => {
 	// CORRECTED LOGIC FOR LINE 3 (SNOUT + WHISKERS) with 'Slit' Snout control
     let styledSnoutTrait;
     if (selectedSnoutTrait === 'Slit') {
-        const slitParts = snoutTrait.split('≈'); // Splits "\≈/" into ["\", "/"]
+        const slitParts = snoutTrait.split('≈'); // Splits "\≈/"
+
+        // Calculate padding based on the single control variable
+        const paddingLeft = slitSnoutShiftPx < 0 ? Math.abs(slitSnoutShiftPx) : 0;
+        const paddingRight = slitSnoutShiftPx > 0 ? slitSnoutShiftPx : 0;
+
         styledSnoutTrait = (
             <>
                 {slitParts[0]}
                 <span style={{
-                    paddingLeft: `${slitSnoutPaddingLeft}px`,
-                    paddingRight: `${slitSnoutPaddingRight}px`
+                    paddingLeft: `${paddingLeft}px`,
+                    paddingRight: `${paddingRight}px`
                 }}>≈</span>
                 {slitParts[1]}
             </>
