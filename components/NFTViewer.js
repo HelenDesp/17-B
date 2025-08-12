@@ -11,7 +11,7 @@ export default function NFTViewer({
 }) {
   const { address } = useAccount();
   // --- Icon Style Controls ---
-  const iconEyeSpacing = -3;        // Adjusts space between the two '^' characters.
+  const iconEyeSpacing = -6;        // Adjusts space between the two '^' characters.
   const iconEyeVerticalShift = -6; // Moves the '^' characters up (negative) or down (positive).
   // -------------------------  
   const [loading] = useState(false);
@@ -98,10 +98,10 @@ export default function NFTViewer({
                   style={{
                     fontFamily: '"Doto", monospace',
                     fontWeight: 900,
-                    textShadow: '0.2px 0 #000, -0.2px 0 #000, 0 0.2px #000, 0 -0.2px #000, 0.2px 0.2px #000, -0.2px -0.2px #000, 0.2px -0.2px #000, -0.2px 0.2px #000',
+                    textShadow: '0.1px 0 #000, -0.1px 0 #000, 0 0.1px #000, 0 -0.1px #000, 0.1px 0.1px #000, -0.1px -0.1px #000, 0.1px -0.1px #000, -0.1px 0.1px #000',
                     lineHeight: 0.9,
                     transform: 'scale(1, 1)',
-                    fontSize: '24px',
+                    fontSize: '22px',
                     whiteSpace: 'nowrap'
                   }}
                 >
