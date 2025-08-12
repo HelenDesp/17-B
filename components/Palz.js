@@ -148,6 +148,11 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) {
     // First, set the mien that the user chose.
     setSelectedMien(mienOption);
 
+    // NEW: If 'Doubt' eyes are active, switch them to 'Open' when a Mien is chosen.
+    if (selectedEyes === 'Doubt' && mienOption !== 'None') {
+        setSelectedEyes('Open');
+    }
+
     // Define the only Mien traits that are allowed to be worn with Glasses.
     const allowedMienForGlasses = ['Bit', 'Neutral', 'Smirk'];
 
@@ -159,6 +164,10 @@ export default function Palz({ ownerNFTImage, palzTrait, nftId }) {
   };
 
 	const handleSetSelectedEyes = (eyeOption) => {
+		
+	  if (eyeOption === 'Doubt' && selectedMien !== 'None') {
+		  return;
+	  }		
 	  const allowedMienForGlasses = ['Bit', 'Neutral', 'Smirk'];
 
 	  // If you're trying to select 'Glasses' but the current Mien is not allowed...
