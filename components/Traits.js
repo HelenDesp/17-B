@@ -340,7 +340,7 @@ export const Traits = {
 	'Crystal Ball': '-🔮-',
 	'Billiards': '|🎱|',
 	'Baseball': '_⚾_',
-	'Sax:': '_🎷_',
+	'Sax': '_🎷_',
 	'Guitar': '_🎸_',
 	'Ghost': '\\👻\\',
 	'Pumpkin': '_🎃_',
