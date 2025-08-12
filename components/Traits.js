@@ -236,7 +236,7 @@ export const Traits = {
     'Neutral': '_',
 	'Droopy': 'Y',
 	'Grin': 'W',
-	'Slit': '\\-/',  
+	'Slit': '\\≈/',  
 	'Pointy': 'v',
 	'Walrus': ',=,',
 	'Close': 'x',
