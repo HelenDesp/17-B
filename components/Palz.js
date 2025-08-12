@@ -189,12 +189,14 @@ const asciiArtLines = useMemo(() => {
     const tail = Traits.Tail[selectedTail];
 	
     // --- Controls for 'Aqua' Ears Top ---
-    const aquaEarsLeftShiftPx = 0;   // Negative moves the left ear left, positive moves it right.
-    const aquaEarsRightShiftPx = 0;  // Negative moves the right ear left, positive moves it right.
+    const aquaEarsLeftShiftPx = -3;
+    const aquaEarsRightShiftPx = -3;
     // ------------------------------------
 
     // --- Controls for 'Slit' Snout ---
-    const slitSnoutShiftPx = 0;    // Controls horizontal position of the '≈' symbol.	
+    const slitSnoutShiftPx = -2.5;    // Controls horizontal position of the '≈' symbol.
+    const slitOuterLeftShiftPx = -1;  // NEW: Moves the left '\' character. Negative adds space to the left.
+    const slitOuterRightShiftPx = 1; // NEW: Moves the right '/' character. Positive adds space to the right.	
 
     // Helper function for applying the alignment style
     const applyShift = (text) => {
@@ -315,19 +317,19 @@ const asciiArtLines = useMemo(() => {
     }
     
 	// CORRECTED LOGIC FOR LINE 3 (SNOUT + WHISKERS) with 'Slit' Snout control
-	let styledSnoutTrait;
-	if (selectedSnoutTrait === 'Slit') {
-		const slitParts = snoutTrait.split('≈'); // Splits "\≈/" into ["\", "/"]
-		styledSnoutTrait = (
-			<>
-				{slitParts[0]}
-				<span style={{ position: 'relative', left: `${slitSnoutShiftPx}px` }}>≈</span>
-				{slitParts[1]}
-			</>
-		);
-	} else {
-		styledSnoutTrait = applyShift(snoutTrait); // Default styling for all other snouts
-	}
+    let styledSnoutTrait;
+    if (selectedSnoutTrait === 'Slit') {
+        const slitParts = snoutTrait.split('≈'); // Splits "\≈/" into ["\", "/"]
+        styledSnoutTrait = (
+            <>
+                <span style={{ position: 'relative', left: `${slitOuterLeftShiftPx}px` }}>{slitParts[0]}</span>
+                <span style={{ position: 'relative', left: `${slitSnoutShiftPx}px` }}>≈</span>
+                <span style={{ position: 'relative', left: `${slitOuterRightShiftPx}px` }}>{slitParts[1]}</span>
+            </>
+        );
+    } else {
+        styledSnoutTrait = applyShift(snoutTrait); // Default styling for all other snouts
+    }
 
 	const styledSnout = sShape ? <>{applyShift(sShape.slice(0, 1))}{styledSnoutTrait}{sShape.slice(-1)}</> : styledSnoutTrait;
 	if (whiskers && selectedWhiskers.includes('Snout')) {
