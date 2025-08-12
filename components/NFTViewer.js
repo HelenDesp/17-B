@@ -14,6 +14,9 @@ export default function NFTViewer({
   const iconEyeSpacing = -6;        // Adjusts space between the two '^' characters.
   const iconEyeVerticalShift = -6; // Moves the '^' characters up (negative) or down (positive).
   // -------------------------  
+  const iconPositionBottom = 3; // Position from the bottom edge, in pixels.
+  const iconPositionRight = 3;  // Position from the right edge, in pixels. 
+  
   const [loading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
@@ -93,22 +96,25 @@ export default function NFTViewer({
                 
                 <button
                   onClick={() => handleOpenPalMoji(nft)}
-                  className="absolute bottom-2 right-2 z-10 font-mono text-xl text-gray-800 dark:text-white hover:scale-110 transform transition-transform duration-200"
+                  // "bottom-2" and "right-2" have been removed from this className
+                  className="absolute z-10 font-mono text-xl text-gray-800 dark:text-white hover:scale-110 transform transition-transform duration-200"
                   aria-label="Create Your PalMoji"
                   style={{
                     fontFamily: '"Doto", monospace',
                     fontWeight: 900,
-                    textShadow: '0.1px 0 #000, -0.1px 0 #000, 0 0.1px #000, 0 -0.1px #000, 0.1px 0.1px #000, -0.1px -0.1px #000, 0.1px -0.1px #000, -0.1px 0.1px #000',
+                    textShadow: '0.2px 0 #000, -0.2px 0 #000, 0 0.2px #000, 0 -0.2px #000, 0.2px 0.2px #000, -0.2px -0.2px #000, 0.2px -0.2px #000, -0.2px 0.2px #000',
                     lineHeight: 0.9,
                     transform: 'scale(1, 1)',
-                    fontSize: '22px',
-                    whiteSpace: 'nowrap'
+                    fontSize: '24px',
+                    whiteSpace: 'nowrap',
+                    // New positioning styles are added here
+                    bottom: `${iconPositionBottom}px`,
+                    right: `${iconPositionRight}px`,
                   }}
                 >
-                  {/* The icon is now built from three spans to be controlled */}
                   <span style={{ position: 'relative', top: `${iconEyeVerticalShift}px` }}>^</span>
                   <span style={{ marginLeft: `${iconEyeSpacing}px`, marginRight: `${iconEyeSpacing}px` }}>w</span>
-                  <span style={{ position: 'relative', top: `${iconEyeVerticalShift}px` }}>^</span>
+                  <span style={{ position: 'relative', top: `${iconEyeVerticaleShift}px` }}>^</span>
                 </button>
 				
                 <div className="absolute left-2 bottom-2 z-10">
