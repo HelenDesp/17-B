@@ -95,18 +95,22 @@ export default function NFTViewer({
                   onClick={() => handleOpenPalMoji(nft)}
                   className="absolute bottom-2 right-2 z-10 font-mono text-xl text-gray-800 dark:text-white hover:scale-110 transform transition-transform duration-200"
                   aria-label="Create Your PalMoji"
-				  style={{
-					fontFamily: '"Doto", monospace',
-					fontWeight: 900,
-					textShadow: '0.2px 0 #000, -0.2px 0 #000, 0 0.2px #000, 0 -0.2px #000, 0.2px 0.2px #000, -0.2px -0.2px #000, 0.2px -0.2px #000, -0.2px 0.2px #000',
-					lineHeight: 0.9,
-					transform: 'scale(1, 1)',
-					fontSize: '24px' 
-				  }}
+                  style={{
+                    fontFamily: '"Doto", monospace',
+                    fontWeight: 900,
+                    textShadow: '0.2px 0 #000, -0.2px 0 #000, 0 0.2px #000, 0 -0.2px #000, 0.2px 0.2px #000, -0.2px -0.2px #000, 0.2px -0.2px #000, -0.2px 0.2px #000',
+                    lineHeight: 0.9,
+                    transform: 'scale(1, 1)',
+                    fontSize: '24px',
+                    whiteSpace: 'nowrap'
+                  }}
                 >
-                  ^w^
+                  {/* The icon is now built from three spans to be controlled */}
+                  <span style={{ position: 'relative', top: `${iconEyeVerticalShift}px` }}>^</span>
+                  <span style={{ paddingLeft: `${iconEyeSpacing}px`, paddingRight: `${iconEyeSpacing}px` }}>w</span>
+                  <span style={{ position: 'relative', top: `${iconEyeVerticalShift}px` }}>^</span>
                 </button>
-
+				
                 <div className="absolute left-2 bottom-2 z-10">
                   <div className="relative flex flex-col items-center">
                     <input
