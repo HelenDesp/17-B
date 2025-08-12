@@ -188,7 +188,7 @@ const asciiArtLines = useMemo(() => {
     const wings = Traits.Wings[selectedWings];
     const tail = Traits.Tail[selectedTail];
 	
-    // --- Controls for 'Aqua' Ears Top ---
+    // --- Controls for 'Aqua' Ears Top and Head ---
     const aquaEarsLeftShiftPx = -3;
     const aquaEarsRightShiftPx = -3;
     // ------------------------------------
@@ -305,10 +305,19 @@ const asciiArtLines = useMemo(() => {
     let originalLine5 = feet;
 
     // --- MODIFIERS (Adding traits around the base lines) ---
-    if (earsHead) {
-        const earParts = earsHead.split('   ');
-        line2 = <>{applyShift(earParts[0])}{line2}{earParts[1]}</>;
-    }
+	if (selectedEarsHead === 'Aqua') {
+		const earParts = earsHead.split('   '); // Splits "≈   ≈"
+		line2 = (
+			<>
+				<span style={{ position: 'relative', left: `${aquaEarsLeftShiftPx}px` }}>{applyShift(earParts[0])}</span>
+				{line2}
+				<span style={{ position: 'relative', left: `${aquaEarsRightShiftPx}px` }}>{earParts[1]}</span>
+			</>
+		);
+	} else if (earsHead) {
+		const earParts = earsHead.split('   ');
+		line2 = <>{applyShift(earParts[0])}{line2}{earParts[1]}</>;
+	}
     
     // Whiskers on Head (Simplified to remove special 'Sharp' styling)
     if (whiskers && selectedWhiskers.includes('Head')) {
