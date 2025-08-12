@@ -376,7 +376,7 @@ export const Traits = {
 	'Spikes': '^|^|^',
 	'Sandals': '|-||-|',
 	'Hover': '{_ _}',
-	'Skis': 'V~V}',  
+	'Skis': 'V~V',  
 	'Tiny': '. .',
 	'Kama Sutra': '6 9',
 	'Hooks': 'J L',
