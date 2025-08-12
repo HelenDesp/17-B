@@ -10,6 +10,10 @@ export default function NFTViewer({
   onSelectNFT = () => {},
 }) {
   const { address } = useAccount();
+  // --- Icon Style Controls ---
+  const iconEyeSpacing = 1;        // Adjusts space between the two '^' characters.
+  const iconEyeVerticalShift = -3; // Moves the '^' characters up (negative) or down (positive).
+  // -------------------------  
   const [loading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
   const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
@@ -94,8 +98,10 @@ export default function NFTViewer({
                   style={{
                     fontFamily: '"Doto", monospace',
                     fontWeight: 900,
-                    textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000',
-                    lineHeight: 0.9
+                    textShadow: '0.2px 0 #000, -0.2px 0 #000, 0 0.2px #000, 0 -0.2px #000, 0.2px 0.2px #000, -0.2px -0.2px #000, 0.2px -0.2px #000, -0.2px 0.2px #000',
+                    lineHeight: 0.9,
+					transform: scale(.7, 1),
+					font-size: 24px;
                   }}
                 >
                   ^w^
