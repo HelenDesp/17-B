@@ -2,7 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
-import Palz from "./Palz"; // RENAMED
+import PalMoji from "./PalMoji";
 
 export default function NFTViewer({
   nfts,
@@ -17,8 +17,8 @@ export default function NFTViewer({
   const [showThankYou, setShowThankYou] = useState(false);
 
   // RENAMED state variables
-  const [isPalzOpen, setIsPalzOpen] = useState(false);
-  const [activePalzNFT, setActivePalzNFT] = useState(null);
+  const [isPalMojiOpen, setIsPalMojiOpen] = useState(false);
+  const [activePalMojiNFT, setActivePalMojiNFT] = useState(null);
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -52,15 +52,15 @@ export default function NFTViewer({
   };
 
   // RENAMED function
-  const handleOpenPalz = (nft) => {
-    setActivePalzNFT(nft);
-    setIsPalzOpen(true);
+  const handleOpenPalMoji = (nft) => {
+    setActivePalMojiNFT(nft);
+    setIsPalMojiOpen(true);
   };
 
   // RENAMED function
-  const handleClosePalz = () => {
-    setIsPalzOpen(false);
-    setActivePalzNFT(null);
+  const handleClosePalMoji = () => {
+    setIsPalMojiOpen(false);
+    setActivePalMojiNFT(null);
   };
 
   return (
@@ -80,9 +80,9 @@ export default function NFTViewer({
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 
                 <button 
-                  onClick={() => handleOpenPalz(nft)} // RENAMED
+                  onClick={() => handleOpenPalMoji(nft)} // RENAMED
                   className="absolute top-2 left-2 z-10 p-1.5 bg-pink-200/80 dark:bg-pink-800/80 rounded-full hover:bg-pink-300 dark:hover:bg-pink-700 transition-colors"
-                  aria-label="View Your Palz" // RENAMED
+                  aria-label="View Your PalMoji" // RENAMED
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-pink-600 dark:text-pink-300"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
                 </button>
@@ -217,37 +217,37 @@ export default function NFTViewer({
         </div>
       )}
 
-      {/* ===== PALZ MODAL with updated header ===== */}
-      {isPalzOpen && activePalzNFT && (
+      {/* ===== PalMoji MODAL with updated header ===== */}
+      {isPalMojiOpen && activePalMojiNFT && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black bg-opacity-70 z-[9999]" onClick={handleClosePalz} />
+          <div className="fixed inset-0 bg-black bg-opacity-70 z-[9999]" onClick={handleClosePalMoji} />
           <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full">
             
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center space-x-3">
                     <img 
-                        src={activePalzNFT.image} 
-                        alt={activePalzNFT.name}
+                        src={activePalMojiNFT.image} 
+                        alt={activePalMojiNFT.name}
                         className="h-12 w-12 object-cover border border-black dark:border-white"
                     />
                     <div>
-                        <p className="text-base text-gray-500 dark:text-gray-400">{activePalzNFT.name}</p>
-                        <p className="text-sm font-normal text-gray-800 dark:text-white">Your Palz</p> 
+                        <p className="text-base text-gray-500 dark:text-gray-400">{activePalMojiNFT.name}</p>
+                        <p className="text-sm font-normal text-gray-800 dark:text-white">Your PalMoji</p> 
                     </div>
                 </div>
                 <button
                     className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                    onClick={handleClosePalz}
+                    onClick={handleClosePalMoji}
                     aria-label="Close"
                 >
                     <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
             </div>
 
-            <Palz 
-                palzTrait={activePalzNFT.traits?.palz || 'type:cat, color:grey, eyes:normal'} // RENAMED
-                nftId={activePalzNFT.tokenId}
-                ownerNFTImage={activePalzNFT.image}
+            <PalMoji 
+                PalMojiTrait={activePalMojiNFT.traits?.PalMoji || 'type:cat, color:grey, eyes:normal'} // RENAMED
+                nftId={activePalMojiNFT.tokenId}
+                ownerNFTImage={activePalMojiNFT.image}
             />
           </div>
         </div>
