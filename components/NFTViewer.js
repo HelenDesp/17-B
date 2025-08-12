@@ -11,8 +11,8 @@ export default function NFTViewer({
 }) {
   const { address } = useAccount();
   // --- Icon Style Controls ---
-  const iconEyeSpacing = 1;        // Adjusts space between the two '^' characters.
-  const iconEyeVerticalShift = -3; // Moves the '^' characters up (negative) or down (positive).
+  const iconEyeSpacing = -3;        // Adjusts space between the two '^' characters.
+  const iconEyeVerticalShift = -6; // Moves the '^' characters up (negative) or down (positive).
   // -------------------------  
   const [loading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
@@ -100,7 +100,7 @@ export default function NFTViewer({
 					fontWeight: 900,
 					textShadow: '0.2px 0 #000, -0.2px 0 #000, 0 0.2px #000, 0 -0.2px #000, 0.2px 0.2px #000, -0.2px -0.2px #000, 0.2px -0.2px #000, -0.2px 0.2px #000',
 					lineHeight: 0.9,
-					transform: 'scale(.7, 1)',
+					transform: 'scale(1, 1)',
 					fontSize: '24px' 
 				  }}
                 >
