@@ -109,7 +109,7 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
 };
 
 
-export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId }) {
+export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange }) {
   const [headwearShape, setHeadwearShape] = useState('None');	
   const [headShape, setHeadShape] = useState('Round');
   const [snoutShape, setSnoutShape] = useState('Round');
@@ -129,6 +129,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId }) {
 
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
+  const [tempName, setTempName] = useState("");
 
   const handleSetSelectedEarsHead = (value) => {
     setSelectedEarsHead(value);
@@ -485,16 +486,23 @@ const asciiArtLines = useMemo(() => {
       </div>
 
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
-        <div className="flex items-center space-x-2">
-            <button onClick={() => setOpenModal('shapes')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'shapes' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-                <span className="font-bold">Shapes</span>
-                <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
-            </button>
-            <button onClick={() => setOpenModal('traits')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'traits' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-                <span className="font-bold">Traits</span>
-                <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
-            </button>
-        </div>
+		<div className="grid grid-cols-3 gap-2">
+			{/* Shapes Button */}
+			<button onClick={() => setOpenModal('shapes')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'shapes' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+				<span className="font-bold">Shapes</span>
+				<svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
+			</button>
+			{/* Traits Button */}
+			<button onClick={() => setOpenModal('traits')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'traits' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+				<span className="font-bold">Traits</span>
+				<svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
+			</button>
+			{/* Name Button - NEW */}
+			<button onClick={() => setOpenModal('name')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'name' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+				<span className="font-bold">Name</span>
+				<svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
+			</button>
+		</div>
       </div>
 
       <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
@@ -517,6 +525,41 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Wings" options={Traits.Wings} selected={selectedWings} onSelect={setSelectedWings} isOpen={openItem === 'Trait:Wings'} onToggle={() => toggleItem('Trait:Wings')} />
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
+      {/* ===== NEW MODAL FOR NAMING ===== */}
+      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal}>
+        <div className="space-y-4">
+            <div>
+                <label htmlFor="palmoji-name" className="block text-base font-medium text-gray-700 dark:text-gray-100">Name</label>
+                <input
+                    id="palmoji-name"
+                    type="text"
+                    value={tempName}
+                    onChange={(e) => setTempName(e.target.value)}
+                    placeholder="Enter a name..."
+                    className="mt-1 w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+                    style={{ boxShadow: 'none' }}
+                />
+            </div>
+            <div className="flex justify-end space-x-3 pt-2">
+                 <button
+                    onClick={handleCloseModal}
+                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+                >
+                    Close
+                </button>
+                <button
+                    onClick={() => {
+                        onNameChange(tempName);
+                        handleCloseModal();
+                    }}
+                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-gray-900 text-white dark:bg-white dark:text-black text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none"
+                >
+                    Save Name
+                </button>
+            </div>
+        </div>
+      </SelectionModal>
+      {/* ===== END OF NEW MODAL ===== */}
     </div>
   );
 }

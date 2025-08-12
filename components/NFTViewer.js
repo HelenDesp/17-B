@@ -19,6 +19,7 @@ export default function NFTViewer({
   // RENAMED state variables
   const [isPalMojiOpen, setIsPalMojiOpen] = useState(false);
   const [activePalMojiNFT, setActivePalMojiNFT] = useState(null);
+  const [palMojiName, setPalMojiName] = useState("Your PalMoji");
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -62,6 +63,13 @@ export default function NFTViewer({
     setIsPalMojiOpen(false);
     setActivePalMojiNFT(null);
   };
+  
+  const handleNameChange = (newName) => {
+    // Only update if the new name isn't just empty spaces
+    if (newName && newName.trim()) {
+      setPalMojiName(newName.trim());
+    }
+  };  
 
   return (
     <>
@@ -232,7 +240,7 @@ export default function NFTViewer({
                     />
                     <div>
                         <p className="text-base text-gray-500 dark:text-gray-400">{activePalMojiNFT.name}</p>
-                        <p className="text-sm font-normal text-gray-800 dark:text-white">Your PalMoji</p> 
+                        <p className="text-sm font-normal text-gray-800 dark:text-white">{palMojiName}</p> 
                     </div>
                 </div>
                 <button
@@ -244,11 +252,12 @@ export default function NFTViewer({
                 </button>
             </div>
 
-            <PalMoji 
-                PalMojiTrait={activePalMojiNFT.traits?.PalMoji || 'type:cat, color:grey, eyes:normal'} // RENAMED
-                nftId={activePalMojiNFT.tokenId}
-                ownerNFTImage={activePalMojiNFT.image}
-            />
+			<PalMoji 
+				PalMojiTrait={activePalMojiNFT.traits?.PalMoji || '...'}
+				nftId={activePalMojiNFT.tokenId}
+				ownerNFTImage={activePalMojiNFT.image}
+				onNameChange={handleNameChange}
+			/>
           </div>
         </div>
       )}
