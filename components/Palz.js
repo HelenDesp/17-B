@@ -194,9 +194,9 @@ const asciiArtLines = useMemo(() => {
     // ------------------------------------
 
     // --- Controls for 'Slit' Snout ---
-    const slitSnoutShiftPx = -3;    // Controls horizontal position of the '≈' symbol.
-    const slitSnoutPaddingLeft = -2;  // Adds empty space to the left of the '≈'
-    const slitSnoutPaddingRight = 2; // Adds empty space to the right of the '≈'	
+    const slitSnoutShiftPx = -13;    // Controls horizontal position of the '≈' symbol.
+    const slitSnoutPaddingLeft = 0;  // Adds empty space to the left of the '≈'
+    const slitSnoutPaddingRight = 3; // Adds empty space to the right of the '≈'	
 
     // Helper function for applying the alignment style
     const applyShift = (text) => {
