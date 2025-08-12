@@ -194,9 +194,9 @@ const asciiArtLines = useMemo(() => {
     // ------------------------------------
 
     // --- Controls for 'Slit' Snout ---
-    const slitSnoutShiftPx = -2.5;    // Controls horizontal position of the '≈' symbol.
-    const slitOuterLeftShiftPx = -1;  // NEW: Moves the left '\' character. Negative adds space to the left.
-    const slitOuterRightShiftPx = 1; // NEW: Moves the right '/' character. Positive adds space to the right.	
+    const slitSnoutShiftPx = -2;    // Controls horizontal position of the '≈' symbol.
+    const slitSnoutPaddingLeft = -1;  // Adds empty space to the left of the '≈'
+    const slitSnoutPaddingRight = 1; // Adds empty space to the right of the '≈'	
 
     // Helper function for applying the alignment style
     const applyShift = (text) => {
@@ -322,9 +322,12 @@ const asciiArtLines = useMemo(() => {
         const slitParts = snoutTrait.split('≈'); // Splits "\≈/" into ["\", "/"]
         styledSnoutTrait = (
             <>
-                <span style={{ position: 'relative', left: `${slitOuterLeftShiftPx}px` }}>{slitParts[0]}</span>
-                <span style={{ position: 'relative', left: `${slitSnoutShiftPx}px` }}>≈</span>
-                <span style={{ position: 'relative', left: `${slitOuterRightShiftPx}px` }}>{slitParts[1]}</span>
+                {slitParts[0]}
+                <span style={{
+                    paddingLeft: `${slitSnoutPaddingLeft}px`,
+                    paddingRight: `${slitSnoutPaddingRight}px`
+                }}>≈</span>
+                {slitParts[1]}
             </>
         );
     } else {
