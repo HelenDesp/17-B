@@ -270,7 +270,6 @@ const asciiArtLines = useMemo(() => {
 			</>
 		);
 		
-		// PASTE YOUR NEW BLOCK HERE
 		} else if (selectedEyes === 'Anger') {
 			const eyeParts = eyes.split(' '); // Splits "` ´"
 			const joiningChar = selectedMien === 'None' ? ' ' : mien;
@@ -281,7 +280,12 @@ const asciiArtLines = useMemo(() => {
 					<span style={{ position: 'relative', left: `${angerEyeRightShiftPx}px` }}>{eyeParts[1]}</span>
 				</>
 			);
-		// END OF YOUR BLOCK		
+
+		} else if (selectedEyes === 'Cyclope') {
+			// Use the Mien character if selected, otherwise default to '0'
+			const character = selectedMien === 'None' ? '0' : mien;
+			// Use non-breaking spaces (\u00A0) to guarantee spacing
+			faceLine = `\u00A0${character}\u00A0`;
 		
 	} else {
 		// This is the default logic for all other eye types
