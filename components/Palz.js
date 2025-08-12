@@ -196,7 +196,11 @@ const asciiArtLines = useMemo(() => {
     // --- Controls for 'Slit' Snout ---
     const slitSnoutShiftPx = -1;    // Controls horizontal position of the '≈' symbol.
     const slitSnoutPaddingLeft = 0;  // Adds empty space to the left of the '≈'
-    const slitSnoutPaddingRight = 3; // Adds empty space to the right of the '≈'	
+    const slitSnoutPaddingRight = 3; // Adds empty space to the right of the '≈'
+
+    // --- Controls for 'Anger' Eyes ---
+    const angerEyeRightShiftPx = -3; // Moves the right '´' character.
+    // ---------------------------------	
 
     // Helper function for applying the alignment style
     const applyShift = (text) => {
@@ -255,6 +259,19 @@ const asciiArtLines = useMemo(() => {
 		const doubtEyeLeftShiftPx = -6;   // Negative values move the left eye left, positive values move it right.
 		const doubtEyeSpacingPx = -9;    // Controls the space between the eyes.
 		// ------------------------------------
+		
+		// ADD THIS ENTIRE BLOCK
+		} else if (selectedEyes === 'Anger') {
+			const eyeParts = eyes.split(' '); // Splits "` ´"
+			const joiningChar = selectedMien === 'None' ? ' ' : mien;
+			faceLine = (
+				<>
+					{applyShift(eyeParts[0])}
+					{joiningChar}
+					<span style={{ position: 'relative', left: `${angerEyeRightShiftPx}px` }}>{eyeParts[1]}</span>
+				</>
+			);
+		// END OF BLOCK TO ADD		
 
 		const eyeParts = eyes.split(' ');
 		const joiningChar = selectedMien === 'None' ? '' : mien;
