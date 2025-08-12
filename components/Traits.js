@@ -190,7 +190,7 @@ export const Traits = {
 	'Happy': '^ ^',
 	'Bored': '= =',
 	'Weepy': 'q p',
-	'Swoon': '9 9'  
+	'Swoon': '9 9',  
 	'Bandage': '/ o',  
 	'Sob': 'T T',
 	'Slanted': '\\ /',
