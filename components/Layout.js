@@ -11,7 +11,7 @@ import { useAccount } from "wagmi";
 const Dashboard = () => <div className="p-6"><h1>Dashboard Content</h1></div>;
 const Tokens = () => <div className="p-6"><h1>Tokens Content</h1></div>;
 const PalMoji = () => <div className="p-6"><h1>PalMoji Content</h1></div>;
-const History = () => <div className="p-6"><h1>History Content</h1></div>;
+const Activity = () => <div className="p-6"><h1>Activity Content</h1></div>;
 const Earns = () => <div className="p-6"><h1>Earns [Coming Soon...]</h1></div>;
 const Scoreboard = () => <div className="p-6"><h1>Scoreboard [Coming Soon...]</h1></div>;
 const Settings = () => <div className="p-6"><h1>Settings [Coming Soon...]</h1></div>;
@@ -54,8 +54,8 @@ export default function Layout({ children }) {
         return <Tokens />;		
       case "palmoji":
         return <PalMoji />; // Use the new placeholder
-      case "history":
-        return <History />;
+      case "activity":
+        return <Activity />;
       case "earns":
         return <Earns />;
       case "scoreboard":
