@@ -9,6 +9,7 @@ import { useAccount } from "wagmi";
 
 // --- 2. Update the placeholder components for your tabs ---
 const Dashboard = () => <div className="p-6"><h1>Dashboard Content</h1></div>;
+const NFTs = () => <div className="p-6"><h1>NFTs Content</h1></div>;
 const Tokens = () => <div className="p-6"><h1>Tokens Content</h1></div>;
 const PalMoji = () => <div className="p-6"><h1>PalMoji Content</h1></div>;
 const Activity = () => <div className="p-6"><h1>Activity Content</h1></div>;
@@ -50,6 +51,8 @@ export default function Layout({ children }) {
   // --- 3. Update the renderContent function to handle the new tabs ---
   const renderContent = () => {
     switch (activeTab) {
+      case "nfts":
+        return <NFTs />;		
       case "tokens":
         return <Tokens />;		
       case "palmoji":
