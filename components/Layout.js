@@ -5,15 +5,16 @@ import Footer from "./Footer";
 import { useTheme } from "../context/ThemeContext";
 import { useAccount } from "wagmi";
 
-// --- 1. Import your page components ---
-// We'll create simple placeholders for now.
-// You should replace these with your actual components.
+// --- 1. NFTViewer import is no longer needed here ---
+
+// --- 2. Update the placeholder components for your tabs ---
 const Dashboard = () => <div className="p-6"><h1>Dashboard Content</h1></div>;
-const Nfts = () => <div className="p-6"><h1>NFTs Content</h1></div>;
 const Tokens = () => <div className="p-6"><h1>Tokens Content</h1></div>;
-const Transfer = () => <div className="p-6"><h1>Transfer Content</h1></div>;
+const PalMoji = () => <div className="p-6"><h1>PalMoji Content</h1></div>;
 const History = () => <div className="p-6"><h1>History Content</h1></div>;
-const Settings = () => <div className="p-6"><h1>Settings Content</h1></div>;
+const Earns = () => <div className="p-6"><h1>Earns [Coming Soon...]</h1></div>;
+const Scoreboard = () => <div className="p-6"><h1>Scoreboard [Coming Soon...]</h1></div>;
+const Settings = () => <div className="p-6"><h1>Settings [Coming Soon...]</h1></div>;
 
 
 export default function Layout({ children }) {
@@ -22,7 +23,6 @@ export default function Layout({ children }) {
   const { isConnected } = useAccount();
   const [isMobile, setIsMobile] = useState(false);
 
-  // --- 2. Add state to manage the active view ---
   const [activeTab, setActiveTab] = useState("dashboard");
 
 
@@ -47,17 +47,19 @@ export default function Layout({ children }) {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // --- 3. Add function to render the correct content component ---
+  // --- 3. Update the renderContent function to handle the new tabs ---
   const renderContent = () => {
     switch (activeTab) {
-      case "nfts":
-        return <Nfts />;
       case "tokens":
-        return <Tokens />;
-      case "transfer":
-        return <Transfer />;
+        return <Tokens />;		
+      case "palmoji":
+        return <PalMoji />; // Use the new placeholder
       case "history":
         return <History />;
+      case "earns":
+        return <Earns />;
+      case "scoreboard":
+        return <Scoreboard />;
       case "settings":
         return <Settings />;
       case "dashboard":
@@ -92,7 +94,6 @@ export default function Layout({ children }) {
                 : "sticky top-0 h-screen w-64 shrink-0"
             }`}
           >
-            {/* --- 4. Pass the state and setter to the Sidebar --- */}
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
           </div>
         )}
@@ -109,7 +110,6 @@ export default function Layout({ children }) {
               </div>
             )}
 
-            {/* --- 5. Render the dynamic content --- */}
             <div className="relative">{renderContent()}</div>
           </div>
         </main>

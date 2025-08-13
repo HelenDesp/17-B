@@ -71,13 +71,13 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       path: "tokens",
     },
     {
-      title: "Transfer",
+      title: "PalMoji",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z" />
+          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
         </svg>
       ),
-      path: "transfer",
+      path: "palmoji",
     },
     {
       title: "History",
@@ -88,6 +88,24 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       ),
       path: "history",
     },
+    {
+      title: "Earns",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+        </svg>
+      ),
+      path: "earns",
+    },
+    {
+      title: "Scoreboard",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+        </svg>
+      ),
+      path: "scoreboard",
+    }	
     {
       title: "Settings",
       icon: (
@@ -135,7 +153,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         </div>
       </div>
 
-      {/* --- MODIFICATION: Corrected Navigation Logic --- */}
+{/* --- MODIFICATION: Corrected Navigation Logic --- */}
       <nav className="flex-grow overflow-y-auto py-2">
         <ul className="space-y-1 px-2">
           {menuItems.map((item) => (
@@ -144,7 +162,12 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
-                  setActiveTab(item.path);
+                  // Special action for the History tab
+                  if (item.path === 'history') {
+                    open({ view: 'Activity' });
+                  } else {
+                    setActiveTab(item.path);
+                  }
                 }}
                 className={`flex items-center space-x-3 px-4 py-3 transition-colors font-medium rounded-none border ${
                     activeTab === item.path
