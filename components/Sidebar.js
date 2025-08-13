@@ -79,18 +79,27 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           className="flex items-center justify-center h-full w-full"
           style={{
             fontFamily: '"Doto", monospace',
+			textShadow: '0.1px 0 #000, -0.1px 0 #000, 0 0.1px #000, 0 -0.1px #000, 0.1px 0.1px #000, -0.1px -0.1px #000, 0.1px -0.1px #000, -0.1px 0.1px #000',
             fontWeight: 900,
             fontSize: '20px',
             lineHeight: 0.9,
             color: 'currentColor',
             whiteSpace: 'nowrap',
           }}
-        >
-          <span style={{ position: 'relative', top: '-5px' }}>^</span>
-          <span style={{ marginLeft: '-6px', marginRight: '-6px' }}>w</span>
-          <span style={{ position: 'relative', top: '-5px' }}>^</span>
-        </div>
-      ),
+		  >
+			<span style={{ position: 'relative', top: '-5px' }}>^</span>
+			{/* The 'w' is now positioned relatively to allow vertical shifting */}
+			<span style={{ 
+				position: 'relative', 
+				top: '2px', /* Adjust this value to move the 'w' */
+				marginLeft: '-6px', 
+				marginRight: '-6px' 
+			}}>
+			  w
+			</span>
+			<span style={{ position: 'relative', top: '-5px' }}>^</span>
+		  </div>
+		),
       path: "palmoji",
     },
     {
