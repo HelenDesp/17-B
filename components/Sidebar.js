@@ -87,7 +87,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             whiteSpace: 'nowrap',
           }}
 		  >
-			<span style={{ position: 'relative', top: '-5px' }}>^</span>
+			<span style={{ position: 'relative', top: '-2px' }}>^</span>
 			{/* The 'w' is now positioned relatively to allow vertical shifting */}
 			<span style={{ 
 				position: 'relative', 
@@ -97,7 +97,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
 			}}>
 			  w
 			</span>
-			<span style={{ position: 'relative', top: '-5px' }}>^</span>
+			<span style={{ position: 'relative', top: '-2px' }}>^</span>
 		  </div>
 		),
       path: "palmoji",
