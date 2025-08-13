@@ -105,7 +105,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         </svg>
       ),
       path: "scoreboard",
-    }	
+    },	
     {
       title: "Settings",
       icon: (
