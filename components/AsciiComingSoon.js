@@ -511,14 +511,19 @@ export default function AsciiComingSoon() {
     const [currentFrame, setCurrentFrame] = useState(0);
 
     const frames = useMemo(() => {
-        const Rows = 8;
+        // **FIX 1: Corrected the number of rows from 8 to 9.**
+        const Rows = 9;
         const Cols = 40;
         const PicLength = Rows * (Cols + 1);
-        const No_Pics = Math.floor(animationData.length / PicLength);
+
+        // **FIX 2: Trimmed the leading whitespace from the animation data.**
+        const cleanedData = animationData.trimStart();
+        const No_Pics = Math.floor(cleanedData.length / PicLength);
 
         const tempFrames = [];
         for (let i = 0; i < No_Pics; i++) {
-            tempFrames.push(animationData.substring(PicLength * i, PicLength * (i + 1)));
+            // Use the cleaned data for consistent parsing.
+            tempFrames.push(cleanedData.substring(PicLength * i, PicLength * (i + 1)));
         }
         return tempFrames;
     }, []);
@@ -533,8 +538,8 @@ export default function AsciiComingSoon() {
 
     const preStyle = {
         fontFamily: "'Courier New', monospace",
-        fontSize: '12px',
-        backgroundColor: '#FFFFFF',
+        fontSize: '20px',
+        backgroundColor: 'transparent',
         color: '#000000',
         resize: 'none',
         outline: 'none',
