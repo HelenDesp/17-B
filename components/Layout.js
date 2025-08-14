@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import { useTheme } from "../context/ThemeContext";
 import { useAccount } from "wagmi";
-import AsciiComingSoon from './components/AsciiComingSoon';
+import AsciiComingSoon from './AsciiComingSoon';
 
 // --- 1. NFTViewer import is no longer needed here ---
 
