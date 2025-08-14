@@ -112,32 +112,31 @@ const AsciiAnimation = () => {
             return flippedFrame;
         });
 
-        // --- Frame Normalization Logic (to prevent shaking) ---
+        // --- Frame Normalization Logic (to prevent shifting) ---
         let maxHeight = 0;
         let maxWidth = 0;
 
-        frames.forEach(frame => {
-            const lines = frame.split('\n');
+        // First pass: find the maximum dimensions of any frame
+        const framesAsLines = frames.map(f => f.split('\n'));
+
+        framesAsLines.forEach(lines => {
             maxHeight = Math.max(maxHeight, lines.length);
             lines.forEach(line => {
                 maxWidth = Math.max(maxWidth, line.length);
             });
         });
 
-        return frames.map(frame => {
-            let lines = frame.split('\n');
+        // Second pass: normalize each frame to the max dimensions
+        return framesAsLines.map(lines => {
+            // 1. Pad each line on the right to match maxWidth. This prevents horizontal jitter.
+            const blockLines = lines.map(line => line.padEnd(maxWidth, ' '));
             
-            let paddedLines = lines.map(line => {
-                const padding = maxWidth - line.length;
-                const leftPadding = Math.floor(padding / 2);
-                const rightPadding = Math.ceil(padding / 2);
-                return ' '.repeat(leftPadding) + line + ' '.repeat(rightPadding);
-            });
-
-            while (paddedLines.length < maxHeight) {
-                paddedLines.unshift(' '.repeat(maxWidth));
+            // 2. Add empty lines to the top to match maxHeight. This prevents vertical jitter.
+            while (blockLines.length < maxHeight) {
+                blockLines.unshift(' '.repeat(maxWidth));
             }
-            return { frame: paddedLines.join('\n'), rows: maxHeight, cols: maxWidth };
+
+            return { frame: blockLines.join('\n') };
         });
     }, []);
 
