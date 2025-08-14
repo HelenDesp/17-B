@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import { useTheme } from "../context/ThemeContext";
 import { useAccount } from "wagmi";
+import AsciiComingSoon from './components/AsciiComingSoon';
 
 // --- 1. NFTViewer import is no longer needed here ---
 
@@ -13,9 +14,24 @@ const NFTs = () => <div className="p-6"><h1>NFTs Content</h1></div>;
 const Tokens = () => <div className="p-6"><h1>Tokens Content</h1></div>;
 const PalMoji = () => <div className="p-6"><h1>PalMoji Content</h1></div>;
 const Activity = () => <div className="p-6"><h1>Activity Content</h1></div>;
-const Earns = () => <div className="p-6"><h1>Earns [Coming Soon...]</h1></div>;
-const Scoreboard = () => <div className="p-6"><h1>Scoreboard [Coming Soon...]</h1></div>;
-const Settings = () => <div className="p-6"><h1>Settings [Coming Soon...]</h1></div>;
+const Earns = () => (
+  <div className="p-6 flex flex-col items-center justify-center text-center">
+    <h1 className="text-2xl font-bold mb-4">Earns [Coming Soon...]</h1>
+    <AsciiComingSoon />
+  </div>
+);
+const Scoreboard = () => (
+  <div className="p-6 flex flex-col items-center justify-center text-center">
+    <h1 className="text-2xl font-bold mb-4">Scoreboard [Coming Soon...]</h1>
+    <AsciiComingSoon />
+  </div>
+);
+const Settings = () => (
+  <div className="p-6 flex flex-col items-center justify-center text-center">
+    <h1 className="text-2xl font-bold mb-4">Settings [Coming Soon...]</h1>
+    <AsciiComingSoon />
+  </div>
+);
 
 
 export default function Layout({ children }) {
