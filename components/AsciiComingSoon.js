@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-// The animation data string, now with a unique variable name to prevent errors.
+// The animation data string
 const animationData = `                                       
      |\`"-. _________________ .-"'|     
      |     |- r:v:g -      |     |     
@@ -531,23 +531,20 @@ export default function AsciiComingSoon() {
         return () => clearInterval(animationInterval);
     }, [frames.length]);
 
-    const textareaStyle = {
+    const preStyle = {
         fontFamily: "'Courier New', monospace",
-        fontSize: '20px',
-        backgroundColor: 'transparent',
+        fontSize: '12px',
+        backgroundColor: '#FFFFFF',
         color: '#000000',
-        border: '1px solid black',
         resize: 'none',
         outline: 'none',
+        textAlign: 'center',
+        lineHeight: 1.1,
     };
 
     return (
-        <textarea
-            readOnly
-            style={textareaStyle}
-            rows={9}
-            cols={39}
-            value={frames[currentFrame] || ''}
-        />
+        <pre style={preStyle}>
+            {frames[currentFrame] || ''}
+        </pre>
     );
 };
