@@ -77,6 +77,8 @@ const finalFrames = [
 ];
 
 const speed = 140; // Animation speed in milliseconds
+const MAX_HEIGHT = 9;
+const MAX_WIDTH = 47;
 
 const AsciiAnimation = () => {
     const [currentFrame, setCurrentFrame] = useState(0);
@@ -90,12 +92,12 @@ const AsciiAnimation = () => {
         return () => clearInterval(animationInterval); // Cleanup on unmount
     }, []);
 
-    // Inline styles to match the original HTML file's textarea
+    // These styles are now an exact match of the original HTML file.
     const textareaStyle = {
         fontFamily: "'Courier New', monospace",
         fontSize: '20px',
         fontWeight: 'bold',
-        color: '#000', // Tailwind's gray-500
+        color: '#000000',
         lineHeight: 1.1,
         backgroundColor: 'transparent',
         textAlign: 'center',
@@ -103,15 +105,14 @@ const AsciiAnimation = () => {
         border: 'none',
         resize: 'none',
         outline: 'none',
-        // Set dimensions to prevent layout shifts
-        width: '450px', 
-        height: '120px'
     };
 
     return (
         <textarea
             readOnly
             style={textareaStyle}
+            rows={MAX_HEIGHT}
+            cols={MAX_WIDTH}
             value={finalFrames[currentFrame]}
         />
     );
