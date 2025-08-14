@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-// This is the original, unmodified animation data string from unplugged_anim.html
-const AsciiComingSoon = `                                       
+// The animation data string, now with a unique variable name to prevent errors.
+const animationData = `                                       
      |\`"-. _________________ .-"'|     
      |     |- r:v:g -      |     |     
      |     |               |  _. |     
@@ -514,11 +514,11 @@ export default function AsciiComingSoon() {
         const Rows = 8;
         const Cols = 40;
         const PicLength = Rows * (Cols + 1);
-        const No_Pics = Math.floor(AsciiComingSoon.length / PicLength);
+        const No_Pics = Math.floor(animationData.length / PicLength);
 
         const tempFrames = [];
         for (let i = 0; i < No_Pics; i++) {
-            tempFrames.push(AsciiComingSoon.substring(PicLength * i, PicLength * (i + 1)));
+            tempFrames.push(animationData.substring(PicLength * i, PicLength * (i + 1)));
         }
         return tempFrames;
     }, []);
