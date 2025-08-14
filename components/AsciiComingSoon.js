@@ -511,21 +511,13 @@ export default function AsciiComingSoon() {
     const [currentFrame, setCurrentFrame] = useState(0);
 
     const frames = useMemo(() => {
-        // **FIX 1: Corrected the number of rows from 8 to 9.**
-        const Rows = 9;
-        const Cols = 40;
-        const PicLength = Rows * (Cols + 1);
-
-        // **FIX 2: Trimmed the leading whitespace from the animation data.**
-        const cleanedData = animationData.trimStart();
-        const No_Pics = Math.floor(cleanedData.length / PicLength);
-
-        const tempFrames = [];
-        for (let i = 0; i < No_Pics; i++) {
-            // Use the cleaned data for consistent parsing.
-            tempFrames.push(cleanedData.substring(PicLength * i, PicLength * (i + 1)));
-        }
-        return tempFrames;
+        // CORRECTED LOGIC:
+        // This is a much more reliable method. It splits the animation
+        // string into frames using the empty line between them as a separator.
+        // 1. .trim() removes any leading/trailing blank space from the whole string.
+        // 2. .split(/\n\s*\n/) splits the string into an array wherever there's a newline,
+        //    followed by any optional whitespace, followed by another newline.
+        return animationData.trim().split(/\n\s*\n/);
     }, []);
 
     useEffect(() => {
