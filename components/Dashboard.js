@@ -13,6 +13,7 @@ import NftTxHistory from "./NftTxHistory";
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
 import { readContract } from "viem/actions";
+import AsciiAnimation from "./AsciiAnimation";
 
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
@@ -172,6 +173,9 @@ export default function Dashboard() {
             your transaction history.
           </p>
           <CustomWalletButton />
+          <div className="mt-8">
+            <AsciiAnimation />
+          </div>		  
         </div>
       </div>
 
