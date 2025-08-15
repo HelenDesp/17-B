@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Traits, specialStyles, outfitStyleMap } from "./Traits.js";
-// Firebase Imports
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, query, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
+// --- UPDATED: Import from our new central file ---
+import { auth, db } from '../firebase/clientApp'; 
+import { collection, query, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
 
 // --- PalMoji Renderer and Page Components ---
 const catData = {
@@ -202,19 +201,11 @@ const PalMojiRenderer = ({ config, onDelete }) => {
 const PalMojiDashboard = () => {
     const [savedPalMojis, setSavedPalMojis] = useState([]);
     const [userId, setUserId] = useState(null);
-    const [db, setDb] = useState(null);
-    const [auth, setAuth] = useState(null);
     const [isAuthReady, setIsAuthReady] = useState(false);
 
     useEffect(() => {
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const app = initializeApp(firebaseConfig);
-        const authInstance = getAuth(app);
-        const dbInstance = getFirestore(app);
-        setDb(dbInstance);
-        setAuth(authInstance);
-
-        const unsubscribe = onAuthStateChanged(authInstance, (user) => {
+        // --- UPDATED: Listen to auth state from the central file ---
+        const unsubscribe = auth.onAuthStateChanged((user) => {
             setUserId(user ? user.uid : null);
             setIsAuthReady(true);
         });
@@ -222,11 +213,11 @@ const PalMojiDashboard = () => {
     }, []);
 
     useEffect(() => {
-        if (!isAuthReady || !db || !userId) {
+        if (!isAuthReady || !userId) {
             setSavedPalMojis([]); // Clear data if user logs out
             return;
         }
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const appId = process.env.NEXT_PUBLIC_APP_ID || 'default-app-id';
         const palmojisCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/palmojis`);
         const q = query(palmojisCollectionRef);
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -240,15 +231,14 @@ const PalMojiDashboard = () => {
             console.error("Error fetching PalMojis:", error);
         });
         return () => unsubscribe();
-    }, [isAuthReady, db, userId]);
+    }, [isAuthReady, userId]);
 
     const handleDelete = async (id) => {
-        if (!db || !userId || !id) return;
-        // Use a custom modal instead of window.confirm
+        if (!userId || !id) return;
         const confirmed = true; // Replace with a proper modal later
         if (confirmed) {
             try {
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                const appId = process.env.NEXT_PUBLIC_APP_ID || 'default-app-id';
                 await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/palmojis`, id));
             } catch (error) {
                 console.error("Error deleting PalMoji:", error);

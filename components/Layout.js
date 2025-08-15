@@ -5,12 +5,11 @@ import Footer from "./Footer";
 import { useTheme } from "../context/ThemeContext";
 import { useAccount, useSignMessage } from "wagmi";
 import AsciiComingSoon from './AsciiComingSoon';
-import PalMojiDashboard from "./PalMojiDashboard"; // --- IMPORT THE NEW COMPONENT ---
-// Firebase Imports
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import PalMojiDashboard from "./PalMojiDashboard";
+// --- UPDATED: Import from our new central file ---
+import { auth } from '../firebase/clientApp';
+import { signInWithCustomToken } from 'firebase/auth';
 
-// --- ✅ FINAL URLs - ALREADY ADDED FOR YOU ---
 const GET_NONCE_URL = "https://us-central1-palmoji-app.cloudfunctions.net/getNonceToSign";
 const VERIFY_SIGNATURE_URL = "https://us-central1-palmoji-app.cloudfunctions.net/verifySignature";
 
@@ -32,34 +31,20 @@ export default function Layout({ children }) {
   
   const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [auth, setAuth] = useState(null);
   const [firebaseUser, setFirebaseUser] = useState(null);
 
   // --- SIWE (Sign-In With Ethereum) Logic ---
   useEffect(() => {
-    // --- UPDATED: Read config from environment variable ---
-    try {
-        const firebaseConfig = process.env.NEXT_PUBLIC_FIREBASE_CONFIG ? JSON.parse(process.env.NEXT_PUBLIC_FIREBASE_CONFIG) : {};
-        if (Object.keys(firebaseConfig).length > 0) {
-            const app = initializeApp(firebaseConfig);
-            const authInstance = getAuth(app);
-            setAuth(authInstance);
-
-            const unsubscribe = onAuthStateChanged(authInstance, (user) => {
-                setFirebaseUser(user);
-            });
-            return () => unsubscribe();
-        } else {
-            console.error("Firebase config is missing or empty.");
-        }
-    } catch (error) {
-        console.error("Failed to parse Firebase config:", error);
-    }
+    // --- UPDATED: Listen to auth state from the central file ---
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+        setFirebaseUser(user);
+    });
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
     const handleSignIn = async () => {
-        if (isConnected && address && auth && (!firebaseUser || firebaseUser.uid.toLowerCase() !== address.toLowerCase())) {
+        if (isConnected && address && (!firebaseUser || firebaseUser.uid.toLowerCase() !== address.toLowerCase())) {
             try {
                 console.log("Attempting to sign in with wallet...");
                 const nonceRes = await fetch(GET_NONCE_URL, {
@@ -79,9 +64,8 @@ export default function Layout({ children }) {
                 });
                 
                 if (verifyRes.status === 409) {
-                    // This means the user was just created, so we try the whole flow again.
                     console.log("User created, attempting sign-in again.");
-                    handleSignIn(); // Re-trigger the sign-in flow
+                    handleSignIn(); 
                     return;
                 }
                 if (!verifyRes.ok) throw new Error('Signature verification failed');
@@ -97,7 +81,7 @@ export default function Layout({ children }) {
     };
 
     handleSignIn();
-  }, [isConnected, address, auth, firebaseUser, signMessageAsync]);
+  }, [isConnected, address, firebaseUser, signMessageAsync]);
   
   // --- END of SIWE Logic ---
 
@@ -120,7 +104,7 @@ export default function Layout({ children }) {
     switch (activeTab) {
       case "nfts": return <NFTs />;		
       case "tokens": return <Tokens />;		
-      case "palmoji": return <PalMojiDashboard />; // --- USE THE NEW COMPONENT ---
+      case "palmoji": return <PalMojiDashboard />;
       case "activity": return <Activity />;
       case "earn": return <Earn />;
       case "scoreboard": return <Scoreboard />;

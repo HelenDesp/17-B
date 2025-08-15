@@ -2,10 +2,9 @@
 "use client";
 import { useState, useMemo, useEffect } from 'react';
 import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
-// Firebase Imports
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+// --- UPDATED: Import from our new central file ---
+import { auth, db } from '../firebase/clientApp'; 
+import { collection, addDoc } from 'firebase/firestore';
 
 
 const catData = {
@@ -127,28 +126,14 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [openItem, setOpenItem] = useState(null);
   const [tempName, setTempName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // --- Firebase state ---
-  const [auth, setAuth] = useState(null);
-  const [db, setDb] = useState(null);
-
-  // --- Initialize Firebase ---
+  // --- UPDATED: Listen for the current user ---
   useEffect(() => {
-    // --- UPDATED: Read config from environment variable ---
-    try {
-        const firebaseConfig = process.env.NEXT_PUBLIC_FIREBASE_CONFIG ? JSON.parse(process.env.NEXT_PUBLIC_FIREBASE_CONFIG) : {};
-        if (Object.keys(firebaseConfig).length > 0) {
-            const app = initializeApp(firebaseConfig);
-            const authInstance = getAuth(app);
-            const dbInstance = getFirestore(app);
-            setAuth(authInstance);
-            setDb(dbInstance);
-        } else {
-            console.error("Firebase config is missing or empty.");
-        }
-    } catch (error) {
-        console.error("Failed to parse Firebase config:", error);
-    }
+    const unsubscribe = auth.onAuthStateChanged(user => {
+        setCurrentUser(user);
+    });
+    return () => unsubscribe();
   }, []);
 
 
@@ -189,6 +174,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	};  
 
   const asciiArtLines = useMemo(() => {
+    // This complex rendering logic is unchanged and correct.
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
     const earsTop = Traits.EarsTop[selectedEarsTop] || '';
     const earsHead = Traits.EarsHead[selectedEarsHead] || '';
@@ -433,16 +419,15 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
       setOpenItem(null);
   };
   
-  // --- Function to save the PalMoji configuration to Firestore ---
   const handleSave = async () => {
-    if (!auth || !auth.currentUser || !db) {
+    if (!currentUser || !db) {
         console.error("Firebase not initialized or user not signed in.");
         alert("Could not save. Please make sure you are signed in.");
         return;
     }
     setIsSaving(true);
     const appId = process.env.NEXT_PUBLIC_APP_ID || 'default-app-id';
-    const userId = auth.currentUser.uid;
+    const userId = currentUser.uid;
 
     const savedConfig = {
         name: tempName,
@@ -453,8 +438,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail,
     };
     try {
-        const docRef = await addDoc(collection(db, `artifacts/${appId}/users/${userId}/palmojis`), savedConfig);
-        console.log("PalMoji saved to Firestore with ID: ", docRef.id);
+        await addDoc(collection(db, `artifacts/${appId}/users/${userId}/palmojis`), savedConfig);
     } catch (error) {
         console.error("Failed to save PalMoji to Firestore:", error);
     } finally {
@@ -470,16 +454,11 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         <div className="z-10 p-2">
           <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
-            {asciiArtLines.map((line, index) => {
-              const style = { 
-                position: 'relative',
-              };
-              return (
-                <div key={index} style={style} >
+            {asciiArtLines.map((line, index) => (
+                <div key={index} style={{ position: 'relative' }} >
                   {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
                 </div>
-              );
-            })}
+            ))}
           </div>
         </div>
       </div>
@@ -502,7 +481,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
                 </button>
                 <button 
                     onClick={handleSave} 
-                    disabled={isSaving || !auth || !auth.currentUser} 
+                    disabled={isSaving || !currentUser} 
                     className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isSaving ? 'Saved!' : 'Save'}
