@@ -51,7 +51,7 @@ export default function Footer() {
             >
               <span className="sr-only">Farcaster</span>
               <svg
-                className="h-8 w-8 align-middle -mt-1"
+                className="h-6 w-6 align-middle"
                 fill="currentColor"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
