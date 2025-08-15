@@ -29,6 +29,7 @@
 	"ai": "^4.3.16",
 	"google-auth-library": "^9.0.0",
 	"@google-cloud/aiplatform": "^4.2.0",
+	"firebase": "^10.12.2",
 	"@google/genai": "^1.8.0" 
   },
   "devDependencies": {
