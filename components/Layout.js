@@ -14,7 +14,7 @@ const NFTs = () => <div className="p-6"><h1>NFTs Content</h1></div>;
 const Tokens = () => <div className="p-6"><h1>Tokens Content</h1></div>;
 const PalMoji = () => <div className="p-6"><h1>PalMoji Content</h1></div>;
 const Activity = () => <div className="p-6"><h1>Activity Content</h1></div>;
-const Earns = () => (
+const Earn = () => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Earn [Coming Soon...]</h1>
     <AsciiComingSoon />
