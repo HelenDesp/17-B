@@ -504,7 +504,7 @@ const animationData = `
      |     |          .--. | | | |     
      |     |          |  | | | | |     
      |     |__________|  |_|  "'       
-|.--'                   \`--.|     
+     |.--'                   \`--.|     
                                        `;
 
 export default function AsciiComingSoon() {
