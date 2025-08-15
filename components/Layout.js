@@ -16,7 +16,7 @@ const PalMoji = () => <div className="p-6"><h1>PalMoji Content</h1></div>;
 const Activity = () => <div className="p-6"><h1>Activity Content</h1></div>;
 const Earns = () => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
-    <h1 className="text-2xl font-bold mb-4">Earns [Coming Soon...]</h1>
+    <h1 className="text-2xl font-bold mb-4">Earn [Coming Soon...]</h1>
     <AsciiComingSoon />
   </div>
 );
@@ -75,8 +75,8 @@ export default function Layout({ children }) {
         return <PalMoji />; // Use the new placeholder
       case "activity":
         return <Activity />;
-      case "earns":
-        return <Earns />;
+      case "earn":
+        return <Earn />;
       case "scoreboard":
         return <Scoreboard />;
       case "settings":
