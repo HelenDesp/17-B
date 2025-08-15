@@ -134,12 +134,21 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
   // --- Initialize Firebase ---
   useEffect(() => {
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    const app = initializeApp(firebaseConfig);
-    const authInstance = getAuth(app);
-    const dbInstance = getFirestore(app);
-    setAuth(authInstance);
-    setDb(dbInstance);
+    // --- UPDATED: Read config from environment variable ---
+    try {
+        const firebaseConfig = process.env.NEXT_PUBLIC_FIREBASE_CONFIG ? JSON.parse(process.env.NEXT_PUBLIC_FIREBASE_CONFIG) : {};
+        if (Object.keys(firebaseConfig).length > 0) {
+            const app = initializeApp(firebaseConfig);
+            const authInstance = getAuth(app);
+            const dbInstance = getFirestore(app);
+            setAuth(authInstance);
+            setDb(dbInstance);
+        } else {
+            console.error("Firebase config is missing or empty.");
+        }
+    } catch (error) {
+        console.error("Failed to parse Firebase config:", error);
+    }
   }, []);
 
 
@@ -428,12 +437,11 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const handleSave = async () => {
     if (!auth || !auth.currentUser || !db) {
         console.error("Firebase not initialized or user not signed in.");
-        // Use a custom modal in a real app
         alert("Could not save. Please make sure you are signed in.");
         return;
     }
     setIsSaving(true);
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const appId = process.env.NEXT_PUBLIC_APP_ID || 'default-app-id';
     const userId = auth.currentUser.uid;
 
     const savedConfig = {
