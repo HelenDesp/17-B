@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 // The animation data string
 const animationData = `                                       
-     
+          |\`"-. _________________ .-"'|     
      |     |- r:v:g -      |     |     
      |     |               |  _. |     
      |     |          .--. | | | |     
@@ -504,7 +504,7 @@ const animationData = `
      |     |          .--. | | | |     
      |     |          |  | | | | |     
      |     |__________|  |_|  "'       
-  |.--'                   \`--.|     
+|.--'                   \`--.|     
                                        `;
 
 export default function AsciiComingSoon() {
