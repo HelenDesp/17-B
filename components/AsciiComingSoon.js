@@ -517,7 +517,7 @@ export default function AsciiComingSoon() {
         // 1. .trim() removes any leading/trailing blank space from the whole string.
         // 2. .split(/\n\s*\n/) splits the string into an array wherever there's a newline,
         //    followed by any optional whitespace, followed by another newline.
-        return animationData.trim().split(/\n\s*\n/);
+        return animationData.split(/\n\s*\n/);
     }, []);
 
     useEffect(() => {
