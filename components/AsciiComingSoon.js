@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 // The animation data string
 const animationData = `                                       
-          |\`"-. _________________ .-"'|          
+|\`"-. _________________ .-"'|          
 	 |     |- r:v:g -      |     |     
 	 |     |               |  _. |     
 	 |     |          .--. | | | |     
