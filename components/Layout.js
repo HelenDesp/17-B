@@ -32,6 +32,7 @@ export default function Layout({ children }) {
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [authStatus, setAuthStatus] = useState('idle'); // 'idle', 'signing', 'signed', 'error'
   const [authError, setAuthError] = useState(null);
+  const [lastAttemptedAddress, setLastAttemptedAddress] = useState(null);
 
   // --- SIWE (Sign-In With Ethereum) Logic ---
   useEffect(() => {
@@ -50,19 +51,28 @@ export default function Layout({ children }) {
             console.log('Wallet disconnected or no address');
             setAuthStatus('idle');
             setAuthError(null);
+            setLastAttemptedAddress(null);
             return;
         }
 
         // Check if already signed in with correct address
         if (firebaseUser && firebaseUser.uid.toLowerCase() === address.toLowerCase()) {
             console.log('Already signed in with correct address:', address);
-            setAuthStatus('signed');
+            if (authStatus !== 'signed') {
+                setAuthStatus('signed');
+            }
             return;
         }
 
-        // Prevent multiple simultaneous sign-in attempts
-        if (authStatus === 'signing') {
-            console.log('Sign-in already in progress, skipping...');
+        // Prevent signing in for same address multiple times
+        if (lastAttemptedAddress === address && authStatus !== 'idle') {
+            console.log('Already attempted sign-in for this address:', address, 'with status:', authStatus);
+            return;
+        }
+
+        // Only start sign-in if we're in idle state
+        if (authStatus !== 'idle') {
+            console.log('Auth status is not idle:', authStatus, 'skipping sign-in attempt');
             return;
         }
 
@@ -70,6 +80,7 @@ export default function Layout({ children }) {
             console.log('Starting SIWE flow for address:', address);
             setAuthStatus('signing');
             setAuthError(null);
+            setLastAttemptedAddress(address);
 
             // Step 1: Get nonce from backend
             console.log('Requesting nonce from:', GET_NONCE_URL);
@@ -120,7 +131,7 @@ export default function Layout({ children }) {
                 console.log("User created, attempting sign-in again after delay...");
                 setTimeout(() => {
                     setAuthStatus('idle');
-                    handleSignIn();
+                    setLastAttemptedAddress(null); // Reset to allow retry
                 }, 1000);
                 return;
             }
@@ -150,21 +161,20 @@ export default function Layout({ children }) {
             setAuthError(error.message);
             setAuthStatus('error');
             
-            // Auto-retry on network errors after a delay
-            if (error.message.includes('fetch') || error.message.includes('network')) {
-                console.log('Network error detected, will retry in 5 seconds...');
-                setTimeout(() => {
-                    setAuthStatus('idle');
-                }, 5000);
-            }
+            // Don't auto-retry to prevent loops - let user manually retry
+            console.log('Sign-in failed, manual retry required');
         }
     };
 
-    // Only attempt sign-in if wallet is connected and we're not already signed
-    if (isConnected && address && authStatus !== 'signed') {
-        handleSignIn();
-    }
-  }, [isConnected, address, firebaseUser, signMessageAsync, authStatus]);
+    // Use a timeout to debounce the effect and prevent rapid re-execution
+    const timeoutId = setTimeout(() => {
+        if (isConnected && address && authStatus === 'idle' && (!firebaseUser || firebaseUser.uid.toLowerCase() !== address.toLowerCase())) {
+            handleSignIn();
+        }
+    }, 100); // Small delay to prevent rapid re-execution
+
+    return () => clearTimeout(timeoutId);
+  }, [isConnected, address, firebaseUser, signMessageAsync, authStatus, lastAttemptedAddress]);
   
   // --- END of SIWE Logic ---
 
@@ -263,6 +273,7 @@ export default function Layout({ children }) {
                   onClick={() => {
                     setAuthStatus('idle');
                     setAuthError(null);
+                    setLastAttemptedAddress(null); // Reset to allow retry
                   }}
                   className="mt-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm"
                 >
