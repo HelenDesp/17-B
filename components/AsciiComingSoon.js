@@ -532,7 +532,7 @@ export default function AsciiComingSoon() {
         fontFamily: "'Courier New', monospace",
         fontSize: '20px',
         backgroundColor: 'transparent',
-        color: '#000000',
+        color: theme === 'dark' ? '#FFFFFF' : '#000000',
         resize: 'none',
         outline: 'none',
         textAlign: 'center',

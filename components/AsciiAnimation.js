@@ -746,7 +746,7 @@ const AsciiAnimation = () => {
         fontFamily: "'Courier New', monospace",
         fontSize: '20px',
         fontWeight: 'bold',
-        color: '#000000',
+        color: theme === 'dark' ? '#FFFFFF' : '#000000',
         lineHeight: 1.1,
         backgroundColor: 'transparent',
         textAlign: 'center',

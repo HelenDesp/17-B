@@ -16,25 +16,25 @@ const Activity = () => <div className="p-6"><h1>Activity Content</h1></div>;
 const PalMoji = () => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">PalMoji [Coming Soon...]</h1>
-    <AsciiComingSoon />
+    <AsciiComingSoon theme={theme} />
   </div>
 );
 const Earn = () => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Earn [Coming Soon...]</h1>
-    <AsciiComingSoon />
+    <AsciiComingSoon theme={theme} />
   </div>
 );
 const Scoreboard = () => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Scoreboard [Coming Soon...]</h1>
-    <AsciiComingSoon />
+    <AsciiComingSoon theme={theme} />
   </div>
 );
 const Settings = () => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Settings [Coming Soon...]</h1>
-    <AsciiComingSoon />
+    <AsciiComingSoon theme={theme} />
   </div>
 );
 
