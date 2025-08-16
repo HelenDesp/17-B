@@ -130,6 +130,24 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
   const [tempName, setTempName] = useState("");
+  
+  const handleReset = () => {
+    setHeadwearShape('None');
+    setHeadShape('Round');
+    setSnoutShape('Round');
+    setBodyShape('Round');
+    setSelectedHeadwear('Curly');
+    setSelectedEarsTop('Teddy');
+    setSelectedEarsHead('None');
+    setSelectedEyes('Open');
+    setSelectedMien('None');
+    setSelectedSnoutTrait('Teddy');
+    setSelectedOutfit('Suit');
+    setSelectedFeet('Paws');
+    setSelectedWhiskers('None');
+    setSelectedWings('None');
+    setSelectedTail('None');
+  };
 
   const handleSetSelectedEarsHead = (value) => {
     setSelectedEarsHead(value);
@@ -503,6 +521,9 @@ const asciiArtLines = useMemo(() => {
                 <button onClick={() => setOpenModal('name')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Name
                 </button>
+                <button onClick={handleReset} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
+                    Reset
+                </button>				
             </div>
         </div>
       </div>
