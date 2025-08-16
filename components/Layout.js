@@ -6,32 +6,32 @@ import { useTheme } from "../context/ThemeContext";
 import { useAccount } from "wagmi";
 import AsciiComingSoon from './AsciiComingSoon';
 
-// --- 1. NFTViewer import is no longer needed here ---
-
-// --- 2. Update the placeholder components for your tabs ---
+// --- (No changes to these components) ---
 const Dashboard = () => <div className="p-6"><h1>Dashboard Content</h1></div>;
 const NFTs = () => <div className="p-6"><h1>NFTs Content</h1></div>;
 const Tokens = () => <div className="p-6"><h1>Tokens Content</h1></div>;
 const Activity = () => <div className="p-6"><h1>Activity Content</h1></div>;
-const PalMoji = () => (
+
+// --- FIX: Update these components to accept { theme } as a prop ---
+const PalMoji = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">PalMoji [Coming Soon...]</h1>
     <AsciiComingSoon theme={theme} />
   </div>
 );
-const Earn = () => (
+const Earn = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Earn [Coming Soon...]</h1>
     <AsciiComingSoon theme={theme} />
   </div>
 );
-const Scoreboard = () => (
+const Scoreboard = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Scoreboard [Coming Soon...]</h1>
     <AsciiComingSoon theme={theme} />
   </div>
 );
-const Settings = () => (
+const Settings = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Settings [Coming Soon...]</h1>
     <AsciiComingSoon theme={theme} />
@@ -69,7 +69,7 @@ export default function Layout({ children }) {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // --- 3. Update the renderContent function to handle the new tabs ---
+  // --- (This part is correct and does not need changes) ---
   const renderContent = () => {
     switch (activeTab) {
       case "nfts":
