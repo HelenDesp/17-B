@@ -13,12 +13,10 @@ import NftTxHistory from "./NftTxHistory";
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
 import { readContract } from "viem/actions";
-import AsciiAnimation from "./AsciiAnimation";
 import { useTheme } from "../context/ThemeContext";
+import AsciiAnimation from "./AsciiAnimation";
 
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
-
-const { theme } = useTheme();
 
 const erc721Abi = [
   {
@@ -36,6 +34,7 @@ export default function Dashboard() {
   const { data: ethBalance } = useBalance({ address, enabled: !!address });
   const [nfts, setNfts] = useState([]);
   const [gasPriceGwei, setGasPriceGwei] = useState(null);
+  const { theme } = useTheme();
 
   const [selectedNFTs, setSelectedNFTs] = useState([]);
   const [transferMode, setTransferMode] = useState("single");
