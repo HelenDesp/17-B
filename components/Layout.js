@@ -79,13 +79,13 @@ export default function Layout({ children }) {
       case "activity":
         return <Activity />;
       case "palmoji":
-        return <PalMoji />;		
+        return <PalMoji theme={theme} />;		
       case "earn":
-        return <Earn />;
+        return <Earn theme={theme} />;
       case "scoreboard":
-        return <Scoreboard />;
+        return <Scoreboard theme={theme} />;
       case "settings":
-        return <Settings />;
+        return <Settings theme={theme} />;
       case "dashboard":
       default:
         // By default, it shows the original content from index.js
