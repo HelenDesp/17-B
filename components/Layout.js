@@ -76,11 +76,11 @@ export default function Layout({ children }) {
         return <NFTs />;		
       case "tokens":
         return <Tokens />;		
-      case "palmoji":
-        return <Activity />;
-      case "earn":	  
-        return <PalMoji />;
       case "activity":
+        return <Activity />;
+      case "palmoji":
+        return <PalMoji />;		
+      case "earn":
         return <Earn />;
       case "scoreboard":
         return <Scoreboard />;
