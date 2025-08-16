@@ -32,20 +32,19 @@ export default function Layout({ children }) {
   const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [firebaseUser, setFirebaseUser] = useState(null);
-  const [isAuthReady, setIsAuthReady] = useState(false); // --- NEW: State to track if auth is ready
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   // --- SIWE (Sign-In With Ethereum) Logic ---
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
         setFirebaseUser(user);
-        setIsAuthReady(true); // --- NEW: Mark auth as ready
+        setIsAuthReady(true);
     });
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
     const handleSignIn = async () => {
-        // --- UPDATED: Check if auth is ready before proceeding ---
         if (isAuthReady && isConnected && address && (!firebaseUser || firebaseUser.uid.toLowerCase() !== address.toLowerCase())) {
             try {
                 console.log("Attempting to sign in with wallet...");
@@ -62,17 +61,12 @@ export default function Layout({ children }) {
                 const verifyRes = await fetch(VERIFY_SIGNATURE_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ address, signature }),
+                    // --- FIX: Send the original nonce along with the signature ---
+                    body: JSON.stringify({ address, signature, nonce }),
                 });
                 
-                // --- UPDATED: Simplified error handling ---
                 if (!verifyRes.ok) {
-                    // If the user was just created (409), the next check will handle the sign-in.
-                    // For other errors, we log them.
-                    if (verifyRes.status !== 409) {
-                        throw new Error('Signature verification failed');
-                    }
-                    return; // Exit here and let the useEffect re-run
+                    throw new Error('Signature verification failed');
                 }
                 
                 const { token } = await verifyRes.json();
@@ -87,7 +81,7 @@ export default function Layout({ children }) {
     };
 
     handleSignIn();
-  }, [isAuthReady, isConnected, address, firebaseUser, signMessageAsync]); // --- UPDATED: Dependency array
+  }, [isAuthReady, isConnected, address, firebaseUser, signMessageAsync]);
   
   // --- END of SIWE Logic ---
 
