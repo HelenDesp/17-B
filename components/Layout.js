@@ -13,11 +13,6 @@ import { signInWithCustomToken } from 'firebase/auth';
 const GET_NONCE_URL = "https://us-central1-palmoji-app.cloudfunctions.net/getNonceToSign";
 const VERIFY_SIGNATURE_URL = "https://us-central1-palmoji-app.cloudfunctions.net/verifySignature";
 
-// Helper function to convert address to expected Firebase UID format
-const addressToUID = (address) => {
-  const cleanAddress = address.toLowerCase().replace('0x', '');
-  return `eth_${cleanAddress}`;
-};
 
 // --- Placeholder Components ---
 const NFTs = () => <div className="p-6"><h1>NFTs Content</h1></div>;
@@ -49,9 +44,7 @@ export default function Layout({ children }) {
 
   useEffect(() => {
     const handleSignIn = async () => {
-        // Check if user needs to sign in: wallet connected but not signed in to Firebase,
-        // or signed in but with different address
-        if (isConnected && address && (!firebaseUser || firebaseUser.uid !== addressToUID(address))) {
+        if (isConnected && address && (!firebaseUser || firebaseUser.uid.toLowerCase() !== address.toLowerCase())) {
             try {
                 console.log("Attempting to sign in with wallet...");
                 const nonceRes = await fetch(GET_NONCE_URL, {
