@@ -507,7 +507,7 @@ const animationData = `
      |.--'                   \`--.|     
                                        `;
 
-export default function AsciiComingSoon() {
+export default function AsciiComingSoon({ theme }) {
     const [currentFrame, setCurrentFrame] = useState(0);
 
     const frames = useMemo(() => {

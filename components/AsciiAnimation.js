@@ -666,7 +666,7 @@ _____________ o ____
 ];
 const speed = 140;
 
-const AsciiAnimation = () => {
+const AsciiAnimation = ({ theme }) => {
     const [currentFrame, setCurrentFrame] = useState(0);
 
     // This useMemo hook runs the processing script from your HTML file exactly once.
