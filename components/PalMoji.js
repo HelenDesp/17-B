@@ -1,11 +1,7 @@
 // /components/PalMoji.js
 "use client";
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
-// --- UPDATED: Import from our new central file ---
-import { auth, db } from '../firebase/clientApp'; 
-import { collection, addDoc } from 'firebase/firestore';
-
 
 const catData = {
   Shapes: {
@@ -15,6 +11,8 @@ const catData = {
     Body: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '/\\', 'Chevron Down': '\\/', 'Curly': '{}', 'Square': '[]' },
   },
 };
+
+// /components/PalMoji.js
 
 const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
     const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
@@ -29,14 +27,18 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
         }
     };
 
+    // Helper function to get the displayable ASCII for each trait
     const getAsciiDisplay = (optionName) => {
         if (optionName === 'Random' || optionName === 'None') {
-            return '';
+            return ''; // Don't show ASCII for "Random" or "None"
         }
         const value = options[optionName];
+
+        // If the trait is an array (like Wings, Tail, Whiskers), join it with a space
         if (Array.isArray(value)) {
             return value.join(' ');
         }
+        // Otherwise, just return the string value
         return value;
     };
 
@@ -48,12 +50,14 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
             >
                 <span className="font-bold">{label}</span>
                 <div className="flex items-center space-x-2">
+                    {/* START OF MODIFICATION */}
                     {getAsciiDisplay(selected) && (
                         <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
                             {getAsciiDisplay(selected)}
                         </span>
                     )}
                     <span className="font-normal">{selected}</span>
+                    {/* END OF MODIFICATION */}
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
                 </div>
             </button>
@@ -70,6 +74,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                                 <span className="mr-2 text-lg">•</span>
                                 <span>{optionName}</span>
                             </div>
+                            {/* This is the new part that displays the ASCII art */}
                             <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
                                 {getAsciiDisplay(optionName)}
                             </span>
@@ -125,17 +130,6 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
   const [tempName, setTempName] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-
-  // --- UPDATED: Listen for the current user ---
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
-        setCurrentUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
-
 
   const handleSetSelectedEarsHead = (value) => {
     setSelectedEarsHead(value);
@@ -152,29 +146,42 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   };
   
   const handleSetSelectedMien = (mienOption) => {
+    // First, set the mien that the user chose.
     setSelectedMien(mienOption);
+
+    // NEW: If 'Doubt' eyes are active, switch them to 'Open' when a Mien is chosen.
     if (selectedEyes === 'Doubt' && mienOption !== 'None') {
         setSelectedEyes('Open');
     }
+
+    // Define the only Mien traits that are allowed to be worn with Glasses.
     const allowedMienForGlasses = ['Bit', 'Neutral', 'Smirk'];
+
+    // If the current eyes are 'Glasses' AND the newly selected mien is NOT in our allowed list...
     if (selectedEyes === 'Glasses' && !allowedMienForGlasses.includes(mienOption)) {
+      // ...then disable the glasses by switching the eyes to 'Open'.
       setSelectedEyes('Open');
     }
   };
 
 	const handleSetSelectedEyes = (eyeOption) => {
+		
 	  if (eyeOption === 'Doubt' && selectedMien !== 'None') {
 		  return;
 	  }		
 	  const allowedMienForGlasses = ['Bit', 'Neutral', 'Smirk'];
+
+	  // If you're trying to select 'Glasses' but the current Mien is not allowed...
 	  if (eyeOption === 'Glasses' && !allowedMienForGlasses.includes(selectedMien)) {
+		// ...reset the Mien to 'None' to allow the Glasses to be equipped.
 		setSelectedMien('None');
 	  }
+
+	  // Finally, set the eye trait you selected.
 	  setSelectedEyes(eyeOption);
 	};  
 
-  const asciiArtLines = useMemo(() => {
-    // This complex rendering logic is unchanged and correct.
+const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
     const earsTop = Traits.EarsTop[selectedEarsTop] || '';
     const earsHead = Traits.EarsHead[selectedEarsHead] || '';
@@ -191,13 +198,21 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
     const wings = Traits.Wings[selectedWings];
     const tail = Traits.Tail[selectedTail];
 	
+    // --- Controls for 'Aqua' Ears Top and Head ---
     const aquaEarsLeftShiftPx = -3;
     const aquaEarsRightShiftPx = -3;
-    const slitSnoutShiftPx = -1;
-    const slitSnoutPaddingLeft = 0;
-    const slitSnoutPaddingRight = 3;
-    const angerEyeRightShiftPx = -4;
+    // ------------------------------------
 
+    // --- Controls for 'Slit' Snout ---
+    const slitSnoutShiftPx = -1;    // Controls horizontal position of the '≈' symbol.
+    const slitSnoutPaddingLeft = 0;  // Adds empty space to the left of the '≈'
+    const slitSnoutPaddingRight = 3; // Adds empty space to the right of the '≈'
+
+    // --- Controls for 'Anger' Eyes ---
+    const angerEyeRightShiftPx = -4; // Moves the right '´' character.
+    // ---------------------------------	
+
+    // Helper function for applying the alignment style
     const applyShift = (text) => {
         if (typeof text === 'string' && (text.startsWith('<') || text.startsWith('>') || text.startsWith('{'))) {
             const firstChar = text.substring(0, 1);
@@ -212,13 +227,20 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         return text;
     };
 
-    let line1, line2, line3, line4, line5;
+    // --- BASE LINE CONSTRUCTION ---
+    let line1;
+    let line2;
+    let line3;
+    let line4;
+    let line5;
 
+    // CORRECTED LINE 1: Style the headwear trait FIRST, then wrap it in the Headwear Shape
     const styledHeadwearTrait = applyShift(headwear);
     const styledHeadwear = hwShape ? <>{applyShift(hwShape.slice(0, 1))}{styledHeadwearTrait}{hwShape.slice(-1)}</> : styledHeadwearTrait;
 
+    // NEW LOGIC FOR LINE 1 with 'Aqua' Ears control
     if (selectedEarsTop === 'Aqua') {
-        const earParts = earsTop.split('   ');
+        const earParts = earsTop.split('   '); // Splits "≈   ≈"
         const middlePart = selectedHeadwear !== 'None' ? styledHeadwear : '   ';
         line1 = (
             <>
@@ -236,14 +258,18 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         line1 = <>{applyShift(leftPart)}{middlePart}{rightPart}</>;
     }
 
+	// LINE 2: Head & Eyes
 	let faceLine;
 	if (selectedEyes === 'Glasses') {
 		faceLine = (
 			<>o<span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}><span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>{selectedMien !== 'None' && (<span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>)}</span>o</>
 		);
 	} else if (selectedEyes === 'Doubt') {
-		const doubtEyeLeftShiftPx = -6;
-		const doubtEyeSpacingPx = -9;
+		// --- Controls for 'Doubt' Eyes ---
+		const doubtEyeLeftShiftPx = -6;   // Negative values move the left eye left, positive values move it right.
+		const doubtEyeSpacingPx = -9;    // Controls the space between the eyes.
+		// ------------------------------------
+
 		const eyeParts = eyes.split(' ');
 		const joiningChar = selectedMien === 'None' ? '' : mien;
 		faceLine = (
@@ -255,7 +281,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		);
 		
 		} else if (selectedEyes === 'Anger') {
-			const eyeParts = eyes.split(' ');
+			const eyeParts = eyes.split(' '); // Splits "` ´"
 			const joiningChar = selectedMien === 'None' ? ' ' : mien;
 			faceLine = (
 				<>
@@ -266,15 +292,18 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 			);
 
 		} else if (selectedEyes === 'Cyclope') {
+			// Use the Mien character if selected, otherwise default to '0'
 			const character = selectedMien === 'None' ? '0' : mien;
+			// Use non-breaking spaces (\u00A0) to guarantee spacing
 			faceLine = `\u00A0${character}\u00A0`;
 		
 	} else {
-		if (eyes && eyes.includes(' ')) {
+		// This is the default logic for all other eye types
+		if (eyes.includes(' ')) {
 			const eyeParts = eyes.split(' ');
 			const leftEye = applyShift(eyeParts[0]);
 			const rightEye = eyeParts[1];
-			const joiningChar = selectedMien === 'None' ? ' ' : mien;
+			const joiningChar = selectedMien === 'None' ? ' ' : mien; // Reverted to default space
 			faceLine = <>{leftEye}{joiningChar}{rightEye}</>;
 		} else {
 			faceLine = mien;
@@ -282,6 +311,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}
 	line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
     
+    // LINE 4: Outfit & Body
     const styleRef = outfitStyleMap[selectedOutfit];
     if (styleRef && specialStyles[styleRef]) {
         const styleToApply = specialStyles[styleRef];
@@ -291,21 +321,24 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
 	}
 
+    // LINE 5: Feet
     line5 = applyShift(feet);
 
+    // --- RE-DEFINE ORIGINAL LINES FOR LENGTH CALCULATION ---
     let originalFaceLine;
     if (selectedEyes === 'Glasses') {
         originalFaceLine = 'o-o';
     } else {
-        originalFaceLine = eyes && eyes.includes(' ') ? eyes.split(' ').join(selectedMien === 'None' ? ' ' : mien) : mien;
+        originalFaceLine = eyes.includes(' ') ? eyes.split(' ').join(selectedMien === 'None' ? ' ' : mien) : mien;
     }
     let originalLine2 = hShape ? `${hShape.slice(0, 1)}${originalFaceLine}${hShape.slice(-1)}` : originalFaceLine;
     let originalLine3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
     let originalLine4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
     let originalLine5 = feet;
 
+    // --- MODIFIERS (Adding traits around the base lines) ---
 	if (selectedEarsHead === 'Aqua') {
-		const earParts = earsHead.split('   ');
+		const earParts = earsHead.split('   '); // Splits "≈   ≈"
 		line2 = (
 			<>
 				<span style={{ position: 'relative', left: `${aquaEarsLeftShiftPx}px` }}>{applyShift(earParts[0])}</span>
@@ -318,14 +351,17 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		line2 = <>{applyShift(earParts[0])}{line2}{earParts[1]}</>;
 	}
     
+    // Whiskers on Head (Simplified to remove special 'Sharp' styling)
     if (whiskers && selectedWhiskers.includes('Head')) {
         const leftWhisker = applyShift(whiskers[0]);
         line2 = <>{leftWhisker}{line2}{whiskers[1]}</>;
     }
     
+	// CORRECTED LOGIC FOR LINE 3 (SNOUT + WHISKERS) with 'Slit' Snout control
     let styledSnoutTrait;
     if (selectedSnoutTrait === 'Slit') {
-        const slitParts = snoutTrait.split('≈');
+        const slitParts = snoutTrait.split('≈'); // Splits "\≈/"
+
         styledSnoutTrait = (
             <>
                 {slitParts[0]}
@@ -339,7 +375,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
             </>
         );
     } else {
-        styledSnoutTrait = applyShift(snoutTrait);
+        styledSnoutTrait = applyShift(snoutTrait); // Default styling for all other snouts
     }
 
 	const styledSnout = sShape ? <>{applyShift(sShape.slice(0, 1))}{styledSnoutTrait}{sShape.slice(-1)}</> : styledSnoutTrait;
@@ -365,23 +401,31 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         }
     }
 
+    // --- CENTERING LOGIC ---
     const lines = [line1, line2, line3, line4, line5];
     const lineLengths = lines.map((line, index) => {
         if (typeof line === 'string') return line.length;
+
         if (index === 0) {
             let len = 0;
-            if (selectedEarsTop !== 'None' && earsTop && earsTop.includes('   ')) { len += earsTop.length; }
-            if (selectedHeadwear !== 'None') { len += headwear.length; }
+            if (selectedEarsTop !== 'None' && earsTop.includes('   ')) {
+                len += earsTop.length;
+            }
+            if (selectedHeadwear !== 'None') {
+                len += headwear.length;
+            }
             return len;
         }
         if (index === 1) {
             let len = originalLine2.length;
             if (earsHead) len += earsHead.replace('   ', '').length;
+            // Reverted to simple calculation
             if (whiskers && selectedWhiskers.includes('Head')) len += 2;
             return len;
         }
         if (index === 2) {
             let len = originalLine3.length;
+            // Reverted to simple calculation
             if (whiskers && selectedWhiskers.includes('Snout')) len += 2;
             return len;
         }
@@ -418,33 +462,6 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
       setOpenModal(null);
       setOpenItem(null);
   };
-  
-  const handleSave = async () => {
-    if (!currentUser || !db) {
-        console.error("Firebase not initialized or user not signed in.");
-        alert("Could not save. Please make sure you are signed in.");
-        return;
-    }
-    setIsSaving(true);
-    const appId = process.env.NEXT_PUBLIC_APP_ID || 'default-app-id';
-    const userId = currentUser.uid;
-
-    const savedConfig = {
-        name: tempName,
-        nftId: nftId,
-        createdAt: new Date().toISOString(),
-        headwearShape, headShape, snoutShape, bodyShape,
-        selectedHeadwear, selectedEarsTop, selectedEarsHead, selectedEyes, selectedMien,
-        selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail,
-    };
-    try {
-        await addDoc(collection(db, `artifacts/${appId}/users/${userId}/palmojis`), savedConfig);
-    } catch (error) {
-        console.error("Failed to save PalMoji to Firestore:", error);
-    } finally {
-        setTimeout(() => setIsSaving(false), 1000);
-    }
-  };
 
   return (
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white relative overflow-hidden">
@@ -454,17 +471,23 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
         <div className="z-10 p-2">
           <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
-            {asciiArtLines.map((line, index) => (
-                <div key={index} style={{ position: 'relative' }} >
+            {asciiArtLines.map((line, index) => {
+              const style = { 
+                position: 'relative',
+              };
+              return (
+                <div key={index} style={style} >
                   {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
                 </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
 
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
         <div className="space-y-2">
+            {/* Row 1: Shapes and Traits */}
             <div className="grid grid-cols-2 gap-2">
                 <button onClick={() => setOpenModal('shapes')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'shapes' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
                     <span className="font-bold">Shapes</span>
@@ -475,16 +498,10 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
                 </button>
             </div>
-            <div className="flex items-center space-x-2">
+            {/* Row 2: Name Button */}
+            <div>
                 <button onClick={() => setOpenModal('name')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Name
-                </button>
-                <button 
-                    onClick={handleSave} 
-                    disabled={isSaving || !currentUser} 
-                    className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {isSaving ? 'Saved!' : 'Save'}
                 </button>
             </div>
         </div>
@@ -510,9 +527,10 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         <AccordionItem label="Wings" options={Traits.Wings} selected={selectedWings} onSelect={setSelectedWings} isOpen={openItem === 'Trait:Wings'} onToggle={() => toggleItem('Trait:Wings')} />
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
-      
+      {/* ===== NEW MODAL FOR NAMING ===== */}
       <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal}>
         <div className="space-y-4">
+            {/* Request 4: Label is removed */}
             <div>
                 <input
                     id="palmoji-name"
@@ -520,16 +538,19 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
                     value={tempName}
                     onChange={(e) => setTempName(e.target.value)}
                     placeholder="Enter a name..."
+                    // The classes "bg-white" and "dark:bg-black" have been replaced with "bg-transparent"
                     className="mt-1 w-full p-2 border !border-black dark:!border-white bg-transparent text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
                     style={{ boxShadow: 'none', backgroundColor: 'transparent' }}
                 />
             </div>
+            {/* Requests 5, 6, 7: Buttons are swapped and styled */}
             <div className="flex justify-between items-center pt-2">
                 <button
                     onClick={() => {
                         onNameChange(tempName);
                         handleCloseModal();
                     }}
+                    // Use the same classes as the "Close" button
                     className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
                 >
                     Save Name
@@ -543,6 +564,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
             </div>
         </div>
       </SelectionModal>
+      {/* ===== END OF NEW MODAL ===== */}
     </div>
   );
 }
