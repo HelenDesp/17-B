@@ -160,7 +160,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
               {isConnected && chain && (
                 <button
                   onClick={() => open({ view: 'Networks' })}
-                  className="flex items-center text-sm uppercase text-green-800 dark:text-green-200"
+                  className="flex items-center text-sm uppercase text-green-400 dark:text-green-400"
                   style={{ fontFamily: "'Cygnito Mono', sans-serif" }}
                 >
                   {formatChainName(chain.name)}
