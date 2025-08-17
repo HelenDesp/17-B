@@ -174,8 +174,8 @@ const ShareModal = ({ isOpen, onClose, palMojiRef, palMojiName }) => {
     };
 
     return (
-        <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-            <div className="relative w-full max-w-lg bg-white/80 dark:bg-gray-800/80 border-2 border-black dark:border-white p-6 flex flex-col items-center justify-center text-center space-y-6">
+        <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-white-900/50">
+            <div className="relative w-full max-w-lg bg-white/50 dark:bg-gray-800/50 border-2 border-black dark:border-white p-6 flex flex-col items-center justify-center text-center space-y-6">
                 <button onClick={onClose} className="absolute top-4 right-4 border-2 border-black dark:border-white w-10 h-10 flex items-center justify-center transition bg-transparent text-black dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black" aria-label="Close">
                     <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
@@ -694,7 +694,7 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
-	  <<ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} palMojiRef={palMojiRef} palMojiName={currentName} />
+	  <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} palMojiRef={palMojiRef} palMojiName={currentName} />
       {/* ===== END OF NEW MODAL ===== */}
     </div>
   );
