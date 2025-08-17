@@ -110,7 +110,7 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
 
 // Replace the old ShareModal with this one
 
-const ShareModal = ({ isOpen, onClose, palMojiRef }) => {
+const ShareModal = ({ isOpen, onClose, palMojiRef, palMojiName }) => {
     if (!isOpen) return null;
 
     const shareText = "Check out my PalMoji!";
@@ -179,9 +179,9 @@ const ShareModal = ({ isOpen, onClose, palMojiRef }) => {
                 <button onClick={onClose} className="absolute top-4 right-4 border-2 border-black dark:border-white w-10 h-10 flex items-center justify-center transition bg-transparent text-black dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black" aria-label="Close">
                     <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
-                <h2 className="text-2xl text-black dark:text-white" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-                    SHARE YOUR PALMOJI
-                </h2>
+				<h2 className="text-2xl text-black dark:text-white" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+					SHARE YOUR {palMojiName && palMojiName !== "Your PalMoji" ? palMojiName.toUpperCase() : "PALMOJI"}
+				</h2>
                 <div className="grid grid-cols-3 justify-center items-center w-full max-w-xs gap-4">
                     {/* Generic Share */}
                     <a href="#" onClick={(e) => { e.preventDefault(); handleGenericShare(); }} title="Share" className="flex justify-center text-black dark:text-white hover:opacity-75">
@@ -213,7 +213,7 @@ const ShareModal = ({ isOpen, onClose, palMojiRef }) => {
     );
 };
 
-export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange }) {
+export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName }) {
   const palMojiRef = useRef(null);	
   const [headwearShape, setHeadwearShape] = useState('None');	
   const [headShape, setHeadShape] = useState('Round');
@@ -694,7 +694,7 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
-	  <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} palMojiRef={palMojiRef} />
+	  <<ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} palMojiRef={palMojiRef} palMojiName={currentName} />
       {/* ===== END OF NEW MODAL ===== */}
     </div>
   );
