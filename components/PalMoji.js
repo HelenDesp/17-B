@@ -655,10 +655,8 @@ const asciiArtLines = useMemo(() => {
         </div>
       </SelectionModal>
       {/* REPLACE the old <ShareModal.../> line with THIS ENTIRE BLOCK */}
-      <SelectionModal
-        <h2 className="text-2xl text-black dark:text-white text-center pt-4" style={{ fontFamily: "'Cygnito Mono', monospace" }}>	  
-        title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`}
-        </h2>		
+      <SelectionModal 
+        title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`} 
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
       >
