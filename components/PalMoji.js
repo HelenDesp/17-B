@@ -108,6 +108,63 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     );
 };
 
+const ShareModal = ({ isOpen, onClose }) => {
+    if (!isOpen) return null;
+
+    const handleShare = (platform) => {
+        const shareText = "Check out my PalMoji!";
+        const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+        const fullText = `${shareText}\n\n${shareUrl}`;
+        const encodedText = encodeURIComponent(fullText);
+        let platformUrl = '';
+
+        switch (platform) {
+            case 'x':
+                platformUrl = `https://x.com/intent/post?text=${encodedText}`;
+                break;
+            case 'farcaster':
+                platformUrl = `https://warpcast.com/~/compose?text=${encodedText}`;
+                break;
+            case 'telegram':
+                platformUrl = `https://t.me/share/url?text=${encodedText}`;
+                break;
+            default:
+                break;
+        }
+
+        if (platformUrl) {
+            window.open(platformUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
+
+    return (
+        <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+            <div className="relative w-full max-w-lg bg-white/80 dark:bg-gray-800/80 border-2 border-black dark:border-white p-6 flex flex-col items-center justify-center text-center space-y-6">
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 border-2 border-black dark:border-white w-10 h-10 flex items-center justify-center transition bg-transparent text-black dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black"
+                    aria-label="Close"
+                >
+                    <span className="text-4xl leading-none font-bold">&#215;</span>
+                </button>
+                <h2 className="text-2xl text-black dark:text-white" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
+                    SHARE YOUR PALMOJI
+                </h2>
+                <div className="flex justify-center items-center w-full max-w-xs gap-4">
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleShare('x'); }} title="Share on X" className="text-black dark:text-white hover:opacity-75">
+                        <svg role="img" viewBox="0 0 24 24" className="w-12 h-12 fill-current"><title>X</title><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+                    </a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleShare('farcaster'); }} title="Share on Farcaster" className="text-black dark:text-white hover:opacity-75">
+                        <svg role="img" viewBox="0 0 24 24" className="w-12 h-12 fill-current"><title>Farcaster</title><path d="M18.24.24H5.76C2.5789.24 0 2.8188 0 6v12c0 3.1811 2.5789 5.76 5.76 5.76h12.48c3.1812 0 5.76-2.5789 5.76-5.76V6C24 2.8188 21.4212.24 18.24.24m.8155 17.1662v.504c.2868-.0256.5458.1905.5439.479v.5688h-5.1437v-.5688c-.0019-.2885.2576-.5047.5443-.479v-.504c0-.22.1525-.402.358-.458l-.0095-4.3645c-.1589-1.7366-1.6402-3.0979-3.4435-3.0979-1.8038 0-3.2846 1.3613-3.4435 3.0979l-.0096 4.3578c.2276.0424.5318.2083.5395.4648v.504c.2863-.0256.5457.1905.5438.479v.5688H4.3915v-.5688c-.0019-.2885.2575-.5047.5438-.479v-.504c0-.2529.2011-.4548.4536-.4724v-7.895h-.4905L4.2898 7.008l2.6405-.0005V5.0419h9.9495v1.9656h2.8219l-.6091 2.0314h-.4901v7.8949c.2519.0177.453.2195.453.4724"/></svg>
+                    </a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleShare('telegram'); }} title="Share on Telegram" className="text-black dark:text-white hover:opacity-75">
+                        <svg role="img" viewBox="0 0 24 24" className="w-12 h-12 fill-current"><title>Telegram</title><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange }) {
   const [headwearShape, setHeadwearShape] = useState('None');	
@@ -130,6 +187,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
   const [tempName, setTempName] = useState("");
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -517,9 +575,12 @@ const asciiArtLines = useMemo(() => {
                 </button>
             </div>
             {/* Row 2: Name Button */}
-            <div>
+            <div className="flex justify-between items-center">
                 <button onClick={() => setOpenModal('name')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Name
+                </button>
+                <button onClick={() => setIsShareModalOpen(true)} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
+                    Share
                 </button>
                 <button onClick={handleReset} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Reset
@@ -585,6 +646,7 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
+	  <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
       {/* ===== END OF NEW MODAL ===== */}
     </div>
   );
