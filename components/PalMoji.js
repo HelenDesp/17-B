@@ -1,6 +1,6 @@
 // /components/PalMoji.js
 "use client";
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
 
 const catData = {
