@@ -13,6 +13,7 @@ import NftTxHistory from "./NftTxHistory";
 import { createPublicClient, http } from "viem";
 import { defineChain } from "viem";
 import { readContract } from "viem/actions";
+import { useAppKit } from "@reown/appkit/react";
 import { useTheme } from "../context/ThemeContext";
 import AsciiAnimation from "./AsciiAnimation";
 
@@ -35,11 +36,25 @@ export default function Dashboard() {
   const [nfts, setNfts] = useState([]);
   const [gasPriceGwei, setGasPriceGwei] = useState(null);
   const { theme } = useTheme();
+  const { open } = useAppKit();
 
   const [selectedNFTs, setSelectedNFTs] = useState([]);
   const [transferMode, setTransferMode] = useState("single");
 
   const fetchNFTsRef = useRef();
+  
+  const formatChainName = (name) => {
+    if (!name) return "";
+    const lower = name.toLowerCase();
+    if (lower.includes("arbitrum")) return "Arbitrum";
+    if (lower.includes("bnb")) return "BNB";
+    if (lower.includes("polygon")) return "Polygon";
+    if (lower.includes("optimism") || lower.includes("op ")) return "Optimism";
+    if (lower.includes("base")) return "Base";
+    if (lower.includes("sepolia")) return "Sepolia";
+    if (lower.includes("ethereum")) return "Ethereum";
+    return name;
+  };  
 
   useEffect(() => {
     const fetchGasPrice = async () => {
@@ -202,8 +217,16 @@ export default function Dashboard() {
             <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Network</div>
               <div className="mt-1 text-lg font-medium text-gray-900 dark:text-white flex items-center">
+              <button
+                onClick={() => open({ view: 'Networks' })}
+                className="mt-1 text-lg font-medium text-gray-900 dark:text-white flex items-center w-full"
+              >
                 <span className="w-3 h-3 rounded-full bg-green-400 mr-2"></span>
-                {chain?.name || "Ethereum Mainnet"}
+                {formatChainName(chain?.name || "Unknown")}
+                <svg xmlns="http://www.w3.org/2000/svg" className="ml-auto h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 1L5 8h10l-5-7zm0 18l5-7H5l5 7z" />
+                </svg>
+              </button>
               </div>
             </div>
             <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
