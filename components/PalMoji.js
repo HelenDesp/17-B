@@ -108,110 +108,7 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     );
 };
 
-// Replace the old ShareModal with this one
 
-const ShareModal = ({ isOpen, onClose, palMojiRef, palMojiName }) => {
-    if (!isOpen) return null;
-
-    const shareText = "Check out my PalMoji!";
-    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const fullText = `${shareText}\n\n${shareUrl}`;
-
-    const handlePlatformShare = (platform) => {
-        const encodedText = encodeURIComponent(fullText);
-        let platformUrl = '';
-        switch (platform) {
-            case 'x':
-                platformUrl = `https://x.com/intent/post?text=${encodedText}`;
-                break;
-            case 'farcaster':
-                platformUrl = `https://warpcast.com/~/compose?text=${encodedText}`;
-                break;
-            case 'telegram':
-                platformUrl = `https://t.me/share/url?text=${encodedText}`;
-                break;
-            default:
-                return;
-        }
-        window.open(platformUrl, '_blank', 'noopener,noreferrer');
-    };
-
-    const handleGenericShare = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'My PalMoji',
-                    text: fullText,
-                });
-            } catch (error) {
-                console.error('Error using Web Share API:', error);
-            }
-        } else {
-            alert('Web Share API is not supported in your browser.');
-        }
-    };
-
-    const handleCopyToClipboard = () => {
-        navigator.clipboard.writeText(fullText).then(() => {
-            alert('Copied to clipboard!');
-        }).catch(err => {
-            console.error('Failed to copy text: ', err);
-        });
-    };
-
-    const handleSaveImage = () => {
-        if (palMojiRef.current) {
-            html2canvas(palMojiRef.current, {
-                backgroundColor: null, // Transparent background
-                scale: 2 // Higher resolution
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'palmoji.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            });
-        }
-    };
-
-    return (
-        <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-white-900/50">
-            <div className="relative w-full max-w-lg bg-white/50 dark:bg-gray-800/50 border-2 border-black dark:border-white p-6 flex flex-col items-center justify-center text-center space-y-6">
-                <button onClick={onClose} className="absolute top-4 right-4 border-2 border-black dark:border-white w-10 h-10 flex items-center justify-center transition bg-transparent text-black dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black" aria-label="Close">
-                    <span className="text-4xl leading-none font-bold">&#215;</span>
-                </button>
-				<h2 className="text-2xl text-black dark:text-white" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-					SHARE YOUR {palMojiName && palMojiName !== "Your PalMoji" ? palMojiName.toUpperCase() : "PALMOJI"}
-				</h2>
-                <div className="grid grid-cols-3 justify-center items-center w-full max-w-xs gap-4">
-                    {/* Generic Share */}
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleGenericShare(); }} title="Share" className="flex justify-center text-black dark:text-white hover:opacity-75">
-                        <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.59 13.51L15.42 17.49M15.41 6.51L8.59 10.49M21 5C21 6.65685 19.6569 8 18 8C16.3431 8 15 6.65685 15 5C15 3.34315 16.3431 2 18 2C19.6569 2 21 3.34315 21 5ZM9 12C9 13.6569 7.65685 15 6 15C4.34315 15 3 13.6569 3 12C3 10.3431 4.34315 9 6 9C7.65685 9 9 10.3431 9 12ZM21 19C21 20.6569 19.6569 22 18 22C16.3431 22 15 20.6569 15 19C15 17.3431 16.3431 16 18 16C19.6569 16 21 17.3431 21 19Z"/></svg>
-                    </a>
-                    {/* X */}
-                    <a href="#" onClick={(e) => { e.preventDefault(); handlePlatformShare('x'); }} title="Share on X" className="flex justify-center text-black dark:text-white hover:opacity-75">
-                        <svg role="img" viewBox="0 0 24 24" className="w-12 h-12 fill-current"><title>X</title><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
-                    </a>
-                    {/* Farcaster */}
-                    <a href="#" onClick={(e) => { e.preventDefault(); handlePlatformShare('farcaster'); }} title="Share on Farcaster" className="flex justify-center text-black dark:text-white hover:opacity-75">
-                        <svg role="img" viewBox="0 0 24 24" className="w-12 h-12 fill-current"><title>Farcaster</title><path d="M18.24.24H5.76C2.5789.24 0 2.8188 0 6v12c0 3.1811 2.5789 5.76 5.76 5.76h12.48c3.1812 0 5.76-2.5789 5.76-5.76V6C24 2.8188 21.4212.24 18.24.24m.8155 17.1662v.504c.2868-.0256.5458.1905.5439.479v.5688h-5.1437v-.5688c-.0019-.2885.2576-.5047.5443-.479v-.504c0-.22.1525-.402.358-.458l-.0095-4.3645c-.1589-1.7366-1.6402-3.0979-3.4435-3.0979-1.8038 0-3.2846 1.3613-3.4435 3.0979l-.0096 4.3578c.2276.0424.5318.2083.5395.4648v.504c.2863-.0256.5457.1905.5438.479v.5688H4.3915v-.5688c-.0019-.2885.2575-.5047.5438-.479v-.504c0-.2529.2011-.4548.4536-.4724v-7.895h-.4905L4.2898 7.008l2.6405-.0005V5.0419h9.9495v1.9656h2.8219l-.6091 2.0314h-.4901v7.8949c.2519.0177.453.2195.453.4724"/></svg>
-                    </a>
-                    {/* Telegram */}
-                    <a href="#" onClick={(e) => { e.preventDefault(); handlePlatformShare('telegram'); }} title="Share on Telegram" className="flex justify-center text-black dark:text-white hover:opacity-75">
-                        <svg role="img" viewBox="0 0 24 24" className="w-12 h-12 fill-current"><title>Telegram</title><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-                    </a>
-                    {/* Copy */}
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleCopyToClipboard(); }} title="Copy to clipboard" className="flex justify-center text-black dark:text-white hover:opacity-75">
-						<svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 16V18.8C8 19.9201 8 20.4802 8.21799 20.908C8.40973 21.2843 8.71569 21.5903 9.09202 21.782C9.51984 22 10.0799 22 11.2 22H18.8C19.9201 22 20.4802 22 20.908 21.782C21.2843 21.5903 21.5903 21.2843 21.782 20.908C22 20.4802 22 19.9201 22 18.8V11.2C22 10.0799 22 9.51984 21.782 9.09202C21.5903 8.71569 21.2843 8.40973 20.908 8.21799C20.4802 8 19.9201 8 18.8 8H16M5.2 16H12.8C13.9201 16 14.4802 16 14.908 15.782C15.2843 15.5903 15.5903 15.2843 15.782 14.908C16 14.4802 16 13.9201 16 12.8V5.2C16 4.0799 16 3.51984 15.782 3.09202C15.5903 2.71569 15.2843 2.40973 14.908 2.21799C14.4802 2 13.9201 2 12.8 2H5.2C4.0799 2 3.51984 2 3.09202 2.21799C2.71569 2.40973 2.40973 2.71569 2.21799 3.09202C2 3.51984 2 4.07989 2 5.2V12.8C2 13.9201 2 14.4802 2.21799 14.908C2.40973 15.2843 2.71569 15.5903 3.09202 15.782C3.51984 16 4.07989 16 5.2 16Z"/></svg>
-					</a>
-                    {/* Save */}
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleSaveImage(); }} title="Save Score" className="flex justify-center text-black dark:text-white hover:opacity-75">
-						<svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 3V6.4C7 6.96005 7 7.24008 7.10899 7.45399C7.20487 7.64215 7.35785 7.79513 7.54601 7.89101C7.75992 8 8.03995 8 8.6 8H15.4C15.9601 8 16.2401 8 16.454 7.89101C16.6422 7.79513 16.7951 7.64215 16.891 7.45399C17 7.24008 17 6.96005 17 6.4V4M17 21V14.6C17 14.0399 17 13.7599 16.891 13.546C16.7951 13.3578 16.6422 13.2049 16.454 13.109C16.2401 13 15.9601 13 15.4 13H8.6C8.03995 13 7.75992 13 7.54601 13.109C7.35785 13.2049 7.20487 13.3578 7.10899 13.546C7 13.7599 7 14.0399 7 14.6V21M21 9.32548V16.2C21 17.8802 21 18.7202 20.673 19.362C20.3854 19.9265 19.9265 20.3854 19.362 20.673C18.7202 21 17.8802 21 16.2 21H7.8C6.11984 21 5.27976 21 4.63803 20.673C4.07354 20.3854 3.6146 19.9265 3.32698 19.362C3 18.7202 3 17.8802 3 16.2V7.8C3 6.11984 3 5.27976 3.32698 4.63803C3.6146 4.07354 4.07354 3.6146 4.63803 3.32698C5.27976 3 6.11984 3 7.8 3H14.6745C15.1637 3 15.4083 3 15.6385 3.05526C15.8425 3.10425 16.0376 3.18506 16.2166 3.29472C16.4184 3.4184 16.5914 3.59135 16.9373 3.93726L20.0627 7.06274C20.4086 7.40865 20.5816 7.5816 20.7053 7.78343C20.8149 7.96237 20.8957 8.15746 20.9447 8.36154C21 8.59171 21 8.8363 21 9.32548Z"/></svg>
-					</a>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName }) {
   const palMojiRef = useRef(null);	
@@ -235,7 +132,6 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
   const [tempName, setTempName] = useState("");
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -305,6 +201,70 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	  setSelectedEyes(eyeOption);
 	};  
 
+// PASTE THE NEW CODE BLOCK HERE
+
+  const shareText = currentName && currentName !== "Your PalMoji"
+    ? `Check out my "${currentName}"!`
+    : "Check out my PalMoji!";
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const fullText = `${shareText}\n\n${shareUrl}`;
+
+  const handlePlatformShare = (platform) => {
+      const encodedText = encodeURIComponent(fullText);
+      let platformUrl = '';
+      switch (platform) {
+          case 'x':
+              platformUrl = `https://x.com/intent/post?text=${encodedText}`;
+              break;
+          case 'farcaster':
+              platformUrl = `https://warpcast.com/~/compose?text=${encodedText}`;
+              break;
+          case 'telegram':
+              platformUrl = `https://t.me/share/url?text=${encodedText}`;
+              break;
+          default:
+              return;
+      }
+      window.open(platformUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleGenericShare = async () => {
+      if (navigator.share) {
+          try {
+              await navigator.share({
+                  title: 'My PalMoji',
+                  text: fullText,
+              });
+          } catch (error) {
+              console.error('Error using Web Share API:', error);
+          }
+      } else {
+          alert('Web Share API is not supported in your browser.');
+      }
+  };
+
+  const handleCopyToClipboard = () => {
+      navigator.clipboard.writeText(fullText).then(() => {
+          alert('Copied to clipboard!');
+      }).catch(err => {
+          console.error('Failed to copy text: ', err);
+      });
+  };
+
+  const handleSaveImage = () => {
+      if (palMojiRef.current) {
+          html2canvas(palMojiRef.current, {
+              backgroundColor: null,
+              scale: 2
+          }).then(canvas => {
+              const link = document.createElement('a');
+              link.download = 'palmoji.png';
+              link.href = canvas.toDataURL('image/png');
+              link.click();
+          });
+      }
+  };	
+	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
     const earsTop = Traits.EarsTop[selectedEarsTop] || '';
@@ -627,7 +587,7 @@ const asciiArtLines = useMemo(() => {
                 <button onClick={() => setOpenModal('name')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Name
                 </button>
-                <button onClick={() => setIsShareModalOpen(true)} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
+                <button onClick={() => setOpenModal('share')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Share
                 </button>
                 <button onClick={handleReset} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
@@ -694,8 +654,35 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
-	  <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} palMojiRef={palMojiRef} palMojiName={currentName} />
-      {/* ===== END OF NEW MODAL ===== */}
+      {/* REPLACE the old <ShareModal.../> line with THIS ENTIRE BLOCK */}
+      <SelectionModal 
+        title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`} 
+        isOpen={openModal === 'share'} 
+        onClose={handleCloseModal}
+      >
+        <div className="flex flex-col items-center justify-center text-center space-y-6 p-4">
+            <div className="grid grid-cols-3 justify-center items-center w-full max-w-xs gap-4">
+                <a href="#" onClick={(e) => { e.preventDefault(); handleGenericShare(); }} title="Share" className="flex justify-center text-black dark:text-white hover:opacity-75">
+                    <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.59 13.51L15.42 17.49M15.41 6.51L8.59 10.49M21 5C21 6.65685 19.6569 8 18 8C16.3431 8 15 6.65685 15 5C15 3.34315 16.3431 2 18 2C19.6569 2 21 3.34315 21 5ZM9 12C9 13.6569 7.65685 15 6 15C4.34315 15 3 13.6569 3 12C3 10.3431 4.34315 9 6 9C7.65685 9 9 10.3431 9 12ZM21 19C21 20.6569 19.6569 22 18 22C16.3431 22 15 20.6569 15 19C15 17.3431 16.3431 16 18 16C19.6569 16 21 17.3431 21 19Z"/></svg>
+                </a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handlePlatformShare('x'); }} title="Share on X" className="flex justify-center text-black dark:text-white hover:opacity-75">
+                    <svg role="img" viewBox="0 0 24 24" className="w-12 h-12 fill-current"><title>X</title><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+                </a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handlePlatformShare('farcaster'); }} title="Share on Farcaster" className="flex justify-center text-black dark:text-white hover:opacity-75">
+                    <svg role="img" viewBox="0 0 24 24" className="w-12 h-12 fill-current"><title>Farcaster</title><path d="M18.24.24H5.76C2.5789.24 0 2.8188 0 6v12c0 3.1811 2.5789 5.76 5.76 5.76h12.48c3.1812 0 5.76-2.5789 5.76-5.76V6C24 2.8188 21.4212.24 18.24.24m.8155 17.1662v.504c.2868-.0256.5458.1905.5439.479v.5688h-5.1437v-.5688c-.0019-.2885.2576-.5047.5443-.479v-.504c0-.22.1525-.402.358-.458l-.0095-4.3645c-.1589-1.7366-1.6402-3.0979-3.4435-3.0979-1.8038 0-3.2846 1.3613-3.4435 3.0979l-.0096 4.3578c.2276.0424.5318.2083.5395.4648v.504c.2863-.0256.5457.1905.5438.479v.5688H4.3915v-.5688c-.0019-.2885.2575-.5047.5438-.479v-.504c0-.2529.2011-.4548.4536-.4724v-7.895h-.4905L4.2898 7.008l2.6405-.0005V5.0419h9.9495v1.9656h2.8219l-.6091 2.0314h-.4901v7.8949c.2519.0177.453.2195.453.4724"/></svg>
+                </a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handlePlatformShare('telegram'); }} title="Share on Telegram" className="flex justify-center text-black dark:text-white hover:opacity-75">
+                    <svg role="img" viewBox="0 0 24 24" className="w-12 h-12 fill-current"><title>Telegram</title><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                </a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handleCopyToClipboard(); }} title="Copy to clipboard" className="flex justify-center text-black dark:text-white hover:opacity-75">
+                    <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 16V18.8C8 19.9201 8 20.4802 8.21799 20.908C8.40973 21.2843 8.71569 21.5903 9.09202 21.782C9.51984 22 10.0799 22 11.2 22H18.8C19.9201 22 20.4802 22 20.908 21.782C21.2843 21.5903 21.5903 21.2843 21.782 20.908C22 20.4802 22 19.9201 22 18.8V11.2C22 10.0799 22 9.51984 21.782 9.09202C21.5903 8.71569 21.2843 8.40973 20.908 8.21799C20.4802 8 19.9201 8 18.8 8H16M5.2 16H12.8C13.9201 16 14.4802 16 14.908 15.782C15.2843 15.5903 15.5903 15.2843 15.782 14.908C16 14.4802 16 13.9201 16 12.8V5.2C16 4.0799 16 3.51984 15.782 3.09202C15.5903 2.71569 15.2843 2.40973 14.908 2.21799C14.4802 2 13.9201 2 12.8 2H5.2C4.0799 2 3.51984 2 3.09202 2.21799C2.71569 2.40973 2.40973 2.71569 2.21799 3.09202C2 3.51984 2 4.07989 2 5.2V12.8C2 13.9201 2 14.4802 2.21799 14.908C2.40973 15.2843 2.71569 15.5903 3.09202 15.782C3.51984 16 4.07989 16 5.2 16Z"/></svg>
+                </a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handleSaveImage(); }} title="Save Score" className="flex justify-center text-black dark:text-white hover:opacity-75">
+                    <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 3V6.4C7 6.96005 7 7.24008 7.10899 7.45399C7.20487 7.64215 7.35785 7.79513 7.54601 7.89101C7.75992 8 8.03995 8 8.6 8H15.4C15.9601 8 16.2401 8 16.454 7.89101C16.6422 7.79513 16.7951 7.64215 16.891 7.45399C17 7.24008 17 6.96005 17 6.4V4M17 21V14.6C17 14.0399 17 13.7599 16.891 13.546C16.7951 13.3578 16.6422 13.2049 16.454 13.109C16.2401 13 15.9601 13 15.4 13H8.6C8.03995 13 7.75992 13 7.54601 13.109C7.35785 13.2049 7.20487 13.3578 7.10899 13.546C7 13.7599 7 14.0399 7 14.6V21M21 9.32548V16.2C21 17.8802 21 18.7202 20.673 19.362C20.3854 19.9265 19.9265 20.3854 19.362 20.673C18.7202 21 17.8802 21 16.2 21H7.8C6.11984 21 5.27976 21 4.63803 20.673C4.07354 20.3854 3.6146 19.9265 3.32698 19.362C3 18.7202 3 17.8802 3 16.2V7.8C3 6.11984 3 5.27976 3.32698 4.63803C3.6146 4.07354 4.07354 3.6146 4.63803 3.32698C5.27976 3 6.11984 3 7.8 3H14.6745C15.1637 3 15.4083 3 15.6385 3.05526C15.8425 3.10425 16.0376 3.18506 16.2166 3.29472C16.4184 3.4184 16.5914 3.59135 16.9373 3.93726L20.0627 7.06274C20.4086 7.40865 20.5816 7.5816 20.7053 7.78343C20.8149 7.96237 20.8957 8.15746 20.9447 8.36154C21 8.59171 21 8.8363 21 9.32548Z"/></svg>
+                </a>
+            </div>
+        </div>
+      </SelectionModal>
     </div>
   );
 }
