@@ -90,11 +90,12 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col">
-            <div className="flex justify-between items-center p-4 pb-0 mb-4">
-                <p className="font-bold text-xl text-gray-800 dark:text-white">{title}</p>
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-900 z-20 flex flex-col">
+            {/* MODIFIED HEADER */}
+            <div className="relative text-center p-4 pb-0 mb-4">
+                <p className="font-bold text-xl text-gray-800 dark:text-white pt-4">{title}</p>
                 <button
-                  className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                  className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
                   onClick={onClose}
                   aria-label="Close"
                 >
@@ -204,7 +205,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 // PASTE THE NEW CODE BLOCK HERE
 
   const shareText = currentName && currentName !== "Your PalMoji"
-    ? `Check out my "${currentName}"!`
+    ? `Check out my ${currentName}!`
     : "Check out my PalMoji!";
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const fullText = `${shareText}\n\n${shareUrl}`;
