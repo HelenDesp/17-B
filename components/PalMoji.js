@@ -86,26 +86,13 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-const SelectionModal = ({ title, isOpen, onClose, children }) => {
+const SelectionModal = ({ isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
-// Inside const SelectionModal = (...) =>
     return (
         <div className="absolute inset-0 bg-gray-200 dark:bg-gray-900 z-20 flex flex-col">
-            {/* CORRECTED HEADER USING FLEXBOX */}
-            <div className="flex items-start justify-between p-4 pb-0 mb-4">
-                
-                {/* Invisible placeholder to balance the close button */}
-                <div className="w-8 h-8"></div>
-
-                {/* Centered Title */}
-                <div className="flex-grow text-center">
-                    <p className="font-bold text-xl text-gray-800 dark:text-white pt-2">
-                        {title.toUpperCase()}
-                    </p>
-                </div>
-
-                {/* Close Button */}
+            {/* Simplified header with only the close button */}
+            <div className="flex justify-end p-2">
                 <button
                   className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
                   onClick={onClose}
@@ -114,8 +101,8 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
                   <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
             </div>
-
-            <div className="space-y-2 flex-grow overflow-y-auto px-4 pb-4">
+            {/* The content, which will now include the title, is rendered here */}
+            <div className="flex-grow overflow-y-auto px-4 pb-4">
                 {children}
             </div>
         </div>
@@ -632,9 +619,11 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
-      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal}>
+      <SelectionModal isOpen={openModal === 'name'} onClose={handleCloseModal}>
+        <h2 className="text-xl font-bold text-center text-gray-800 dark:text-white pb-4">
+          NAME YOUR PALMOJI
+        </h2>
         <div className="space-y-4">
-            {/* Request 4: Label is removed */}
             <div>
                 <input
                     id="palmoji-name"
@@ -642,19 +631,16 @@ const asciiArtLines = useMemo(() => {
                     value={tempName}
                     onChange={(e) => setTempName(e.target.value)}
                     placeholder="Enter a name..."
-                    // The classes "bg-white" and "dark:bg-black" have been replaced with "bg-transparent"
                     className="mt-1 w-full p-2 border !border-black dark:!border-white bg-transparent text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
                     style={{ boxShadow: 'none', backgroundColor: 'transparent' }}
                 />
             </div>
-            {/* Requests 5, 6, 7: Buttons are swapped and styled */}
             <div className="flex justify-between items-center pt-2">
                 <button
                     onClick={() => {
                         onNameChange(tempName);
                         handleCloseModal();
                     }}
-                    // Use the same classes as the "Close" button
                     className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
                 >
                     Save Name
@@ -669,12 +655,11 @@ const asciiArtLines = useMemo(() => {
         </div>
       </SelectionModal>
       {/* REPLACE the old <ShareModal.../> line with THIS ENTIRE BLOCK */}
-      <SelectionModal 
-        title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`} 
-        isOpen={openModal === 'share'} 
-        onClose={handleCloseModal}
-      >
-        <div className="flex flex-col items-center justify-center text-center space-y-6 p-4">
+      <SelectionModal isOpen={openModal === 'share'} onClose={handleCloseModal}>
+        <h2 className="text-xl font-bold text-center text-gray-800 dark:text-white pb-4">
+          SHARE YOUR {currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}
+        </h2>
+        <div className="flex flex-col items-center justify-center text-center space-y-6">
             <div className="grid grid-cols-3 justify-center items-center w-full max-w-xs gap-4">
                 <a href="#" onClick={(e) => { e.preventDefault(); handleGenericShare(); }} title="Share" className="flex justify-center text-black dark:text-white hover:opacity-75">
                     <svg className="w-12 h-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.59 13.51L15.42 17.49M15.41 6.51L8.59 10.49M21 5C21 6.65685 19.6569 8 18 8C16.3431 8 15 6.65685 15 5C15 3.34315 16.3431 2 18 2C19.6569 2 21 3.34315 21 5ZM9 12C9 13.6569 7.65685 15 6 15C4.34315 15 3 13.6569 3 12C3 10.3431 4.34315 9 6 9C7.65685 9 9 10.3431 9 12ZM21 19C21 20.6569 19.6569 22 18 22C16.3431 22 15 20.6569 15 19C15 17.3431 16.3431 16 18 16C19.6569 16 21 17.3431 21 19Z"/></svg>
