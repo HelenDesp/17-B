@@ -86,14 +86,42 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-const SelectionModal = ({ title, isOpen, onClose, centerContent = false, children }) => {
+const SelectionModal = ({ title, isOpen, onClose, centerBlock = false, children }) => {
     if (!isOpen) return null;
 
-    // NEW: Conditionally add classes for vertical centering
-    const bodyClasses = `flex-grow space-y-2 overflow-y-auto px-4 pb-4 ${
-        centerContent ? 'flex flex-col justify-center' : ''
-    }`;
+    // If 'centerBlock' is true, this layout is used.
+    // It centers the title and content together.
+    if (centerBlock) {
+        return (
+            <div className="absolute inset-0 z-20 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm flex justify-center items-center p-4">
+                
+                {/* A new wrapper to define the centered block and hold the button */}
+                <div className="relative">
+                    {/* The close button is positioned relative to this new wrapper */}
+                    <button
+                        className="absolute -top-2 -right-2 z-10 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-gray-200 dark:bg-gray-900 text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                        onClick={onClose}
+                        aria-label="Close"
+                    >
+                        <span className="text-4xl leading-none font-bold">&#215;</span>
+                    </button>
 
+                    {/* The title and content are now inside a single styled block */}
+                    <div className="bg-gray-200/95 dark:bg-gray-900/95 rounded-md border-2 border-black dark:border-white">
+                        <div className="p-4 pb-2 mb-4">
+                            <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
+                        </div>
+                        <div className="space-y-2 px-4 pb-4">
+                            {children}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        );
+    }
+
+    // This is the default layout for the 'Traits' modal, which remains unchanged.
     return (
         <div className="absolute inset-0 z-20 flex flex-col bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm">
             <div className="relative flex-shrink-0 p-4 pb-2 mb-4">
@@ -106,9 +134,7 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
                     <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
             </div>
-
-            {/* The `className` here now uses the conditional variable */}
-            <div className={bodyClasses}>
+            <div className="flex-grow space-y-2 overflow-y-auto px-4 pb-4">
                 {children}
             </div>
         </div>
@@ -604,7 +630,7 @@ const asciiArtLines = useMemo(() => {
         </div>
       </div>
 
-      <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal} centerContent={true}>
+      <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal} centerBlock={true}>
 	    <AccordionItem label="Headwear" options={catData.Shapes.Headwear} selected={headwearShape} onSelect={setHeadwearShape} isOpen={openItem === 'Shape:Headwear'} onToggle={() => toggleItem('Shape:Headwear')} />
         <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Shape:Head'} onToggle={() => toggleItem('Shape:Head')} />
         <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Shape:Snout'} onToggle={() => toggleItem('Shape:Snout')} />
@@ -625,7 +651,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
-      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal} centerContent={true}>
+      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal} centerBlock={true}>
         <div className="space-y-4">
             {/* Request 4: Label is removed */}
             <div>
@@ -666,7 +692,7 @@ const asciiArtLines = useMemo(() => {
         title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`} 
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
-		centerContent={true}
+		centerBlock={true}
       >
         <div className="flex flex-col items-center justify-center w-full">
             <div className="flex flex-row flex-wrap justify-center items-center w-full gap-4">
