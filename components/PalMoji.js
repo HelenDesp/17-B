@@ -89,14 +89,13 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
 const SelectionModal = ({ title, isOpen, onClose, centerBlock = false, children }) => {
     if (!isOpen) return null;
 
-    // IF `centerBlock` is true, this layout is used.
-    // It creates a centered panel and positions the button relative to that panel.
+    // This layout is used for "Shapes", "Name", and "Share"
     if (centerBlock) {
         return (
             <div className="absolute inset-0 z-20 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm flex justify-center items-center p-4">
                 
                 <div className="relative">
-                    {/* The close button is positioned on the corner of the visible panel below */}
+                    {/* The close button is positioned relative to the panel, guaranteeing its location */}
                     <button
                         className="absolute -top-2 -right-2 z-10 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-gray-200 dark:bg-gray-900 text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
                         onClick={onClose}
@@ -105,7 +104,7 @@ const SelectionModal = ({ title, isOpen, onClose, centerBlock = false, children 
                         <span className="text-4xl leading-none font-bold">&#215;</span>
                     </button>
 
-                    {/* This div is the visible, centered panel that holds the title and content */}
+                    {/* This div is the visible, centered panel that holds BOTH the title and content */}
                     <div className="bg-gray-200/95 dark:bg-gray-900/95 rounded-md border-2 border-black dark:border-white">
                         <div className="p-4 pb-2 mb-4">
                             <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
@@ -120,8 +119,7 @@ const SelectionModal = ({ title, isOpen, onClose, centerBlock = false, children 
         );
     }
 
-    // This is the default, top-aligned layout for the "Traits" modal.
-    // The button is positioned inside the header.
+    // This layout is used for "Traits"
     return (
         <div className="absolute inset-0 z-20 flex flex-col bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm">
             <div className="relative flex-shrink-0 p-4 pb-2 mb-4">
