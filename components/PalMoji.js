@@ -630,7 +630,7 @@ const asciiArtLines = useMemo(() => {
         isOpen={openModal === 'name'} 
         onClose={handleCloseModal} 
         centerContent={true}
-        headerClassName="relative flex-shrink-0 p-4 pb-2"
+        headerClassName="relative flex-shrink-0 p-4 pb-0 -mb-8"
       >
         <div className="space-y-4">
             {/* Request 4: Label is removed */}
@@ -673,7 +673,7 @@ const asciiArtLines = useMemo(() => {
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
 		centerContent={true}
-		headerClassName="relative flex-shrink-0 p-4 pb-2"
+		headerClassName="relative flex-shrink-0 p-4 pb-0 -mb-8"
       >
         <div className="flex flex-col items-center justify-center w-full">
             <div className="flex flex-row flex-wrap justify-center items-center w-full gap-4">
