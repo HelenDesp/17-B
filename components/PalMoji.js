@@ -90,11 +90,11 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col">
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-900 z-20 flex flex-col">
             <div className="flex justify-between items-center p-4 pb-0 mb-4">
                 <p className="font-bold text-xl text-gray-800 dark:text-white">{title}</p>
                 <button
-                  className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                  className="border-2 border-black dark:border-white w-8 h-8 ..."
                   onClick={onClose}
                   aria-label="Close"
                 >
