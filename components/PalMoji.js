@@ -139,6 +139,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
   const [tempName, setTempName] = useState("");
+  const [shareMessage, setShareMessage] = useState("");  
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -236,20 +237,23 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
       window.open(platformUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const handleGenericShare = async () => {
-      if (navigator.share) {
-          try {
-              await navigator.share({
-                  title: 'My PalMoji',
-                  text: fullText,
-              });
-          } catch (error) {
-              console.error('Error using Web Share API:', error);
-          }
-      } else {
-          alert('Web Share API is not supported in your browser.');
-      }
-  };
+	const handleGenericShare = async () => {
+		if (navigator.share) {
+			try {
+				await navigator.share({
+					title: 'My PalMoji',
+					text: fullText,
+				});
+			} catch (error) {
+				console.error('Error using Web Share API:', error);
+			}
+		} else {
+			setShareMessage("Web Share API is not supported in your browser.");
+			setTimeout(() => {
+				setShareMessage("");
+			}, 5000); // Message disappears after 5 seconds
+		}
+	};
 
   const handleCopyToClipboard = () => {
       navigator.clipboard.writeText(fullText).then(() => {
@@ -676,6 +680,11 @@ const asciiArtLines = useMemo(() => {
 		centerContent={true}
 		headerClassName="relative flex-shrink-0 p-4 pb-0 -mb-8"
       >
+		{shareMessage && (
+		  <div className="text-center text-black dark:text-white mb-4 p-2">
+			{shareMessage}
+		  </div>
+		)}	  
         <div className="flex flex-col items-center justify-center w-full">
             <div className="flex flex-row flex-wrap justify-center items-center w-full gap-4">
                 <a href="#" onClick={(e) => { e.preventDefault(); handleGenericShare(); }} title="Share" className="flex justify-center text-black dark:text-white hover:opacity-75">
