@@ -86,17 +86,17 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-const SelectionModal = ({ title, isOpen, onClose, children }) => {
+const SelectionModal = ({ title, isOpen, onClose, centerContent = false, children }) => {
     if (!isOpen) return null;
 
-    return (
-        // 1. CONTAINER: Changed from 'fixed' to 'absolute'. This makes the modal
-        // fill its parent (the PalMoji component) instead of the whole screen.
-        <div className="absolute inset-0 z-20 flex flex-col bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm">
+    // NEW: Conditionally add classes for vertical centering
+    const bodyClasses = `flex-grow space-y-2 overflow-y-auto px-4 pb-4 ${
+        centerContent ? 'flex flex-col justify-center' : ''
+    }`;
 
-            {/* 2. HEADER: A non-scrolling container for the title and close button.
-                'relative' allows the button to be positioned inside it. */}
-            <div className="relative flex-shrink-0 p-4 pb-2">
+    return (
+        <div className="absolute inset-0 z-20 flex flex-col bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm">
+            <div className="relative flex-shrink-0 p-4 pb-2 mb-4">
                 <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
                 <button
                     className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
@@ -107,10 +107,8 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
                 </button>
             </div>
 
-            {/* 3. BODY: A scrollable area for the modal's content.
-                'flex-grow' is the key: it makes this div expand to fill all
-                available space below the header. */}
-            <div className="flex-grow space-y-2 overflow-y-auto px-4 pb-4">
+            {/* The `className` here now uses the conditional variable */}
+            <div className={bodyClasses}>
                 {children}
             </div>
         </div>
@@ -606,7 +604,7 @@ const asciiArtLines = useMemo(() => {
         </div>
       </div>
 
-      <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
+      <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal} centerContent={true}>
 	    <AccordionItem label="Headwear" options={catData.Shapes.Headwear} selected={headwearShape} onSelect={setHeadwearShape} isOpen={openItem === 'Shape:Headwear'} onToggle={() => toggleItem('Shape:Headwear')} />
         <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Shape:Head'} onToggle={() => toggleItem('Shape:Head')} />
         <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Shape:Snout'} onToggle={() => toggleItem('Shape:Snout')} />
@@ -627,7 +625,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
-      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal}>
+      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal} centerContent={true}>
         <div className="space-y-4">
             {/* Request 4: Label is removed */}
             <div>
@@ -668,6 +666,7 @@ const asciiArtLines = useMemo(() => {
         title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`} 
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
+		centerContent={true}
       >
         <div className="flex flex-col items-center justify-center w-full">
             <div className="flex flex-row flex-wrap justify-center items-center w-full gap-4">
