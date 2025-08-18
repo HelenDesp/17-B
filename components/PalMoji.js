@@ -90,22 +90,32 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        // Added 'justify-center' to vertically center the modal content.
         <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col justify-center">
-            {/* MODIFICATION: Adjusted padding and margin for title vertical placement. */}
-            <div className="relative pt-2 pb-0 mb-4">
-                <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
+            {/* A new relative wrapper is added to act as the container for the entire modal panel. */}
+            <div className="relative">
+                {/*
+                  The close button is moved here.
+                  It is now positioned absolutely relative to the new wrapper,
+                  placing it at the top right of the entire modal content.
+                */}
                 <button
-                  /* MODIFICATION: Changed 'top-4' to 'top-0' to move the button higher. */
-                  className="absolute top-0 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                  className="absolute top-2 right-4 z-10 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
                   onClick={onClose}
                   aria-label="Close"
                 >
                   <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
-            </div>
-            <div className="space-y-2 overflow-y-auto px-4 pb-4">
-                {children}
+
+                {/* This is the title's container from the previous fix you liked. */}
+                {/* We add px-4 to ensure the title text aligns with the content below. */}
+                <div className="pt-2 pb-0 mb-4 px-4">
+                    <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
+                </div>
+
+                {/* The main content area for the modal is unchanged. */}
+                <div className="space-y-2 overflow-y-auto px-4 pb-4">
+                    {children}
+                </div>
             </div>
         </div>
     );
@@ -577,11 +587,11 @@ const asciiArtLines = useMemo(() => {
             {/* Row 1: Shapes and Traits */}
             <div className="grid grid-cols-2 gap-2">
                 <button onClick={() => setOpenModal('shapes')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'shapes' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-                    <span className="font-bold">Shapes</span>
+                    <span className="font-bold">SHAPES</span>
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
                 </button>
                 <button onClick={() => setOpenModal('traits')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'traits' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-                    <span className="font-bold">Traits</span>
+                    <span className="font-bold">TRAITS</span>
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
                 </button>
             </div>
@@ -621,7 +631,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
-      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal}>
+      <SelectionModal title="NAME YOUR PALMOJI" isOpen={openModal === 'name'} onClose={handleCloseModal}>
         <div className="space-y-4">
             {/* Request 4: Label is removed */}
             <div>
