@@ -90,24 +90,30 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        // Added 'relative' for the button and 'pb-10' to control vertical position.
-        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col justify-center relative pb-10">
-            
-            {/* 1. Close icon is now a direct child, locking it to the top-right corner. */}
-            <button
-              className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-              onClick={onClose}
-              aria-label="Close"
-            >
-              <span className="text-4xl leading-none font-bold">&#215;</span>
-            </button>
+        // Main overlay: Uses FIXED positioning to cover the entire screen.
+        <div className="fixed inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
 
-            {/* Title is now a direct child of the flex container */}
-            <p className="font-bold text-xl text-center text-gray-800 dark:text-white px-4 mb-2">{title}</p>
+            {/* Modal Panel: The visible pop-up box. */}
+            <div className="bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white relative flex flex-col w-full max-w-md max-h-[90vh]">
 
-            {/* Content area */}
-            <div className="space-y-2 overflow-y-auto px-4">
-                {children}
+                {/* Header: Contains the title and provides padding. */}
+                <div className="p-4 pb-2">
+                     <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
+                </div>
+
+                {/* Close Button: Positioned absolutely to the top-right of the panel. */}
+                <button
+                  className="absolute top-3 right-3 z-10 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                  onClick={onClose}
+                  aria-label="Close"
+                >
+                  <span className="text-4xl leading-none font-bold">&#215;</span>
+                </button>
+
+                {/* Content Area: This part will scroll if the content is too long. */}
+                <div className="space-y-2 overflow-y-auto px-4 pb-4">
+                    {children}
+                </div>
             </div>
         </div>
     );
