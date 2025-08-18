@@ -86,17 +86,13 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-const SelectionModal = ({ title, isOpen, onClose, children, centerContent }) => {
+const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
-    // MODIFICATION: Removed 'justify-center' to allow content to remain full-width.
-    const contentWrapperClasses = centerContent
-        ? "flex-grow overflow-y-auto px-4 pb-4 flex items-center"
-        : "space-y-2 flex-grow overflow-y-auto px-4 pb-4";
-
     return (
-        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col">
-            {/* MODIFICATION: Changed mb-4 to mb-2 to move title closer to content. */}
+        // MODIFICATION: Added 'justify-center' to vertically center the entire content block (title + body).
+        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col justify-center">
+            {/* The mb-2 class controls the space between the title and the content below it. */}
             <div className="relative p-4 pb-0 mb-2">
                 <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
                 <button
@@ -107,7 +103,8 @@ const SelectionModal = ({ title, isOpen, onClose, children, centerContent }) => 
                   <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
             </div>
-            <div className={contentWrapperClasses}>
+            {/* MODIFICATION: Reverted to a simpler class string, removing the flawed logic. */}
+            <div className="space-y-2 overflow-y-auto px-4 pb-4">
                 {children}
             </div>
         </div>
@@ -624,7 +621,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
-      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal} centerContent>
+      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal}>
         <div className="space-y-4">
             {/* Request 4: Label is removed */}
             <div>
@@ -665,7 +662,6 @@ const asciiArtLines = useMemo(() => {
         title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`} 
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
-		centerContent
       >
         <div className="flex flex-col items-center justify-center w-full">
             <div className="flex flex-row flex-wrap justify-center items-center w-full gap-4">
