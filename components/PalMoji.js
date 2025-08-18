@@ -90,41 +90,22 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        // MODIFICATION 1: This outer div is now a 'fixed' overlay.
-        // It uses 'flex items-center' to properly center the modal panel vertically,
-        // even if the page behind it is scrolled.
-        <div className="fixed inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex items-center justify-center p-4">
-
-            {/* MODIFICATION 2: This is the new modal panel.
-                - It has a 'max-h-full' to ensure it never grows taller than the screen.
-                - It's a 'flex flex-col' container, which is key for making the content scrollable.
-                - It has its own background and border, making it a self-contained component.
-            */}
-            <div className="relative w-full max-w-sm flex flex-col max-h-full bg-gray-200 dark:bg-gray-900 rounded-md border-2 border-black dark:border-white">
-
-                {/* The close button is positioned absolutely to the top-right corner of the new panel. */}
+        // Added 'justify-center' to vertically center the modal content.
+        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col justify-center">
+            {/* MODIFICATION: Adjusted padding and margin for title vertical placement. */}
+            <div className="relative pt-2 pb-0 mb-4">
+                <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
                 <button
-                    className="absolute top-2 right-2 z-20 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                    onClick={onClose}
-                    aria-label="Close"
+                  /* MODIFICATION: Changed 'top-4' to 'top-0' to move the button higher. */
+                  className="absolute top-0 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                  onClick={onClose}
+                  aria-label="Close"
                 >
-                    <span className="text-4xl leading-none font-bold">&#215;</span>
+                  <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
-
-                {/* MODIFICATION 3: The modal header (title).
-                    - It has padding and will NOT scroll. 'flex-shrink-0' prevents it from shrinking.
-                */}
-                <div className="flex-shrink-0 p-4 pb-2">
-                    <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
-                </div>
-
-                {/* MODIFICATION 4: The modal body (the content).
-                    - 'overflow-y-auto' makes ONLY this section scrollable.
-                    - Because its parent is a flex column with a max height, the scrollbar will now appear correctly.
-                */}
-                <div className="space-y-2 overflow-y-auto p-4 pt-0">
-                    {children}
-                </div>
+            </div>
+            <div className="space-y-2 overflow-y-auto px-4 pb-4">
+                {children}
             </div>
         </div>
     );
@@ -640,7 +621,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
-      <SelectionModal title="NAME YOUR PALMOJI" isOpen={openModal === 'name'} onClose={handleCloseModal}>
+      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal}>
         <div className="space-y-4">
             {/* Request 4: Label is removed */}
             <div>
