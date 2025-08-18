@@ -248,34 +248,55 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 				console.error('Error using Web Share API:', error);
 			}
 		} else {
-			setShareMessage("Web Share API is not supported in your browser.");
+			setShareMessage(
+			  <>
+				Your browser doesn't support this share feature.
+				<br />
+				Please use a different share option.
+			  </>
+			);
 			setTimeout(() => {
 				setShareMessage("");
-			}, 5000); // Message disappears after 5 seconds
+			}, 5000);
 		}
 	};
 
-  const handleCopyToClipboard = () => {
-      navigator.clipboard.writeText(fullText).then(() => {
-          alert('Copied to clipboard!');
-      }).catch(err => {
-          console.error('Failed to copy text: ', err);
-      });
-  };
+	const handleCopyToClipboard = () => {
+		navigator.clipboard.writeText(fullText).then(() => {
+			setShareMessage('Copied to clipboard!');
+			setTimeout(() => setShareMessage(''), 5000);
+		}).catch(err => {
+			console.error('Failed to copy text: ', err);
+			setShareMessage('Failed to copy text.');
+			setTimeout(() => setShareMessage(''), 5000);
+		});
+	};
 
-  const handleSaveImage = () => {
-      if (palMojiRef.current) {
-          html2canvas(palMojiRef.current, {
-              backgroundColor: null,
-              scale: 2
-          }).then(canvas => {
-              const link = document.createElement('a');
-              link.download = 'palmoji.png';
-              link.href = canvas.toDataURL('image/png');
-              link.click();
-          });
-      }
-  };	
+	const handleSaveImage = () => {
+		if (palMojiRef.current) {
+			html2canvas(palMojiRef.current, {
+				backgroundColor: null,
+				scale: 2
+			}).then(canvas => {
+				const link = document.createElement('a');
+
+				// 1. Create the dynamic filename
+				const hasCustomName = currentName && currentName !== "Your PalMoji";
+				const safeName = hasCustomName
+				  ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
+				  : '';
+				link.download = `palmoji${safeName}-${nftId}.png`;
+
+				link.href = canvas.toDataURL('image/png');
+				link.click();
+
+				// 2. Set the dynamic success message
+				const nameForMessage = hasCustomName ? currentName : "PalMoji";
+				setShareMessage(`Your ${nameForMessage} has been saved!`);
+				setTimeout(() => setShareMessage(''), 5000);
+			});
+		}
+	};	
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
