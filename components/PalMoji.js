@@ -89,18 +89,32 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
 const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
+// Inside const SelectionModal = (...) =>
     return (
         <div className="absolute inset-0 bg-gray-200 dark:bg-gray-900 z-20 flex flex-col">
-            <div className="flex justify-between items-center p-4 pb-0 mb-4">
-                <p className="font-bold text-xl text-gray-800 dark:text-white">{title}</p>
+            {/* CORRECTED HEADER USING FLEXBOX */}
+            <div className="flex items-start justify-between p-4 pb-0 mb-4">
+                
+                {/* Invisible placeholder to balance the close button */}
+                <div className="w-8 h-8"></div>
+
+                {/* Centered Title */}
+                <div className="flex-grow text-center">
+                    <p className="font-bold text-xl text-gray-800 dark:text-white pt-2">
+                        {title.toUpperCase()}
+                    </p>
+                </div>
+
+                {/* Close Button */}
                 <button
-                  className="border-2 border-black dark:border-white w-8 h-8 ..."
+                  className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
                   onClick={onClose}
                   aria-label="Close"
                 >
                   <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
             </div>
+
             <div className="space-y-2 flex-grow overflow-y-auto px-4 pb-4">
                 {children}
             </div>
