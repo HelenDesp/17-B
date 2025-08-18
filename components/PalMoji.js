@@ -90,22 +90,30 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        // Added 'justify-center' to vertically center the modal content.
-        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col justify-center">
-            {/* MODIFICATION: Adjusted padding and margin for title vertical placement. */}
-            <div className="relative pt-2 pb-0 mb-4">
-                <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
+        // 1. OVERLAY: A `fixed` overlay that covers the entire screen and centers the panel.
+        <div className="fixed inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex items-center justify-center p-4">
+
+            {/* 2. MODAL PANEL: A self-contained panel with a max height and flex-col layout. */}
+            <div className="relative w-full max-w-sm flex flex-col max-h-full bg-gray-200/95 dark:bg-gray-900/95 rounded-md border-2 border-black dark:border-white">
+
+                {/* 3. CLOSE BUTTON: Positioned absolutely in the top-right corner of the panel. */}
                 <button
-                  /* MODIFICATION: Changed 'top-4' to 'top-0' to move the button higher. */
-                  className="absolute top-0 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                  onClick={onClose}
-                  aria-label="Close"
+                    className="absolute top-2 right-2 z-20 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                    onClick={onClose}
+                    aria-label="Close"
                 >
-                  <span className="text-4xl leading-none font-bold">&#215;</span>
+                    <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
-            </div>
-            <div className="space-y-2 overflow-y-auto px-4 pb-4">
-                {children}
+
+                {/* 4. HEADER: A non-scrolling header for the title. */}
+                <div className="flex-shrink-0 p-4 pb-2">
+                    <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
+                </div>
+
+                {/* 5. BODY: The content area which will scroll if content overflows. */}
+                <div className="space-y-2 overflow-y-auto p-4 pt-0">
+                    {children}
+                </div>
             </div>
         </div>
     );
