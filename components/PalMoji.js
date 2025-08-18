@@ -90,30 +90,39 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col justify-center">
-            {/* A new relative wrapper is added to act as the container for the entire modal panel. */}
-            <div className="relative">
-                {/*
-                  The close button is moved here.
-                  It is now positioned absolutely relative to the new wrapper,
-                  placing it at the top right of the entire modal content.
-                */}
+        // MODIFICATION 1: This outer div is now a 'fixed' overlay.
+        // It uses 'flex items-center' to properly center the modal panel vertically,
+        // even if the page behind it is scrolled.
+        <div className="fixed inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex items-center justify-center p-4">
+
+            {/* MODIFICATION 2: This is the new modal panel.
+                - It has a 'max-h-full' to ensure it never grows taller than the screen.
+                - It's a 'flex flex-col' container, which is key for making the content scrollable.
+                - It has its own background and border, making it a self-contained component.
+            */}
+            <div className="relative w-full max-w-sm flex flex-col max-h-full bg-gray-200 dark:bg-gray-900 rounded-md border-2 border-black dark:border-white">
+
+                {/* The close button is positioned absolutely to the top-right corner of the new panel. */}
                 <button
-                  className="absolute top-2 right-4 z-10 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                  onClick={onClose}
-                  aria-label="Close"
+                    className="absolute top-2 right-2 z-20 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                    onClick={onClose}
+                    aria-label="Close"
                 >
-                  <span className="text-4xl leading-none font-bold">&#215;</span>
+                    <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
 
-                {/* This is the title's container from the previous fix you liked. */}
-                {/* We add px-4 to ensure the title text aligns with the content below. */}
-                <div className="pt-2 pb-0 mb-4 px-4">
+                {/* MODIFICATION 3: The modal header (title).
+                    - It has padding and will NOT scroll. 'flex-shrink-0' prevents it from shrinking.
+                */}
+                <div className="flex-shrink-0 p-4 pb-2">
                     <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
                 </div>
 
-                {/* The main content area for the modal is unchanged. */}
-                <div className="space-y-2 overflow-y-auto px-4 pb-4">
+                {/* MODIFICATION 4: The modal body (the content).
+                    - 'overflow-y-auto' makes ONLY this section scrollable.
+                    - Because its parent is a flex column with a max height, the scrollbar will now appear correctly.
+                */}
+                <div className="space-y-2 overflow-y-auto p-4 pt-0">
                     {children}
                 </div>
             </div>
@@ -587,11 +596,11 @@ const asciiArtLines = useMemo(() => {
             {/* Row 1: Shapes and Traits */}
             <div className="grid grid-cols-2 gap-2">
                 <button onClick={() => setOpenModal('shapes')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'shapes' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-                    <span className="font-bold">SHAPES</span>
+                    <span className="font-bold">Shapes</span>
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
                 </button>
                 <button onClick={() => setOpenModal('traits')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'traits' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
-                    <span className="font-bold">TRAITS</span>
+                    <span className="font-bold">Traits</span>
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
                 </button>
             </div>
