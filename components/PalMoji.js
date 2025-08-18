@@ -90,30 +90,28 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        // 1. OVERLAY: A `fixed` overlay that covers the entire screen and centers the panel.
-        <div className="fixed inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex items-center justify-center p-4">
+        // 1. CONTAINER: Changed from 'fixed' to 'absolute'. This makes the modal
+        // fill its parent (the PalMoji component) instead of the whole screen.
+        <div className="absolute inset-0 z-20 flex flex-col bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm">
 
-            {/* 2. MODAL PANEL: A self-contained panel with a max height and flex-col layout. */}
-            <div className="relative w-full max-w-sm flex flex-col max-h-full bg-gray-200/95 dark:bg-gray-900/95 rounded-md border-2 border-black dark:border-white">
-
-                {/* 3. CLOSE BUTTON: Positioned absolutely in the top-right corner of the panel. */}
+            {/* 2. HEADER: A non-scrolling container for the title and close button.
+                'relative' allows the button to be positioned inside it. */}
+            <div className="relative flex-shrink-0 p-4 pb-2">
+                <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
                 <button
-                    className="absolute top-2 right-2 z-20 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                    className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
                     onClick={onClose}
                     aria-label="Close"
                 >
                     <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
+            </div>
 
-                {/* 4. HEADER: A non-scrolling header for the title. */}
-                <div className="flex-shrink-0 p-4 pb-2">
-                    <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
-                </div>
-
-                {/* 5. BODY: The content area which will scroll if content overflows. */}
-                <div className="space-y-2 overflow-y-auto p-4 pt-0">
-                    {children}
-                </div>
+            {/* 3. BODY: A scrollable area for the modal's content.
+                'flex-grow' is the key: it makes this div expand to fill all
+                available space below the header. */}
+            <div className="flex-grow space-y-2 overflow-y-auto px-4 pb-4">
+                {children}
             </div>
         </div>
     );
