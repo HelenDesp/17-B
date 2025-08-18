@@ -90,21 +90,23 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
     if (!isOpen) return null;
 
     return (
-        // MODIFICATION: Added 'justify-center' to vertically center the entire content block (title + body).
-        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col justify-center">
-            {/* The mb-2 class controls the space between the title and the content below it. */}
-            <div className="relative p-4 pb-0 mb-2">
-                <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
-                <button
-                  className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                  onClick={onClose}
-                  aria-label="Close"
-                >
-                  <span className="text-4xl leading-none font-bold">&#215;</span>
-                </button>
-            </div>
-            {/* MODIFICATION: Reverted to a simpler class string, removing the flawed logic. */}
-            <div className="space-y-2 overflow-y-auto px-4 pb-4">
+        // Added 'relative' for the button and 'pb-10' to control vertical position.
+        <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col justify-center relative pb-10">
+            
+            {/* 1. Close icon is now a direct child, locking it to the top-right corner. */}
+            <button
+              className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              <span className="text-4xl leading-none font-bold">&#215;</span>
+            </button>
+
+            {/* Title is now a direct child of the flex container */}
+            <p className="font-bold text-xl text-center text-gray-800 dark:text-white px-4 mb-2">{title}</p>
+
+            {/* Content area */}
+            <div className="space-y-2 overflow-y-auto px-4">
                 {children}
             </div>
         </div>
