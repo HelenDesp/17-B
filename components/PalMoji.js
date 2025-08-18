@@ -86,7 +86,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-const SelectionModal = ({ title, isOpen, onClose, centerContent = false, children }) => {
+const SelectionModal = ({ title, isOpen, onClose, centerContent = false, children, headerClassName = "relative flex-shrink-0 p-4 pb-2 mb-4" }) => {
     if (!isOpen) return null;
 
     // NEW: Conditionally add classes for vertical centering
@@ -96,7 +96,7 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
 
     return (
         <div className="absolute inset-0 z-20 flex flex-col bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm">
-            <div className="relative flex-shrink-0 p-4 pb-2 mb-4">
+            <div className={headerClassName}>
                 <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
                 <button
                     className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
@@ -604,14 +604,14 @@ const asciiArtLines = useMemo(() => {
         </div>
       </div>
 
-      <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
+      <SelectionModal title="SHAPES" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
 	    <AccordionItem label="Headwear" options={catData.Shapes.Headwear} selected={headwearShape} onSelect={setHeadwearShape} isOpen={openItem === 'Shape:Headwear'} onToggle={() => toggleItem('Shape:Headwear')} />
         <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Shape:Head'} onToggle={() => toggleItem('Shape:Head')} />
         <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Shape:Snout'} onToggle={() => toggleItem('Shape:Snout')} />
         <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Shape:Body'} onToggle={() => toggleItem('Shape:Body')} />
       </SelectionModal>
 
-      <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
+      <SelectionModal title="TRAITS" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
         <AccordionItem label="Headwear" options={Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Trait:Headwear'} onToggle={() => toggleItem('Trait:Headwear')} />
         <AccordionItem label="Ears Top" options={Traits.EarsTop} selected={selectedEarsTop} onSelect={setSelectedEarsTop} isOpen={openItem === 'Trait:EarsTop'} onToggle={() => toggleItem('Trait:EarsTop')} />
         <AccordionItem label="Ears Head" options={Traits.EarsHead} selected={selectedEarsHead} onSelect={handleSetSelectedEarsHead} isOpen={openItem === 'Trait:EarsHead'} onToggle={() => toggleItem('Trait:EarsHead')} />
@@ -625,7 +625,13 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
-      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal} centerContent={true}>
+      <SelectionModal 
+        title="NAME YOUR PALMOJI" 
+        isOpen={openModal === 'name'} 
+        onClose={handleCloseModal} 
+        centerContent={true}
+        headerClassName="relative flex-shrink-0 p-4 pb-2"
+      >
         <div className="space-y-4">
             {/* Request 4: Label is removed */}
             <div>
@@ -667,6 +673,7 @@ const asciiArtLines = useMemo(() => {
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
 		centerContent={true}
+		headerClassName="relative flex-shrink-0 p-4 pb-2"
       >
         <div className="flex flex-col items-center justify-center w-full">
             <div className="flex flex-row flex-wrap justify-center items-center w-full gap-4">
