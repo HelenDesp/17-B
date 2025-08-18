@@ -64,6 +64,12 @@ export default function Layout({ children }) {
       setSidebarOpen(false);
     }
   }, [activeTab, isMobile]);
+  
+  useEffect(() => {
+    if (!isConnected) {
+      setActiveTab("dashboard");
+    }
+  }, [isConnected]);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -71,6 +77,10 @@ export default function Layout({ children }) {
 
   // --- (This part is correct and does not need changes) ---
   const renderContent = () => {
+    if (!isConnected) {
+      // The `children` prop refers to the Dashboard component from pages/index.js
+      return children;
+    }	  
     switch (activeTab) {
       case "nfts":
         return <NFTs />;		
