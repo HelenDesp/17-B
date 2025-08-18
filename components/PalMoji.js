@@ -86,12 +86,16 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-const SelectionModal = ({ title, isOpen, onClose, children }) => {
+const SelectionModal = ({ title, isOpen, onClose, children, centerContent }) => {
     if (!isOpen) return null;
+
+    // Conditionally set classes for the content wrapper
+    const contentWrapperClasses = centerContent
+        ? "flex-grow overflow-y-auto px-4 pb-4 flex items-center justify-center"
+        : "space-y-2 flex-grow overflow-y-auto px-4 pb-4";
 
     return (
         <div className="absolute inset-0 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm z-20 flex flex-col">
-            {/* START OF MODIFICATION */}
             <div className="relative p-4 pb-0 mb-4">
                 <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
                 <button
@@ -102,8 +106,8 @@ const SelectionModal = ({ title, isOpen, onClose, children }) => {
                   <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
             </div>
-            {/* END OF MODIFICATION */}
-            <div className="space-y-2 flex-grow overflow-y-auto px-4 pb-4">
+            {/* The new className is applied here */}
+            <div className={contentWrapperClasses}>
                 {children}
             </div>
         </div>
@@ -620,7 +624,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
-      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal}>
+      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal} centerContent>
         <div className="space-y-4">
             {/* Request 4: Label is removed */}
             <div>
@@ -661,6 +665,7 @@ const asciiArtLines = useMemo(() => {
         title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`} 
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
+		centerContent
       >
         <div className="flex flex-col items-center justify-center text-center space-y-6 p-4">
             <div className="grid grid-cols-3 justify-center items-center w-full max-w-xs gap-4">
