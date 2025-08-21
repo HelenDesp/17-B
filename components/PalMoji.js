@@ -117,7 +117,7 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
 
 
 
-export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName }) {
+export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName, originalNFTName }) {
   const palMojiRef = useRef(null);	
   const [headwearShape, setHeadwearShape] = useState('None');	
   const [headShape, setHeadShape] = useState('Round');
@@ -584,23 +584,42 @@ const asciiArtLines = useMemo(() => {
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white relative overflow-hidden">
       <style jsx global>{`@import url('https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap');`}</style>
 
-      <div ref={palMojiRef} className="w-full h-auto relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center py-2">
-        <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
-        <div className="z-10 p-2">
-          <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
-            {asciiArtLines.map((line, index) => {
-              const style = { 
-                position: 'relative',
-              };
-              return (
-                <div key={index} style={style} >
-                  {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+		<div ref={palMojiRef} className="w-full h-auto relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex flex-col items-center justify-center p-4">
+			<div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
+			
+			<div className="relative z-10 w-full">
+				{/* --- START: Added Header for Saved Image --- */}
+				<div className="flex items-center space-x-3 mb-4">
+					<img 
+						src={ownerNFTImage} 
+						alt={originalNFTName}
+						className="h-12 w-12 object-cover border border-black dark:border-white"
+					/>
+					<div>
+						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
+						<p className="text-sm font-bold text-black dark:text-white">
+							{currentName}
+						</p> 
+					</div>
+				</div>
+				{/* --- END: Added Header for Saved Image --- */}
+
+				<div className="p-2">
+				  <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
+					{asciiArtLines.map((line, index) => {
+					  const style = { 
+						position: 'relative',
+					  };
+					  return (
+						<div key={index} style={style} >
+						  {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
+						</div>
+					  );
+					})}
+				  </div>
+				</div>
+			</div>
+		</div>
 
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
         <div className="space-y-2">
