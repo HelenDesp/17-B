@@ -606,7 +606,7 @@ const asciiArtLines = useMemo(() => {
 						className="h-12 w-12 object-cover border border-black dark:border-white"
 						style={{ imageRendering: 'auto' }}
 					/>
-					<div style={{ transform: 'translateY(-8px)' }}>
+					<div style={{ transform: 'translateY(-7px)' }}>
 						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
 						<p className="text-sm font-bold text-black dark:text-white">
 							{currentName}
