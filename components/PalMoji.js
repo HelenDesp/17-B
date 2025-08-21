@@ -300,7 +300,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 			let highQualityIconSrc;
 			try {
 				// Use our new helper function to create a perfect 48x48 icon
-				highQualityIconSrc = await createHighQualityIcon(ownerNFTImage, 48);
+				highQualityIconSrc = await createHighQualityIcon(ownerNFTImage, 96);
 			} catch (error) {
 				console.error("Failed to create high-quality icon:", error);
 				// Fallback to the original image if something goes wrong
