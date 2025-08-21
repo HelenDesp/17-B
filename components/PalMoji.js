@@ -277,25 +277,21 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 			const img = new Image();
 			img.crossOrigin = "anonymous";
 			img.onload = () => {
-				// Create an off-screen canvas
 				const canvas = document.createElement('canvas');
 				canvas.width = size;
 				canvas.height = size;
 				const ctx = canvas.getContext('2d');
 
-				// This is the key: disable smoothing for a crisp result
-				ctx.imageSmoothingEnabled = false;
+				// THIS IS THE FIX: Enable smoothing for high-quality downscaling
+				ctx.imageSmoothingEnabled = true;
 
-				// Draw the high-res image onto the small canvas
 				ctx.drawImage(img, 0, 0, size, size);
-
-				// Resolve the promise with the new, high-quality image data
 				resolve(canvas.toDataURL('image/png'));
 			};
 			img.onerror = reject;
 			img.src = src;
 		});
-	};	
+	};
 
 	const handleSaveImage = async () => { // Make the function async
 		if (palMojiRef.current) {

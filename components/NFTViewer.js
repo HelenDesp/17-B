@@ -3,7 +3,6 @@ import { useState } from "react";
 import axios from "axios";
 import { useAccount } from "wagmi";
 import PalMoji from "./PalMoji";
-import PixelatedImage from "./PixelatedImage";
 
 export default function NFTViewer({
   nfts,
@@ -257,10 +256,9 @@ export default function NFTViewer({
             
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center space-x-3">
-                    <PixelatedImage  
+                    <img 
                         src={activePalMojiNFT.image} 
                         alt={activePalMojiNFT.name}
-						id="visible-nft-icon"
                         className="h-12 w-12 object-cover border border-black dark:border-white"
                     />
                     <div>
