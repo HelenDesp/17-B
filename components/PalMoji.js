@@ -2,6 +2,8 @@
 "use client";
 import { useState, useMemo, useRef } from 'react';
 import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
+import axios from "axios";
+import { useAccount } from "wagmi";
 
 const catData = {
   Shapes: {
@@ -118,7 +120,9 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
 
 
 export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName, originalNFTName }) {
-  const palMojiRef = useRef(null);	
+  const palMojiRef = useRef(null);
+  const asciiArtRef = useRef(null);
+  const { address } = useAccount();  
   const [headwearShape, setHeadwearShape] = useState('None');	
   const [headShape, setHeadShape] = useState('Round');
   const [snoutShape, setSnoutShape] = useState('Round');
@@ -139,7 +143,8 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
   const [tempName, setTempName] = useState("");
-  const [shareMessage, setShareMessage] = useState("");  
+  const [shareMessage, setShareMessage] = useState("");
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);  
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -208,7 +213,25 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 	  // Finally, set the eye trait you selected.
 	  setSelectedEyes(eyeOption);
-	};  
+	}; 
+
+	const handleUpgrade = async () => {
+		const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
+
+		try {
+			await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
+				original: originalNFTName,
+				owner: address,
+				name: currentName,
+				palmoji: asciiArtText,
+			});
+			setIsUpgradeModalOpen(false);
+			alert("Your PalMoji upgrade request has been sent!");
+		} catch (error) {
+			console.error("PalMoji upgrade submission error:", error);
+			alert("Failed to submit PalMoji upgrade. Please try again.");
+		}
+	};	
 
 // PASTE THE NEW CODE BLOCK HERE
 
@@ -660,7 +683,7 @@ const asciiArtLines = useMemo(() => {
 				{/* --- END: Added Header for Saved Image --- */}
 
 				<div className="p-2">
-				  <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
+				  <div ref={asciiArtRef} className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
 					{asciiArtLines.map((line, index) => {
 					  const style = { 
 						position: 'relative',
@@ -697,6 +720,9 @@ const asciiArtLines = useMemo(() => {
                 <button onClick={() => setOpenModal('share')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Share
                 </button>
+				<button onClick={() => setIsUpgradeModalOpen(true)} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
+					UPGRADE NFT
+				</button>				
                 <button onClick={handleReset} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Reset
                 </button>				
@@ -803,6 +829,42 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
+      {isUpgradeModalOpen && (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-70 z-[10000]" onClick={() => setIsUpgradeModalOpen(false)} />
+          <div className="relative z-[10001] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full">
+            <button
+                className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                onClick={() => setIsUpgradeModalOpen(false)}
+                aria-label="Close"
+            >
+                <span className="text-4xl leading-none font-bold">&#215;</span>
+            </button>
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
+                {currentName}
+              </h3>
+              <div className="font-mono text-2xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
+                {asciiArtRef.current?.innerText}
+              </div>
+              <div className="flex justify-between mt-6 space-x-4">
+                <button
+                  onClick={handleUpgrade}
+                  className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+                >
+                  UPGRADE
+                </button>
+                <button
+                  onClick={() => setIsUpgradeModalOpen(false)}
+                  className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+                >
+                  CLOSE
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+}	  
