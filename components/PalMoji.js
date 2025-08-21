@@ -333,28 +333,28 @@ const handleSaveImage = async () => {
         const finalAsciiHeight = asciiCanvas.height / 5;
         
         // The final image dimensions
-        const targetWidth = 916;
-        const targetHeight = 660; // Adjust as needed
-        const padding = 32; // Corresponds to p-4 at scale:2
+		const targetWidth = 916;
+		const padding = 32;
 
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = targetWidth;
-        finalCanvas.height = targetHeight;
+		// --- START OF FIX ---
+		// Dynamically calculate the total required height
+		const totalHeight = resizedHeaderCanvas.height + finalAsciiHeight + (padding * 2);
+
+		const finalCanvas = document.createElement('canvas');
+		finalCanvas.width = targetWidth;
+		finalCanvas.height = totalHeight; // Use the calculated height
         const ctx = finalCanvas.getContext('2d');
         
         // Draw the background color
         const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        ctx.fillStyle = isDarkMode ? '#1f2937' : '#e5e7eb'; // Matches bg-gray-200 / dark:bg-gray-800
+        ctx.fillStyle = isDarkMode ? '#000' : '#fff'; // Matches bg-gray-200 / dark:bg-gray-800
         ctx.fillRect(0, 0, targetWidth, targetHeight);
         
         // Draw the 1px black border
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 2; // 1px at scale:2
         ctx.strokeRect(0, 0, targetWidth, targetHeight);
-
-        // Draw the resized (smooth) header
-        ctx.drawImage(resizedHeaderCanvas, padding, padding);
-        
+     
         // -- START OF FIX --
         // Set rendering to SMOOTH for the header
         ctx.imageSmoothingEnabled = true;
