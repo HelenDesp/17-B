@@ -86,51 +86,30 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
     );
 };
 
-const SelectionModal = ({ title, isOpen, onClose, centerBlock = false, children }) => {
+const SelectionModal = ({ title, isOpen, onClose, centerContent = false, children, headerClassName = "relative flex-shrink-0 p-4 pb-2 mb-4" }) => {
     if (!isOpen) return null;
 
-    // This is the default, top-aligned layout for the "Traits" modal.
-    if (!centerBlock) {
-        return (
-            <div className="absolute inset-0 z-20 flex flex-col bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm">
-                <div className="relative flex-shrink-0 p-4 pb-2 mb-4">
-                    <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
-                    <button
-                        className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                        onClick={onClose}
-                        aria-label="Close"
-                    >
-                        <span className="text-4xl leading-none font-bold">&#215;</span>
-                    </button>
-                </div>
-                <div className="flex-grow space-y-2 overflow-y-auto px-4 pb-4">
-                    {children}
-                </div>
-            </div>
-        );
-    }
+    // NEW: Conditionally add classes for vertical centering
+    const bodyClasses = `flex-grow space-y-2 overflow-y-auto px-4 pb-4 ${
+        centerContent ? 'flex flex-col justify-center' : ''
+    }`;
 
-    // This is the new, simplified layout for "Shapes", "Name", and "Share".
     return (
-        <div className="absolute inset-0 z-20 bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm flex flex-col justify-center items-center p-4">
-            
-            {/* The Close Button is now completely separate and positioned relative to the entire modal area. */}
-            <button
-                className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                onClick={onClose}
-                aria-label="Close"
-            >
-                <span className="text-4xl leading-none font-bold">&#215;</span>
-            </button>
+        <div className="absolute inset-0 z-20 flex flex-col bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm">
+            <div className={headerClassName}>
+                <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
+                <button
+                    className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                    onClick={onClose}
+                    aria-label="Close"
+                >
+                    <span className="text-4xl leading-none font-bold">&#215;</span>
+                </button>
+            </div>
 
-            {/* This simple div groups the title and content so they can be centered together. */}
-            <div>
-                <div className="p-4 pb-2 mb-4">
-                    <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
-                </div>
-                <div className="space-y-2 px-4 pb-4">
-                    {children}
-                </div>
+            {/* The `className` here now uses the conditional variable */}
+            <div className={bodyClasses}>
+                {children}
             </div>
         </div>
     );
@@ -138,7 +117,7 @@ const SelectionModal = ({ title, isOpen, onClose, centerBlock = false, children 
 
 
 
-export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName }) {
+export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName, originalNFTName }) {
   const palMojiRef = useRef(null);	
   const [headwearShape, setHeadwearShape] = useState('None');	
   const [headShape, setHeadShape] = useState('Round');
@@ -160,6 +139,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
   const [tempName, setTempName] = useState("");
+  const [shareMessage, setShareMessage] = useState("");  
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -177,6 +157,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
     setSelectedWhiskers('None');
     setSelectedWings('None');
     setSelectedTail('None');
+	onNameChange("Your PalMoji");
   };
 
   const handleSetSelectedEarsHead = (value) => {
@@ -256,42 +237,91 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
       window.open(platformUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const handleGenericShare = async () => {
-      if (navigator.share) {
-          try {
-              await navigator.share({
-                  title: 'My PalMoji',
-                  text: fullText,
-              });
-          } catch (error) {
-              console.error('Error using Web Share API:', error);
-          }
-      } else {
-          alert('Web Share API is not supported in your browser.');
-      }
-  };
+	const handleGenericShare = async () => {
+		if (navigator.share) {
+			try {
+				await navigator.share({
+					title: 'My PalMoji',
+					text: fullText,
+				});
+			} catch (error) {
+				console.error('Error using Web Share API:', error);
+			}
+		} else {
+			setShareMessage(
+			  <>
+				Your browser doesn't support this share feature.
+				<br />
+				Please use a different share option.
+			  </>
+			);
+			setTimeout(() => {
+				setShareMessage("");
+			}, 5000);
+		}
+	};
 
-  const handleCopyToClipboard = () => {
-      navigator.clipboard.writeText(fullText).then(() => {
-          alert('Copied to clipboard!');
-      }).catch(err => {
-          console.error('Failed to copy text: ', err);
-      });
-  };
+	const handleCopyToClipboard = () => {
+		navigator.clipboard.writeText(fullText).then(() => {
+			setShareMessage('Copied to clipboard!');
+			setTimeout(() => setShareMessage(''), 5000);
+		}).catch(err => {
+			console.error('Failed to copy text: ', err);
+			setShareMessage('Failed to copy text.');
+			setTimeout(() => setShareMessage(''), 5000);
+		});
+	};
 
-  const handleSaveImage = () => {
-      if (palMojiRef.current) {
-          html2canvas(palMojiRef.current, {
-              backgroundColor: null,
-              scale: 2
-          }).then(canvas => {
-              const link = document.createElement('a');
-              link.download = 'palmoji.png';
-              link.href = canvas.toDataURL('image/png');
-              link.click();
-          });
-      }
-  };	
+const handleSaveImage = async () => {
+    if (palMojiRef.current) {
+        // Show the header first
+        const header = document.getElementById('palmoji-header-for-save');
+        const wasHidden = header?.classList.contains('hidden');
+        
+        if (header && wasHidden) {
+            header.classList.remove('hidden');
+        }
+
+        // Wait a moment for the DOM to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        try {
+            const canvas = await html2canvas(palMojiRef.current, {
+                height: palMojiRef.current.scrollHeight,
+                width: palMojiRef.current.scrollWidth,
+                scale: 10,
+                useCORS: true,
+                logging: true,
+            });
+
+            // Hide the header again
+            if (header && wasHidden) {
+                header.classList.add('hidden');
+            }
+
+            const link = document.createElement('a');
+            const hasCustomName = currentName && currentName !== "Your PalMoji";
+            const safeName = hasCustomName
+                ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
+                : '';
+            link.download = `palmoji${safeName}-${nftId}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            const nameForMessage = hasCustomName ? currentName : "PalMoji";
+            setShareMessage(`Your ${nameForMessage} has been saved!`);
+            setTimeout(() => setShareMessage(''), 5000);
+        } catch (error) {
+            // Hide the header again even if there's an error
+            if (header && wasHidden) {
+                header.classList.add('hidden');
+            }
+            console.error('Screenshot failed:', error);
+            setShareMessage('Failed to save image. Please try again.');
+            setTimeout(() => setShareMessage(''), 5000);
+        }
+    }
+};	
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
@@ -579,23 +609,44 @@ const asciiArtLines = useMemo(() => {
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white relative overflow-hidden">
       <style jsx global>{`@import url('https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap');`}</style>
 
-      <div ref={palMojiRef} className="w-full h-auto relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex items-center justify-center py-2">
-        <div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
-        <div className="z-10 p-2">
-          <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
-            {asciiArtLines.map((line, index) => {
-              const style = { 
-                position: 'relative',
-              };
-              return (
-                <div key={index} style={style} >
-                  {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+		<div ref={palMojiRef} className="w-full h-auto relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex flex-col items-center justify-center p-4 border border-black">
+			<div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
+			
+			<div className="relative z-10 w-full">
+				{/* --- START: Added Header for Saved Image (hidden by default) --- */}
+				{/* FIX #2: Changed 'items-center' to 'items-start' to align text to the top */}
+				<div id="palmoji-header-for-save" className="hidden flex items-start space-x-3 mb-4">
+					{/* FIX #1: Added inline style to ensure smooth image rendering */}
+					<img 
+						src={ownerNFTImage} 
+						alt={originalNFTName}
+						className="h-12 w-12 object-cover border border-black dark:border-white"
+					/>
+					<div style={{ transform: 'translateY(-7px)' }}>
+						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
+						<p className="text-sm font-bold text-black dark:text-white">
+							{currentName}
+						</p> 
+					</div>
+				</div>
+				{/* --- END: Added Header for Saved Image --- */}
+
+				<div className="p-2">
+				  <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
+					{asciiArtLines.map((line, index) => {
+					  const style = { 
+						position: 'relative',
+					  };
+					  return (
+						<div key={index} style={style} >
+						  {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
+						</div>
+					  );
+					})}
+				  </div>
+				</div>
+			</div>
+		</div>
 
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
         <div className="space-y-2">
@@ -625,14 +676,14 @@ const asciiArtLines = useMemo(() => {
         </div>
       </div>
 
-      <SelectionModal title="Shapes" isOpen={openModal === 'shapes'} onClose={handleCloseModal} centerBlock={true}>
+      <SelectionModal title="SHAPES" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
 	    <AccordionItem label="Headwear" options={catData.Shapes.Headwear} selected={headwearShape} onSelect={setHeadwearShape} isOpen={openItem === 'Shape:Headwear'} onToggle={() => toggleItem('Shape:Headwear')} />
         <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Shape:Head'} onToggle={() => toggleItem('Shape:Head')} />
         <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Shape:Snout'} onToggle={() => toggleItem('Shape:Snout')} />
         <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Shape:Body'} onToggle={() => toggleItem('Shape:Body')} />
       </SelectionModal>
 
-      <SelectionModal title="Traits" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
+      <SelectionModal title="TRAITS" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
         <AccordionItem label="Headwear" options={Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Trait:Headwear'} onToggle={() => toggleItem('Trait:Headwear')} />
         <AccordionItem label="Ears Top" options={Traits.EarsTop} selected={selectedEarsTop} onSelect={setSelectedEarsTop} isOpen={openItem === 'Trait:EarsTop'} onToggle={() => toggleItem('Trait:EarsTop')} />
         <AccordionItem label="Ears Head" options={Traits.EarsHead} selected={selectedEarsHead} onSelect={handleSetSelectedEarsHead} isOpen={openItem === 'Trait:EarsHead'} onToggle={() => toggleItem('Trait:EarsHead')} />
@@ -646,7 +697,13 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
-      <SelectionModal title="Name Your PalMoji" isOpen={openModal === 'name'} onClose={handleCloseModal} centerBlock={true}>
+      <SelectionModal 
+        title="NAME YOUR PALMOJI" 
+        isOpen={openModal === 'name'} 
+        onClose={handleCloseModal} 
+        centerContent={true}
+        headerClassName="relative flex-shrink-0 p-4 pb-0 -mb-8"
+      >
         <div className="space-y-4">
             {/* Request 4: Label is removed */}
             <div>
@@ -687,8 +744,14 @@ const asciiArtLines = useMemo(() => {
         title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`} 
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
-		centerBlock={true}
+		centerContent={true}
+		headerClassName="relative flex-shrink-0 p-4 pb-0 -mb-8"
       >
+		{shareMessage && (
+		  <div className="text-center text-black dark:text-white mb-4 p-2">
+			{shareMessage}
+		  </div>
+		)}	  
         <div className="flex flex-col items-center justify-center w-full">
             <div className="flex flex-row flex-wrap justify-center items-center w-full gap-4">
                 <a href="#" onClick={(e) => { e.preventDefault(); handleGenericShare(); }} title="Share" className="flex justify-center text-black dark:text-white hover:opacity-75">
