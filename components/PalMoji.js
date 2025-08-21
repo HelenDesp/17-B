@@ -274,30 +274,19 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 	const handleSaveImage = () => {
 		if (palMojiRef.current) {
-			
+
+			// A much simpler function to just un-hide the header
 			const onclone = (clonedDocument) => {
 				const header = clonedDocument.getElementById('palmoji-header-for-save');
 				if (header) {
 					header.classList.remove('hidden');
-				}
-
-				// --- THIS IS THE CRUCIAL LOGIC ---
-				// 1. Find the canvas that's already drawn in the LIVE UI
-				const visibleCanvas = window.document.getElementById('visible-nft-icon');
-				
-				// 2. Find the placeholder image in our screenshot CLONE
-				const placeholder = clonedDocument.getElementById('image-placeholder-for-save');
-
-				// 3. If both exist, replace the placeholder with a copy of the finished canvas
-				if (visibleCanvas && placeholder) {
-					placeholder.parentNode.replaceChild(visibleCanvas.cloneNode(true), placeholder);
 				}
 			};
 
 			html2canvas(palMojiRef.current, {
 				backgroundColor: null,
 				scale: 2,
-				useCORS: true,
+				useCORS: true, // This is still needed for the external image
 				onclone: onclone
 			}).then(canvas => {
 				const link = document.createElement('a');
@@ -316,7 +305,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 				setTimeout(() => setShareMessage(''), 5000);
 			});
 		}
-	};	
+	};
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
@@ -611,9 +600,9 @@ const asciiArtLines = useMemo(() => {
 				{/* --- START: Added Header for Saved Image (hidden by default) --- */}
 				{/* FIX #2: Changed 'items-center' to 'items-start' to align text to the top */}
 				<div id="palmoji-header-for-save" className="hidden flex items-start space-x-3 mb-4">
-					{/* Use a simple img tag as a placeholder */}
-					<img
-						id="image-placeholder-for-save"
+					<img 
+						src={ownerNFTImage} 
+						alt={originalNFTName}
 						className="h-12 w-12 object-cover border border-black dark:border-white"
 					/>
 					<div style={{ transform: 'translateY(-2px)' }}>
