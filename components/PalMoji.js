@@ -284,7 +284,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 			html2canvas(palMojiRef.current, {
 				backgroundColor: null,
-				scale: 10,      // Use the high scale to get a perfect icon render
+				scale: 20,      // Use the high scale to get a perfect icon render
 				useCORS: true,
 				onclone: onclone
 			}).then(largeCanvas => { // This is the huge, high-quality canvas
