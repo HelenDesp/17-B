@@ -284,7 +284,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 			html2canvas(palMojiRef.current, {
 				backgroundColor: null,
-				scale: 5,
+				scale: 10,
 				useCORS: true,      // <-- Fix for blank NFT icon
 				onclone: onclone    // <-- Fix for duplicate header
 			}).then(canvas => {
