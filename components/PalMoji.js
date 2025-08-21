@@ -291,15 +291,15 @@ const handleSaveImage = async () => {
     if (!asciiArtRef.current) return;
 
     try {
-        // --- STEP 1: Capture the ASCII Art ---
+        // --- STEP 1: Capture ASCII Art ---
         const asciiCanvas = await html2canvas(asciiArtRef.current, {
             backgroundColor: null,
-            scale: 10, // Capture at high-res for sharpness
+            scale: 10,
             useCORS: true
         });
 
         // --- STEP 2: Create the Header from Scratch ---
-        const iconImageElement = await createHighQualityIcon(ownerNFTImage, 96); // Create a 96x96 icon
+        const iconImageElement = await createHighQualityIcon(ownerNFTImage, 96);
         
         const headerCanvas = document.createElement('canvas');
         const headerCtx = headerCanvas.getContext('2d');
@@ -307,65 +307,60 @@ const handleSaveImage = async () => {
         const targetWidth = 916;
         const padding = 32;
         const iconSize = 96; // 48px at scale:2
+        const headerHeight = iconSize + (padding / 2); // Calculate height based on icon + padding
+
+        headerCanvas.width = targetWidth;
+        headerCanvas.height = headerHeight;
+
+        // ---- START OF ICON FIX ----
+        // 1. Draw the icon with padding from the left
+        headerCtx.imageSmoothingEnabled = true;
+        headerCtx.imageSmoothingQuality = 'high';
+        headerCtx.drawImage(iconImageElement, padding, 0, iconSize, iconSize);
+
+        // 2. Manually draw the 1px (2px for scale:2) border around the icon
+        headerCtx.strokeStyle = 'black';
+        headerCtx.lineWidth = 2;
+        headerCtx.strokeRect(padding, 0, iconSize, iconSize);
+        // ---- END OF ICON FIX ----
         
-        // Set header font styles to match the UI
         const fontName = getComputedStyle(document.body).getPropertyValue('font-family');
         headerCtx.fillStyle = 'black';
         
-        // Draw NFT Name
-        headerCtx.font = `32px ${fontName}`; // 16px at scale:2
-        const nftName = originalNFTName || '';
-        headerCtx.fillText(nftName, iconSize + padding, 35);
-
-        // Draw PalMoji Name
-        headerCtx.font = `bold 28px ${fontName}`; // 14px at scale:2
-        const palmojiName = currentName || '';
-        headerCtx.fillText(palmojiName, iconSize + padding, 75);
+        const textXPosition = iconSize + (padding * 2);
         
-        // Get header height and add the icon
-        const headerHeight = 120; // A fixed height for the header area
-        headerCanvas.width = targetWidth;
-        headerCanvas.height = headerHeight;
-        
-        // Redraw text on correctly sized canvas
-        headerCtx.fillStyle = 'black';
         headerCtx.font = `32px ${fontName}`;
-        headerCtx.fillText(nftName, iconSize + padding, 40);
+        headerCtx.fillText(originalNFTName || '', textXPosition, 40);
+
         headerCtx.font = `bold 28px ${fontName}`;
-        headerCtx.fillText(palmojiName, iconSize + padding, 80);
-        
-        // Draw the high-quality icon
-        headerCtx.imageSmoothingEnabled = true;
-        headerCtx.imageSmoothingQuality = 'high';
-        headerCtx.drawImage(iconImageElement, 0, 0, iconSize, iconSize);
-        
+        headerCtx.fillText(currentName || '', textXPosition, 80);
 
         // --- STEP 3: Combine Header and ASCII Art ---
         const finalAsciiWidth = asciiCanvas.width / 5;
         const finalAsciiHeight = asciiCanvas.height / 5;
+        
+        // --- START OF ASCII ART CUTOFF FIX ---
+        // Correctly calculate total height
         const totalHeight = headerHeight + finalAsciiHeight + padding;
-
+        
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = targetWidth;
         finalCanvas.height = totalHeight;
         const ctx = finalCanvas.getContext('2d');
-        
-        // Fill background and draw border
+        // --- END OF ASCII ART CUTOFF FIX ---
+
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, targetWidth, totalHeight);
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 2;
         ctx.strokeRect(0, 0, targetWidth, totalHeight);
 
-        // Draw the header we created
-        ctx.drawImage(headerCanvas, 0, padding / 2);
+        ctx.drawImage(headerCanvas, 0, 0);
 
-        // Draw the sharp ASCII art
         ctx.imageSmoothingEnabled = false;
         const asciiYPosition = headerHeight;
         ctx.drawImage(asciiCanvas, (targetWidth - finalAsciiWidth) / 2, asciiYPosition, finalAsciiWidth, finalAsciiHeight);
         
-
         // --- STEP 4: Download ---
         const link = document.createElement('a');
         const hasCustomName = currentName && currentName !== "Your PalMoji";
