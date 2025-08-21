@@ -592,16 +592,19 @@ const asciiArtLines = useMemo(() => {
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white relative overflow-hidden">
       <style jsx global>{`@import url('https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap');`}</style>
 
-		<div ref={palMojiRef} className="w-full h-auto relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex flex-col items-center justify-center p-4">
+		<div ref={palMojiRef} className="w-full h-auto relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex flex-col items-center justify-center p-4 border border-black">
 			<div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
 			
 			<div className="relative z-10 w-full">
-				{/* --- START: Added Header for Saved Image --- */}
-				<div id="palmoji-header-for-save" className="hidden flex items-center space-x-3 mb-4">
+				{/* --- START: Added Header for Saved Image (hidden by default) --- */}
+				{/* FIX #2: Changed 'items-center' to 'items-start' to align text to the top */}
+				<div id="palmoji-header-for-save" className="hidden flex items-start space-x-3 mb-4">
+					{/* FIX #1: Added inline style to ensure smooth image rendering */}
 					<img 
 						src={ownerNFTImage} 
 						alt={originalNFTName}
 						className="h-12 w-12 object-cover border border-black dark:border-white"
+						style={{ imageRendering: 'auto' }}
 					/>
 					<div>
 						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
