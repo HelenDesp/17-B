@@ -274,101 +274,99 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 // In PalMoji.js
 
-const handleSaveImage = async () => {
-    if (!palMojiRef.current || !asciiArtRef.current) return;
+// In PalMoji.js
 
-    // Define the elements we'll be working with
-    const headerElement = palMojiRef.current.querySelector('#palmoji-header-for-save');
-    const asciiElement = asciiArtRef.current;
-    
-    if (!headerElement) return;
+const createHighQualityIcon = (src, size) => {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        // Resolve with the loaded image object itself
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
+};
+
+const handleSaveImage = async () => {
+    if (!asciiArtRef.current) return;
 
     try {
-        // --- STEP 1: Capture Header and ASCII Art Separately ---
+        // --- STEP 1: Capture the ASCII Art ---
+        const asciiCanvas = await html2canvas(asciiArtRef.current, {
+            backgroundColor: null,
+            scale: 10, // Capture at high-res for sharpness
+            useCORS: true
+        });
+
+        // --- STEP 2: Create the Header from Scratch ---
+        const iconImageElement = await createHighQualityIcon(ownerNFTImage, 96); // Create a 96x96 icon
         
-        // Make the header temporarily visible for capture
-        headerElement.classList.remove('hidden');
-
-        const [headerCanvas, asciiCanvas] = await Promise.all([
-            // Capture the header at high resolution for quality scaling
-            html2canvas(headerElement, { backgroundColor: null, scale: 10, useCORS: true }),
-            // Capture the ASCII art at high resolution to keep it sharp
-            html2canvas(asciiElement, { backgroundColor: null, scale: 10, useCORS: true })
-        ]);
-
-        // Hide the header again in the UI
-        headerElement.classList.add('hidden');
-
+        const headerCanvas = document.createElement('canvas');
+        const headerCtx = headerCanvas.getContext('2d');
         
-        // --- STEP 2: Perform High-Quality Resize on the HEADER ONLY ---
-
-        let currentHeaderCanvas = headerCanvas;
-        const targetHeaderWidth = 916; // The final width of the header portion
+        const targetWidth = 916;
+        const padding = 32;
+        const iconSize = 96; // 48px at scale:2
         
-        // Multi-step downscaling loop for the header
-        while (currentHeaderCanvas.width > targetHeaderWidth * 2) {
-            const newWidth = Math.floor(currentHeaderCanvas.width / 2);
-            const nextCanvas = document.createElement('canvas');
-            nextCanvas.width = newWidth;
-            nextCanvas.height = Math.floor(currentHeaderCanvas.height * (newWidth / currentHeaderCanvas.width));
-            const ctx = nextCanvas.getContext('2d');
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(currentHeaderCanvas, 0, 0, newWidth, nextCanvas.height);
-            currentHeaderCanvas = nextCanvas;
-        }
+        // Set header font styles to match the UI
+        const fontName = getComputedStyle(document.body).getPropertyValue('font-family');
+        headerCtx.fillStyle = 'black';
+        
+        // Draw NFT Name
+        headerCtx.font = `32px ${fontName}`; // 16px at scale:2
+        const nftName = originalNFTName || '';
+        headerCtx.fillText(nftName, iconSize + padding, 35);
 
-        // Create the final resized header canvas
-        const resizedHeaderCanvas = document.createElement('canvas');
-        resizedHeaderCanvas.width = targetHeaderWidth;
-        resizedHeaderCanvas.height = Math.floor(currentHeaderCanvas.height * (targetHeaderWidth / currentHeaderCanvas.width));
-        const finalHeaderCtx = resizedHeaderCanvas.getContext('2d');
-        finalHeaderCtx.imageSmoothingQuality = 'high';
-        finalHeaderCtx.drawImage(currentHeaderCanvas, 0, 0, resizedHeaderCanvas.width, resizedHeaderCanvas.height);
+        // Draw PalMoji Name
+        headerCtx.font = `bold 28px ${fontName}`; // 14px at scale:2
+        const palmojiName = currentName || '';
+        headerCtx.fillText(palmojiName, iconSize + padding, 75);
+        
+        // Get header height and add the icon
+        const headerHeight = 120; // A fixed height for the header area
+        headerCanvas.width = targetWidth;
+        headerCanvas.height = headerHeight;
+        
+        // Redraw text on correctly sized canvas
+        headerCtx.fillStyle = 'black';
+        headerCtx.font = `32px ${fontName}`;
+        headerCtx.fillText(nftName, iconSize + padding, 40);
+        headerCtx.font = `bold 28px ${fontName}`;
+        headerCtx.fillText(palmojiName, iconSize + padding, 80);
+        
+        // Draw the high-quality icon
+        headerCtx.imageSmoothingEnabled = true;
+        headerCtx.imageSmoothingQuality = 'high';
+        headerCtx.drawImage(iconImageElement, 0, 0, iconSize, iconSize);
+        
 
-
-        // --- STEP 3: Combine the Resized Header and Original ASCII Art ---
-
-        // The ASCII art canvas is still at scale:10, so we scale it down by a factor of 5 to match scale:2
+        // --- STEP 3: Combine Header and ASCII Art ---
         const finalAsciiWidth = asciiCanvas.width / 5;
         const finalAsciiHeight = asciiCanvas.height / 5;
-        
-        // The final image dimensions
-		const targetWidth = 916;
-		const padding = 32;
+        const totalHeight = headerHeight + finalAsciiHeight + padding;
 
-		// --- START OF FIX ---
-		// Dynamically calculate the total required height
-		const totalHeight = resizedHeaderCanvas.height + finalAsciiHeight + (padding * 2);
-
-		const finalCanvas = document.createElement('canvas');
-		finalCanvas.width = targetWidth;
-		finalCanvas.height = totalHeight; // Use the calculated height
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = targetWidth;
+        finalCanvas.height = totalHeight;
         const ctx = finalCanvas.getContext('2d');
         
-        // Draw the background color
-        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        ctx.fillStyle = isDarkMode ? '#000' : '#fff'; // Matches bg-gray-200 / dark:bg-gray-800
-        ctx.fillRect(0, 0, targetWidth, targetHeight);
-        
-        // Draw the 1px black border
+        // Fill background and draw border
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, targetWidth, totalHeight);
         ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2; // 1px at scale:2
-        ctx.strokeRect(0, 0, targetWidth, targetHeight);
-     
-        // -- START OF FIX --
-        // Set rendering to SMOOTH for the header
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(resizedHeaderCanvas, padding, padding);
-        
-        // Set rendering to SHARP (pixelated) for the ASCII art
+        ctx.lineWidth = 2;
+        ctx.strokeRect(0, 0, targetWidth, totalHeight);
+
+        // Draw the header we created
+        ctx.drawImage(headerCanvas, 0, padding / 2);
+
+        // Draw the sharp ASCII art
         ctx.imageSmoothingEnabled = false;
-        const asciiYPosition = resizedHeaderCanvas.height + padding;
+        const asciiYPosition = headerHeight;
         ctx.drawImage(asciiCanvas, (targetWidth - finalAsciiWidth) / 2, asciiYPosition, finalAsciiWidth, finalAsciiHeight);
-        // -- END OF FIX --
+        
 
-
-        // --- STEP 4: Download the Final Composite Image ---
+        // --- STEP 4: Download ---
         const link = document.createElement('a');
         const hasCustomName = currentName && currentName !== "Your PalMoji";
         const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
