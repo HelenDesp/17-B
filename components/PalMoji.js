@@ -272,86 +272,54 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		});
 	};
 
-const handleSaveImage = () => {
+const handleSaveImage = async () => {
     if (palMojiRef.current) {
-        // Convert image to base64 first to avoid CORS/rendering issues
-        const convertImageToBase64 = (imgUrl) => {
-            return new Promise((resolve, reject) => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const img = new Image();
-                
-                img.crossOrigin = 'anonymous';
-                img.onload = function() {
-                    canvas.width = this.naturalWidth;
-                    canvas.height = this.naturalHeight;
-                    ctx.drawImage(this, 0, 0);
-                    resolve(canvas.toDataURL('image/png'));
-                };
-                img.onerror = reject;
-                img.src = imgUrl;
+        // Show the header first
+        const header = document.getElementById('palmoji-header-for-save');
+        const wasHidden = header?.classList.contains('hidden');
+        
+        if (header && wasHidden) {
+            header.classList.remove('hidden');
+        }
+
+        // Wait a moment for the DOM to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        try {
+            const canvas = await html2canvas(palMojiRef.current, {
+                height: palMojiRef.current.scrollHeight,
+                width: palMojiRef.current.scrollWidth,
+                scale: 1,
+                useCORS: true,
+                logging: true,
             });
-        };
 
-        const takeScreenshot = async () => {
-            let base64Image = null;
-            
-            // Convert the NFT image to base64 first
-            try {
-                base64Image = await convertImageToBase64(ownerNFTImage);
-            } catch (error) {
-                console.log('Could not convert image, proceeding without it');
+            // Hide the header again
+            if (header && wasHidden) {
+                header.classList.add('hidden');
             }
 
-            const onclone = (clonedDoc) => {
-                const header = clonedDoc.getElementById('palmoji-header-for-save');
-                if (header) {
-                    header.classList.remove('hidden');
-                    
-                    // Replace the img element with base64 version
-                    const imgElement = header.querySelector('img');
-                    if (imgElement && base64Image) {
-                        imgElement.src = base64Image;
-                        imgElement.style.imageRendering = 'pixelated';
-                        imgElement.style.imageRendering = '-moz-crisp-edges';
-                        imgElement.style.imageRendering = 'crisp-edges';
-                    }
-                }
-            };
+            const link = document.createElement('a');
+            const hasCustomName = currentName && currentName !== "Your PalMoji";
+            const safeName = hasCustomName
+                ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
+                : '';
+            link.download = `palmoji${safeName}-${nftId}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
 
-            try {
-                const canvas = await html2canvas(palMojiRef.current, {
-                    backgroundColor: null,
-                    scale: 1, // Try scale 1 first
-                    useCORS: false, // Set to false since we're using base64
-                    allowTaint: true, // Allow since we converted to base64
-                    onclone: onclone,
-                    ignoreElements: (element) => {
-                        // Skip any problematic elements
-                        return element.tagName === 'VIDEO' || element.tagName === 'IFRAME';
-                    }
-                });
-
-                const link = document.createElement('a');
-                const hasCustomName = currentName && currentName !== "Your PalMoji";
-                const safeName = hasCustomName
-                    ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
-                    : '';
-                link.download = `palmoji${safeName}-${nftId}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-
-                const nameForMessage = hasCustomName ? currentName : "PalMoji";
-                setShareMessage(`Your ${nameForMessage} has been saved!`);
-                setTimeout(() => setShareMessage(''), 5000);
-            } catch (error) {
-                console.error('Screenshot failed:', error);
-                setShareMessage('Failed to save image. Please try again.');
-                setTimeout(() => setShareMessage(''), 5000);
+            const nameForMessage = hasCustomName ? currentName : "PalMoji";
+            setShareMessage(`Your ${nameForMessage} has been saved!`);
+            setTimeout(() => setShareMessage(''), 5000);
+        } catch (error) {
+            // Hide the header again even if there's an error
+            if (header && wasHidden) {
+                header.classList.add('hidden');
             }
-        };
-
-        takeScreenshot();
+            console.error('Screenshot failed:', error);
+            setShareMessage('Failed to save image. Please try again.');
+            setTimeout(() => setShareMessage(''), 5000);
+        }
     }
 };	
 	
