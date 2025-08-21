@@ -347,6 +347,14 @@ const handleSaveImage = async () => {
         ctx.fillStyle = isDarkMode ? '#1f2937' : '#e5e7eb'; // Matches bg-gray-200 / dark:bg-gray-800
         ctx.fillRect(0, 0, targetWidth, targetHeight);
         
+        // Draw the 1px black border
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2; // 1px at scale:2
+        ctx.strokeRect(0, 0, targetWidth, targetHeight);
+
+        // Draw the resized (smooth) header
+        ctx.drawImage(resizedHeaderCanvas, padding, padding);
+        
         // -- START OF FIX --
         // Set rendering to SMOOTH for the header
         ctx.imageSmoothingEnabled = true;
