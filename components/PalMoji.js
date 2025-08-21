@@ -318,58 +318,79 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		});
 	};
 
-	const handleSaveImage = async () => { // Make the function async
-		if (palMojiRef.current) {
-			
-			// --- START: New logic to prepare the icon ---
-			let highQualityIconSrc;
-			try {
-				// Use our new helper function to create a perfect 48x48 icon
-				highQualityIconSrc = await createHighQualityIcon(ownerNFTImage, 96);
-			} catch (error) {
-				console.error("Failed to create high-quality icon:", error);
-				// Fallback to the original image if something goes wrong
-				highQualityIconSrc = ownerNFTImage;
-			}
-			// --- END: New logic ---
+// In PalMoji.js
 
-			const onclone = (clonedDocument) => {
-				const header = clonedDocument.getElementById('palmoji-header-for-save');
-				if (header) {
-					header.classList.remove('hidden');
-				}
-				
-				// Find the image placeholder in the clone
-				const placeholder = clonedDocument.getElementById('image-placeholder-for-save');
-				if (placeholder) {
-					// Set its source to our newly generated high-quality icon data
-					placeholder.src = highQualityIconSrc;
-				}
-			};
+const handleSaveImage = async () => {
+    if (!palMojiRef.current) return;
 
-			html2canvas(palMojiRef.current, {
-				backgroundColor: null,
-				scale: 2,
-				useCORS: true,
-				onclone: onclone
-			}).then(canvas => {
-				const link = document.createElement('a');
+    // --- STEP 1: Find the elements we need to capture ---
+    // The main container with the ASCII art and hidden header
+    const mainElement = palMojiRef.current; 
+    // The icon that is already perfectly rendered in the live UI (in NFTViewer.js)
+    const liveIconElement = window.document.querySelector('.nft-viewer-icon-for-capture');
+    
+    if (!liveIconElement) {
+        alert("Error: Could not find the live icon to capture. Please check the className in NFTViewer.js.");
+        return;
+    }
 
-				const hasCustomName = currentName && currentName !== "Your PalMoji";
-				const safeName = hasCustomName
-				  ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
-				  : '';
-				link.download = `palmoji${safeName}-${nftId}.png`;
+    try {
+        // --- STEP 2: Capture the two parts separately ---
+        // Capture the main element (art, text, border) first
+        const mainCanvas = await html2canvas(mainElement, {
+            backgroundColor: null,
+            scale: 2,
+            useCORS: true,
+        });
 
-				link.href = canvas.toDataURL('image/png');
-				link.click();
+        // Capture the already-perfect icon
+        const iconCanvas = await html2canvas(liveIconElement, {
+            backgroundColor: null,
+            scale: 2,
+            useCORS: true,
+        });
 
-				const nameForMessage = hasCustomName ? currentName : "PalMoji";
-				setShareMessage(`Your ${nameForMessage} has been saved!`);
-				setTimeout(() => setShareMessage(''), 5000);
-			});
-		}
-	};
+        // --- STEP 3: Combine the two captures ---
+        const finalCanvas = document.createElement('canvas');
+        const ctx = finalCanvas.getContext('2d');
+        
+        // Set final canvas size to match the main capture
+        finalCanvas.width = mainCanvas.width;
+        finalCanvas.height = mainCanvas.height;
+
+        // Draw the main capture (art, text, etc.) as the base
+        ctx.drawImage(mainCanvas, 0, 0);
+
+        // Define where to draw the icon on top of the base.
+        // These values (e.g., 32, 32) are based on p-4 padding at scale:2. Adjust if needed.
+        const iconPositionX = 32; 
+        const iconPositionY = 32;
+
+        // Draw the perfect icon capture on top
+        ctx.drawImage(iconCanvas, iconPositionX, iconPositionY);
+
+        // --- STEP 4: Download the final combined image ---
+        const link = document.createElement('a');
+
+        const hasCustomName = currentName && currentName !== "Your PalMoji";
+        const safeName = hasCustomName
+          ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
+          : '';
+        link.download = `palmoji${safeName}-${nftId}.png`;
+
+        link.href = finalCanvas.toDataURL('image/png');
+        link.click();
+
+        const nameForMessage = hasCustomName ? currentName : "PalMoji";
+        setShareMessage(`Your ${nameForMessage} has been saved!`);
+        setTimeout(() => setShareMessage(''), 5000);
+
+    } catch (error) {
+        console.error("Failed to save PalMoji image:", error);
+        setShareMessage("Sorry, the image could not be saved.");
+        setTimeout(() => setShareMessage(''), 5000);
+    }
+};
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  

@@ -259,7 +259,7 @@ export default function NFTViewer({
                     <img 
                         src={activePalMojiNFT.image} 
                         alt={activePalMojiNFT.name}
-                        className="h-12 w-12 object-cover border border-black dark:border-white"
+                        className="h-12 w-12 object-cover border border-black dark:border-white nft-viewer-icon-for-capture"
                     />
                     <div>
                         <p className="text-base text-gray-500 dark:text-gray-400">{activePalMojiNFT.name}</p>
