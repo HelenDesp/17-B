@@ -2,7 +2,6 @@
 "use client";
 import { useState, useMemo, useRef } from 'react';
 import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
-import PixelatedImage from './PixelatedImage';
 
 const catData = {
   Shapes: {
@@ -275,19 +274,31 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 	const handleSaveImage = () => {
 		if (palMojiRef.current) {
-			// This function runs right before saving, making the hidden header visible only for the screenshot
-			const onclone = (document) => {
-				const header = document.getElementById('palmoji-header-for-save');
+			
+			const onclone = (clonedDocument) => {
+				const header = clonedDocument.getElementById('palmoji-header-for-save');
 				if (header) {
 					header.classList.remove('hidden');
+				}
+
+				// --- THIS IS THE CRUCIAL LOGIC ---
+				// 1. Find the canvas that's already drawn in the LIVE UI
+				const visibleCanvas = window.document.getElementById('visible-nft-icon');
+				
+				// 2. Find the placeholder image in our screenshot CLONE
+				const placeholder = clonedDocument.getElementById('image-placeholder-for-save');
+
+				// 3. If both exist, replace the placeholder with a copy of the finished canvas
+				if (visibleCanvas && placeholder) {
+					placeholder.parentNode.replaceChild(visibleCanvas.cloneNode(true), placeholder);
 				}
 			};
 
 			html2canvas(palMojiRef.current, {
 				backgroundColor: null,
 				scale: 2,
-				useCORS: true,      // <-- Fix for blank NFT icon
-				onclone: onclone    // <-- Fix for duplicate header
+				useCORS: true,
+				onclone: onclone
 			}).then(canvas => {
 				const link = document.createElement('a');
 
@@ -600,13 +611,12 @@ const asciiArtLines = useMemo(() => {
 				{/* --- START: Added Header for Saved Image (hidden by default) --- */}
 				{/* FIX #2: Changed 'items-center' to 'items-start' to align text to the top */}
 				<div id="palmoji-header-for-save" className="hidden flex items-start space-x-3 mb-4">
-					{/* FIX #1: Added inline style to ensure smooth image rendering */}
-					<img 
-						src={ownerNFTImage} 
-						alt={originalNFTName}
+					{/* Use a simple img tag as a placeholder */}
+					<img
+						id="image-placeholder-for-save"
 						className="h-12 w-12 object-cover border border-black dark:border-white"
 					/>
-					<div style={{ transform: 'translateY(-7px)' }}>
+					<div style={{ transform: 'translateY(-2px)' }}>
 						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
 						<p className="text-sm font-bold text-black dark:text-white">
 							{currentName}
