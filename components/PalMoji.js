@@ -274,111 +274,80 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 // In PalMoji.js
 
-// In PalMoji.js
+const handleSaveImage = () => {
+    if (palMojiRef.current) {
+        
+        const onclone = (document) => {
+            const header = document.getElementById('palmoji-header-for-save');
+            if (header) {
+                header.classList.remove('hidden');
+            }
+        };
 
-const createHighQualityIcon = (src, size) => {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        // Resolve with the loaded image object itself
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = src;
-    });
-};
-
-// In PalMoji.js
-
-const handleSaveImage = async () => {
-    if (!asciiArtRef.current) return;
-
-    try {
-        // --- STEP 1: Capture ASCII Art ---
-        const asciiCanvas = await html2canvas(asciiArtRef.current, {
+        html2canvas(palMojiRef.current, {
             backgroundColor: null,
-            scale: 20,
-            useCORS: true
+            scale: 20,      // Capture at high resolution
+            useCORS: true,
+            onclone: onclone
+        }).then(largeCanvas => { // This is the huge, high-quality canvas
+
+            // --- START: NEW Multi-Step High-Quality Resizing Logic ---
+
+            const targetWidth = 916;
+            const targetHeight = 660;
+
+            // Start with the large canvas from the screenshot
+            let currentCanvas = largeCanvas;
+
+            // Loop and repeatedly halve the size of the canvas until it's manageable.
+            // This preserves much more detail than a single, large resize.
+            while (currentCanvas.width > targetWidth * 2) {
+                const newWidth = Math.floor(currentCanvas.width / 2);
+                const newHeight = Math.floor(currentCanvas.height / 2);
+
+                const nextCanvas = document.createElement('canvas');
+                nextCanvas.width = newWidth;
+                nextCanvas.height = newHeight;
+                const ctx = nextCanvas.getContext('2d');
+                
+                // Use high-quality smoothing for each step
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+
+                // The new, smaller canvas becomes the source for the next loop iteration
+                currentCanvas = nextCanvas; 
+            }
+
+            // Create the final canvas with the exact target dimensions
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = targetWidth;
+            finalCanvas.height = targetHeight;
+            const finalCtx = finalCanvas.getContext('2d');
+            finalCtx.imageSmoothingQuality = 'high';
+
+            // Perform the very last resize step to get the exact dimensions
+            finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+
+            // --- END: New Resizing Logic ---
+
+
+            // Proceed with the download using the FINAL, perfectly resized canvas
+            const link = document.createElement('a');
+
+            const hasCustomName = currentName && currentName !== "Your PalMoji";
+            const safeName = hasCustomName
+              ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
+              : '';
+            link.download = `palmoji${safeName}-${nftId}.png`;
+
+            // Get the image data from our final, high-quality canvas
+            link.href = finalCanvas.toDataURL('image/png');
+            link.click();
+
+            const nameForMessage = hasCustomName ? currentName : "PalMoji";
+            setShareMessage(`Your ${nameForMessage} has been saved!`);
+            setTimeout(() => setShareMessage(''), 5000);
         });
-
-        // --- STEP 2: Create the Header from Scratch ---
-        const iconImageElement = await createHighQualityIcon(ownerNFTImage, 96);
-        
-        const headerCanvas = document.createElement('canvas');
-        const headerCtx = headerCanvas.getContext('2d');
-        
-        const targetWidth = 916;
-        const padding = 32;
-        const iconSize = 96;
-        const headerHeight = iconSize; // Header height is just the icon size
-
-        headerCanvas.width = targetWidth;
-        headerCanvas.height = headerHeight;
-
-        // Draw the icon with padding from the left
-        headerCtx.imageSmoothingEnabled = true;
-        headerCtx.imageSmoothingQuality = 'high';
-        headerCtx.drawImage(iconImageElement, padding, 0, iconSize, iconSize);
-
-        // Manually draw the 1px (2px for scale:2) border around the icon
-        headerCtx.strokeStyle = 'black';
-        headerCtx.lineWidth = 2;
-        headerCtx.strokeRect(padding, 0, iconSize, iconSize);
-        
-        const fontName = getComputedStyle(document.body).getPropertyValue('font-family');
-        headerCtx.fillStyle = 'black';
-        
-        const textXPosition = iconSize + (padding * 2);
-        
-        headerCtx.font = `32px ${fontName}`;
-        headerCtx.fillText(originalNFTName || '', textXPosition, 40);
-
-        headerCtx.font = `bold 28px ${fontName}`;
-        headerCtx.fillText(currentName || '', textXPosition, 80);
-
-        // --- STEP 3: Combine Header and ASCII Art ---
-        const finalAsciiWidth = asciiCanvas.width / 5;
-        const finalAsciiHeight = asciiCanvas.height / 5;
-        
-        // --- START OF FINAL FIX ---
-        // Correctly calculate total height including top, middle, and bottom padding
-        const totalHeight = headerHeight + finalAsciiHeight + (padding * 3);
-        
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = targetWidth;
-        finalCanvas.height = totalHeight;
-        const ctx = finalCanvas.getContext('2d');
-        // --- END OF FINAL FIX ---
-
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, targetWidth, totalHeight);
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(0, 0, targetWidth, totalHeight);
-
-        // Draw the header with top padding
-        ctx.drawImage(headerCanvas, 0, padding);
-
-        ctx.imageSmoothingEnabled = false;
-        // Correctly position ASCII art below header with padding
-        const asciiYPosition = headerHeight + (padding * 2);
-        ctx.drawImage(asciiCanvas, (targetWidth - finalAsciiWidth) / 2, asciiYPosition, finalAsciiWidth, finalAsciiHeight);
-        
-        // --- STEP 4: Download ---
-        const link = document.createElement('a');
-        const hasCustomName = currentName && currentName !== "Your PalMoji";
-        const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : ''
-        link.download = `palmoji${safeName}-${nftId}.png`;
-        link.href = finalCanvas.toDataURL('image/png');
-        link.click();
-
-        const nameForMessage = hasCustomName ? currentName : "PalMoji";
-        setShareMessage(`Your ${nameForMessage} has been saved!`);
-        setTimeout(() => setShareMessage(''), 5000);
-
-    } catch (error) {
-        console.error("Failed to save PalMoji image:", error);
-        setShareMessage("Sorry, the image could not be saved.");
-        setTimeout(() => setShareMessage(''), 5000);
     }
 };	
 	
@@ -654,8 +623,7 @@ const asciiArtLines = useMemo(() => {
     return paddedLines;
 }, [headShape, headwearShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedMien, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
 
-  const asciiArtRef = useRef(null);
-  
+
   const toggleItem = (item) => {
     setOpenItem(prev => (prev === item ? null : item));
   };
@@ -691,7 +659,7 @@ const asciiArtLines = useMemo(() => {
 				</div>
 				{/* --- END: Added Header for Saved Image --- */}
 
-				<div className="p-2" ref={asciiArtRef}>
+				<div className="p-2">
 				  <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
 					{asciiArtLines.map((line, index) => {
 					  const style = { 
