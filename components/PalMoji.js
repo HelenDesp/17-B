@@ -272,64 +272,84 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		});
 	};
 
-	const handleSaveImage = () => {
-		if (palMojiRef.current) {
-			
-			const onclone = (document) => {
-				const header = document.getElementById('palmoji-header-for-save');
-				if (header) {
-					header.classList.remove('hidden');
-				}
-			};
+// In PalMoji.js
 
-			html2canvas(palMojiRef.current, {
-				backgroundColor: null,
-				scale: 20,      // Use the high scale to get a perfect icon render
-				useCORS: true,
-				onclone: onclone
-			}).then(largeCanvas => { // This is the huge, high-quality canvas
+const handleSaveImage = () => {
+    if (palMojiRef.current) {
+        
+        const onclone = (document) => {
+            const header = document.getElementById('palmoji-header-for-save');
+            if (header) {
+                header.classList.remove('hidden');
+            }
+        };
 
-				// --- START: New High-Quality Resizing Logic ---
+        html2canvas(palMojiRef.current, {
+            backgroundColor: null,
+            scale: 10,      // Capture at high resolution
+            useCORS: true,
+            onclone: onclone
+        }).then(largeCanvas => { // This is the huge, high-quality canvas
 
-				// 1. Define your final desired dimensions
-				const targetWidth = 916;
-				const targetHeight = 660;
+            // --- START: NEW Multi-Step High-Quality Resizing Logic ---
 
-				// 2. Create a new, smaller canvas in memory
-				const resizedCanvas = document.createElement('canvas');
-				resizedCanvas.width = targetWidth;
-				resizedCanvas.height = targetHeight;
+            const targetWidth = 916;
+            const targetHeight = 660;
 
-				// 3. Get its context and set the resizing quality to high
-				const ctx = resizedCanvas.getContext('2d');
-				ctx.imageSmoothingQuality = 'high';
+            // Start with the large canvas from the screenshot
+            let currentCanvas = largeCanvas;
 
-				// 4. Draw the large canvas onto our new, smaller canvas.
-				// This step performs a high-quality resize.
-				ctx.drawImage(largeCanvas, 0, 0, targetWidth, targetHeight);
+            // Loop and repeatedly halve the size of the canvas until it's manageable.
+            // This preserves much more detail than a single, large resize.
+            while (currentCanvas.width > targetWidth * 2) {
+                const newWidth = Math.floor(currentCanvas.width / 2);
+                const newHeight = Math.floor(currentCanvas.height / 2);
 
-				// --- END: New Resizing Logic ---
+                const nextCanvas = document.createElement('canvas');
+                nextCanvas.width = newWidth;
+                nextCanvas.height = newHeight;
+                const ctx = nextCanvas.getContext('2d');
+                
+                // Use high-quality smoothing for each step
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+
+                // The new, smaller canvas becomes the source for the next loop iteration
+                currentCanvas = nextCanvas; 
+            }
+
+            // Create the final canvas with the exact target dimensions
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = targetWidth;
+            finalCanvas.height = targetHeight;
+            const finalCtx = finalCanvas.getContext('2d');
+            finalCtx.imageSmoothingQuality = 'high';
+
+            // Perform the very last resize step to get the exact dimensions
+            finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+
+            // --- END: New Resizing Logic ---
 
 
-				// 5. Proceed with the download using the RESIZED canvas
-				const link = document.createElement('a');
+            // Proceed with the download using the FINAL, perfectly resized canvas
+            const link = document.createElement('a');
 
-				const hasCustomName = currentName && currentName !== "Your PalMoji";
-				const safeName = hasCustomName
-				  ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
-				  : '';
-				link.download = `palmoji${safeName}-${nftId}.png`;
+            const hasCustomName = currentName && currentName !== "Your PalMoji";
+            const safeName = hasCustomName
+              ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
+              : '';
+            link.download = `palmoji${safeName}-${nftId}.png`;
 
-				// Get the image data from our new, resized canvas
-				link.href = resizedCanvas.toDataURL('image/png');
-				link.click();
+            // Get the image data from our final, high-quality canvas
+            link.href = finalCanvas.toDataURL('image/png');
+            link.click();
 
-				const nameForMessage = hasCustomName ? currentName : "PalMoji";
-				setShareMessage(`Your ${nameForMessage} has been saved!`);
-				setTimeout(() => setShareMessage(''), 5000);
-			});
-		}
-	};	
+            const nameForMessage = hasCustomName ? currentName : "PalMoji";
+            setShareMessage(`Your ${nameForMessage} has been saved!`);
+            setTimeout(() => setShareMessage(''), 5000);
+        });
+    }
+};	
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
