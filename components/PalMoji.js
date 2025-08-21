@@ -347,17 +347,17 @@ const handleSaveImage = async () => {
         ctx.fillStyle = isDarkMode ? '#1f2937' : '#e5e7eb'; // Matches bg-gray-200 / dark:bg-gray-800
         ctx.fillRect(0, 0, targetWidth, targetHeight);
         
-        // Draw the 1px black border
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2; // 1px at scale:2
-        ctx.strokeRect(0, 0, targetWidth, targetHeight);
-
-        // Draw the resized (smooth) header
+        // -- START OF FIX --
+        // Set rendering to SMOOTH for the header
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(resizedHeaderCanvas, padding, padding);
         
-        // Draw the ASCII art (sharp) below the header
+        // Set rendering to SHARP (pixelated) for the ASCII art
+        ctx.imageSmoothingEnabled = false;
         const asciiYPosition = resizedHeaderCanvas.height + padding;
         ctx.drawImage(asciiCanvas, (targetWidth - finalAsciiWidth) / 2, asciiYPosition, finalAsciiWidth, finalAsciiHeight);
+        // -- END OF FIX --
 
 
         // --- STEP 4: Download the Final Composite Image ---
