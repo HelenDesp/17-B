@@ -274,13 +274,22 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 	const handleSaveImage = () => {
 		if (palMojiRef.current) {
+			// This function runs right before saving, making the hidden header visible only for the screenshot
+			const onclone = (document) => {
+				const header = document.getElementById('palmoji-header-for-save');
+				if (header) {
+					header.classList.remove('hidden');
+				}
+			};
+
 			html2canvas(palMojiRef.current, {
 				backgroundColor: null,
-				scale: 2
+				scale: 2,
+				useCORS: true,      // <-- Fix for blank NFT icon
+				onclone: onclone    // <-- Fix for duplicate header
 			}).then(canvas => {
 				const link = document.createElement('a');
 
-				// 1. Create the dynamic filename
 				const hasCustomName = currentName && currentName !== "Your PalMoji";
 				const safeName = hasCustomName
 				  ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
@@ -290,7 +299,6 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 				link.href = canvas.toDataURL('image/png');
 				link.click();
 
-				// 2. Set the dynamic success message
 				const nameForMessage = hasCustomName ? currentName : "PalMoji";
 				setShareMessage(`Your ${nameForMessage} has been saved!`);
 				setTimeout(() => setShareMessage(''), 5000);
@@ -589,7 +597,7 @@ const asciiArtLines = useMemo(() => {
 			
 			<div className="relative z-10 w-full">
 				{/* --- START: Added Header for Saved Image --- */}
-				<div className="flex items-center space-x-3 mb-4">
+				<div id="palmoji-header-for-save" className="hidden flex items-center space-x-3 mb-4">
 					<img 
 						src={ownerNFTImage} 
 						alt={originalNFTName}
