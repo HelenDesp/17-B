@@ -271,126 +271,70 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 			setTimeout(() => setShareMessage(''), 5000);
 		});
 	};
-	
-	const createHighQualityIcon = (src, targetSize) => {
-		return new Promise((resolve, reject) => {
-			const img = new Image();
-			img.crossOrigin = "anonymous";
-			img.onload = () => {
-				let currentCanvas = document.createElement('canvas');
-				currentCanvas.width = img.width;
-				currentCanvas.height = img.height;
-				let ctx = currentCanvas.getContext('2d');
-				ctx.drawImage(img, 0, 0);
-
-				// This loop repeatedly halves the image size until it's close to the target,
-				// which produces a much higher-quality result than a single large resize.
-				while (currentCanvas.width > targetSize * 2) {
-					const newWidth = Math.floor(currentCanvas.width / 2);
-					const newHeight = Math.floor(currentCanvas.height / 2);
-					
-					if (newWidth < targetSize || newHeight < targetSize) {
-						break;
-					}
-
-					const nextCanvas = document.createElement('canvas');
-					nextCanvas.width = newWidth;
-					nextCanvas.height = newHeight;
-					const nextCtx = nextCanvas.getContext('2d');
-					
-					// Use the previous canvas as the source to draw onto the new, smaller canvas
-					nextCtx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-					currentCanvas = nextCanvas;
-				}
-				
-				// Perform the final resize to the exact target size
-				const finalCanvas = document.createElement('canvas');
-				finalCanvas.width = targetSize;
-				finalCanvas.height = targetSize;
-				const finalCtx = finalCanvas.getContext('2d');
-				finalCtx.imageSmoothingEnabled = true; // Ensure the final step is smooth
-				finalCtx.drawImage(currentCanvas, 0, 0, targetSize, targetSize);
-				
-				resolve(finalCanvas.toDataURL('image/png'));
-			};
-			img.onerror = reject;
-			img.src = src;
-		});
-	};
-
-// In PalMoji.js
 
 const handleSaveImage = async () => {
-    if (!palMojiRef.current) return;
+    if (palMojiRef.current) {
+        // This function runs right before saving, making the hidden header visible only for the screenshot
+        const onclone = (clonedDoc) => {
+            const header = clonedDoc.getElementById('palmoji-header-for-save');
+            if (header) {
+                header.classList.remove('hidden');
+            }
+            
+            // FIX: Ensure all images are properly rendered
+            const images = clonedDoc.querySelectorAll('img');
+            images.forEach(img => {
+                // Force image to be fully loaded and rendered properly
+                img.style.imageRendering = 'auto';
+                img.style.webkitImageSmoothing = 'true';
+                img.style.mozImageSmoothing = 'true';
+                img.style.msImageSmoothing = 'true';
+                img.style.imageSmoothing = 'true';
+                
+                // Ensure the image has proper dimensions
+                if (img.naturalWidth && img.naturalHeight) {
+                    img.width = img.naturalWidth;
+                    img.height = img.naturalHeight;
+                }
+            });
+        };
 
-    // --- STEP 1: Find the elements we need to capture ---
-    // The main container with the ASCII art and hidden header
-    const mainElement = palMojiRef.current; 
-    // The icon that is already perfectly rendered in the live UI (in NFTViewer.js)
-    const liveIconElement = window.document.querySelector('.nft-viewer-icon-for-capture');
-    
-    if (!liveIconElement) {
-        alert("Error: Could not find the live icon to capture. Please check the className in NFTViewer.js.");
-        return;
+        try {
+            const canvas = await html2canvas(palMojiRef.current, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true,
+                allowTaint: false,
+                foreignObjectRendering: false,
+                imageTimeout: 15000,
+                removeContainer: true,
+                onclone: onclone,
+                // Additional options to improve image quality
+                width: palMojiRef.current.scrollWidth,
+                height: palMojiRef.current.scrollHeight,
+                scrollX: 0,
+                scrollY: 0
+            });
+
+            const link = document.createElement('a');
+            const hasCustomName = currentName && currentName !== "Your PalMoji";
+            const safeName = hasCustomName
+                ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
+                : '';
+            link.download = `palmoji${safeName}-${nftId}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0); // Maximum quality
+            link.click();
+
+            const nameForMessage = hasCustomName ? currentName : "PalMoji";
+            setShareMessage(`Your ${nameForMessage} has been saved!`);
+            setTimeout(() => setShareMessage(''), 5000);
+        } catch (error) {
+            console.error('Screenshot failed:', error);
+            setShareMessage('Failed to save image. Please try again.');
+            setTimeout(() => setShareMessage(''), 5000);
+        }
     }
-
-    try {
-        // --- STEP 2: Capture the two parts separately ---
-        // Capture the main element (art, text, border) first
-        const mainCanvas = await html2canvas(mainElement, {
-            backgroundColor: null,
-            scale: 2,
-            useCORS: true,
-        });
-
-        // Capture the already-perfect icon
-        const iconCanvas = await html2canvas(liveIconElement, {
-            backgroundColor: null,
-            scale: 2,
-            useCORS: true,
-        });
-
-        // --- STEP 3: Combine the two captures ---
-        const finalCanvas = document.createElement('canvas');
-        const ctx = finalCanvas.getContext('2d');
-        
-        // Set final canvas size to match the main capture
-        finalCanvas.width = mainCanvas.width;
-        finalCanvas.height = mainCanvas.height;
-
-        // Draw the main capture (art, text, etc.) as the base
-        ctx.drawImage(mainCanvas, 0, 0);
-
-        // Define where to draw the icon on top of the base.
-        // These values (e.g., 32, 32) are based on p-4 padding at scale:2. Adjust if needed.
-        const iconPositionX = 32; 
-        const iconPositionY = 32;
-
-        // Draw the perfect icon capture on top
-        ctx.drawImage(iconCanvas, iconPositionX, iconPositionY);
-
-        // --- STEP 4: Download the final combined image ---
-        const link = document.createElement('a');
-
-        const hasCustomName = currentName && currentName !== "Your PalMoji";
-        const safeName = hasCustomName
-          ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
-          : '';
-        link.download = `palmoji${safeName}-${nftId}.png`;
-
-        link.href = finalCanvas.toDataURL('image/png');
-        link.click();
-
-        const nameForMessage = hasCustomName ? currentName : "PalMoji";
-        setShareMessage(`Your ${nameForMessage} has been saved!`);
-        setTimeout(() => setShareMessage(''), 5000);
-
-    } catch (error) {
-        console.error("Failed to save PalMoji image:", error);
-        setShareMessage("Sorry, the image could not be saved.");
-        setTimeout(() => setShareMessage(''), 5000);
-    }
-};
+};	
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
@@ -685,12 +629,13 @@ const asciiArtLines = useMemo(() => {
 				{/* --- START: Added Header for Saved Image (hidden by default) --- */}
 				{/* FIX #2: Changed 'items-center' to 'items-start' to align text to the top */}
 				<div id="palmoji-header-for-save" className="hidden flex items-start space-x-3 mb-4">
+					{/* FIX #1: Added inline style to ensure smooth image rendering */}
 					<img 
 						src={ownerNFTImage} 
 						alt={originalNFTName}
 						className="h-12 w-12 object-cover border border-black dark:border-white"
 					/>
-					<div style={{ transform: 'translateY(-2px)' }}>
+					<div style={{ transform: 'translateY(-7px)' }}>
 						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
 						<p className="text-sm font-bold text-black dark:text-white">
 							{currentName}
