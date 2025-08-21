@@ -272,6 +272,8 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		});
 	};
 
+// The issue is in the handleSaveImage function. Here's the corrected version:
+
 const handleSaveImage = async () => {
     if (palMojiRef.current) {
         // This function runs right before saving, making the hidden header visible only for the screenshot
@@ -390,7 +392,7 @@ const handleSaveImageAlternative = async () => {
             setTimeout(() => setShareMessage(''), 5000);
         }
     }
-};	
+};
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
