@@ -286,7 +286,7 @@ const handleSaveImage = () => {
 
         html2canvas(palMojiRef.current, {
             backgroundColor: null,
-            scale: 10,      // Capture at high resolution
+            scale: 20,      // Capture at high resolution
             useCORS: true,
             onclone: onclone
         }).then(largeCanvas => { // This is the huge, high-quality canvas
