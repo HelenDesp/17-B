@@ -272,21 +272,46 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		});
 	};
 	
-	const createHighQualityIcon = (src, size) => {
+	const createHighQualityIcon = (src, targetSize) => {
 		return new Promise((resolve, reject) => {
 			const img = new Image();
 			img.crossOrigin = "anonymous";
 			img.onload = () => {
-				const canvas = document.createElement('canvas');
-				canvas.width = size;
-				canvas.height = size;
-				const ctx = canvas.getContext('2d');
+				let currentCanvas = document.createElement('canvas');
+				currentCanvas.width = img.width;
+				currentCanvas.height = img.height;
+				let ctx = currentCanvas.getContext('2d');
+				ctx.drawImage(img, 0, 0);
 
-				// THIS IS THE FIX: Enable smoothing for high-quality downscaling
-				ctx.imageSmoothingEnabled = true;
+				// This loop repeatedly halves the image size until it's close to the target,
+				// which produces a much higher-quality result than a single large resize.
+				while (currentCanvas.width > targetSize * 2) {
+					const newWidth = Math.floor(currentCanvas.width / 2);
+					const newHeight = Math.floor(currentCanvas.height / 2);
+					
+					if (newWidth < targetSize || newHeight < targetSize) {
+						break;
+					}
 
-				ctx.drawImage(img, 0, 0, size, size);
-				resolve(canvas.toDataURL('image/png'));
+					const nextCanvas = document.createElement('canvas');
+					nextCanvas.width = newWidth;
+					nextCanvas.height = newHeight;
+					const nextCtx = nextCanvas.getContext('2d');
+					
+					// Use the previous canvas as the source to draw onto the new, smaller canvas
+					nextCtx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+					currentCanvas = nextCanvas;
+				}
+				
+				// Perform the final resize to the exact target size
+				const finalCanvas = document.createElement('canvas');
+				finalCanvas.width = targetSize;
+				finalCanvas.height = targetSize;
+				const finalCtx = finalCanvas.getContext('2d');
+				finalCtx.imageSmoothingEnabled = true; // Ensure the final step is smooth
+				finalCtx.drawImage(currentCanvas, 0, 0, targetSize, targetSize);
+				
+				resolve(finalCanvas.toDataURL('image/png'));
 			};
 			img.onerror = reject;
 			img.src = src;
