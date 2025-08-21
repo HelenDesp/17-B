@@ -2,6 +2,7 @@
 "use client";
 import { useState, useMemo, useRef } from 'react';
 import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
+import PixelatedImage from './PixelatedImage';
 
 const catData = {
   Shapes: {
@@ -604,7 +605,6 @@ const asciiArtLines = useMemo(() => {
 						src={ownerNFTImage} 
 						alt={originalNFTName}
 						className="h-12 w-12 object-cover border border-black dark:border-white"
-						style={{ imageRendering: 'pixelated' }}
 					/>
 					<div style={{ transform: 'translateY(-7px)' }}>
 						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
