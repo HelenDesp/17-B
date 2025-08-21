@@ -274,80 +274,108 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 // In PalMoji.js
 
-const handleSaveImage = () => {
-    if (palMojiRef.current) {
+const handleSaveImage = async () => {
+    if (!palMojiRef.current || !asciiArtRef.current) return;
+
+    // Define the elements we'll be working with
+    const headerElement = palMojiRef.current.querySelector('#palmoji-header-for-save');
+    const asciiElement = asciiArtRef.current;
+    
+    if (!headerElement) return;
+
+    try {
+        // --- STEP 1: Capture Header and ASCII Art Separately ---
         
-        const onclone = (document) => {
-            const header = document.getElementById('palmoji-header-for-save');
-            if (header) {
-                header.classList.remove('hidden');
-            }
-        };
+        // Make the header temporarily visible for capture
+        headerElement.classList.remove('hidden');
 
-        html2canvas(palMojiRef.current, {
-            backgroundColor: null,
-            scale: 20,      // Capture at high resolution
-            useCORS: true,
-            onclone: onclone
-        }).then(largeCanvas => { // This is the huge, high-quality canvas
+        const [headerCanvas, asciiCanvas] = await Promise.all([
+            // Capture the header at high resolution for quality scaling
+            html2canvas(headerElement, { backgroundColor: null, scale: 10, useCORS: true }),
+            // Capture the ASCII art at high resolution to keep it sharp
+            html2canvas(asciiElement, { backgroundColor: null, scale: 10, useCORS: true })
+        ]);
 
-            // --- START: NEW Multi-Step High-Quality Resizing Logic ---
+        // Hide the header again in the UI
+        headerElement.classList.add('hidden');
 
-            const targetWidth = 916;
-            const targetHeight = 660;
+        
+        // --- STEP 2: Perform High-Quality Resize on the HEADER ONLY ---
 
-            // Start with the large canvas from the screenshot
-            let currentCanvas = largeCanvas;
+        let currentHeaderCanvas = headerCanvas;
+        const targetHeaderWidth = 916; // The final width of the header portion
+        
+        // Multi-step downscaling loop for the header
+        while (currentHeaderCanvas.width > targetHeaderWidth * 2) {
+            const newWidth = Math.floor(currentHeaderCanvas.width / 2);
+            const nextCanvas = document.createElement('canvas');
+            nextCanvas.width = newWidth;
+            nextCanvas.height = Math.floor(currentHeaderCanvas.height * (newWidth / currentHeaderCanvas.width));
+            const ctx = nextCanvas.getContext('2d');
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(currentHeaderCanvas, 0, 0, newWidth, nextCanvas.height);
+            currentHeaderCanvas = nextCanvas;
+        }
 
-            // Loop and repeatedly halve the size of the canvas until it's manageable.
-            // This preserves much more detail than a single, large resize.
-            while (currentCanvas.width > targetWidth * 2) {
-                const newWidth = Math.floor(currentCanvas.width / 2);
-                const newHeight = Math.floor(currentCanvas.height / 2);
-
-                const nextCanvas = document.createElement('canvas');
-                nextCanvas.width = newWidth;
-                nextCanvas.height = newHeight;
-                const ctx = nextCanvas.getContext('2d');
-                
-                // Use high-quality smoothing for each step
-                ctx.imageSmoothingQuality = 'high';
-                ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-
-                // The new, smaller canvas becomes the source for the next loop iteration
-                currentCanvas = nextCanvas; 
-            }
-
-            // Create the final canvas with the exact target dimensions
-            const finalCanvas = document.createElement('canvas');
-            finalCanvas.width = targetWidth;
-            finalCanvas.height = targetHeight;
-            const finalCtx = finalCanvas.getContext('2d');
-            finalCtx.imageSmoothingQuality = 'high';
-
-            // Perform the very last resize step to get the exact dimensions
-            finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
-
-            // --- END: New Resizing Logic ---
+        // Create the final resized header canvas
+        const resizedHeaderCanvas = document.createElement('canvas');
+        resizedHeaderCanvas.width = targetHeaderWidth;
+        resizedHeaderCanvas.height = Math.floor(currentHeaderCanvas.height * (targetHeaderWidth / currentHeaderCanvas.width));
+        const finalHeaderCtx = resizedHeaderCanvas.getContext('2d');
+        finalHeaderCtx.imageSmoothingQuality = 'high';
+        finalHeaderCtx.drawImage(currentHeaderCanvas, 0, 0, resizedHeaderCanvas.width, resizedHeaderCanvas.height);
 
 
-            // Proceed with the download using the FINAL, perfectly resized canvas
-            const link = document.createElement('a');
+        // --- STEP 3: Combine the Resized Header and Original ASCII Art ---
 
-            const hasCustomName = currentName && currentName !== "Your PalMoji";
-            const safeName = hasCustomName
-              ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
-              : '';
-            link.download = `palmoji${safeName}-${nftId}.png`;
+        // The ASCII art canvas is still at scale:10, so we scale it down by a factor of 5 to match scale:2
+        const finalAsciiWidth = asciiCanvas.width / 5;
+        const finalAsciiHeight = asciiCanvas.height / 5;
+        
+        // The final image dimensions
+        const targetWidth = 916;
+        const targetHeight = 660; // Adjust as needed
+        const padding = 32; // Corresponds to p-4 at scale:2
 
-            // Get the image data from our final, high-quality canvas
-            link.href = finalCanvas.toDataURL('image/png');
-            link.click();
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = targetWidth;
+        finalCanvas.height = targetHeight;
+        const ctx = finalCanvas.getContext('2d');
+        
+        // Draw the background color
+        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        ctx.fillStyle = isDarkMode ? '#1f2937' : '#e5e7eb'; // Matches bg-gray-200 / dark:bg-gray-800
+        ctx.fillRect(0, 0, targetWidth, targetHeight);
+        
+        // Draw the 1px black border
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2; // 1px at scale:2
+        ctx.strokeRect(0, 0, targetWidth, targetHeight);
 
-            const nameForMessage = hasCustomName ? currentName : "PalMoji";
-            setShareMessage(`Your ${nameForMessage} has been saved!`);
-            setTimeout(() => setShareMessage(''), 5000);
-        });
+        // Draw the resized (smooth) header
+        ctx.drawImage(resizedHeaderCanvas, padding, padding);
+        
+        // Draw the ASCII art (sharp) below the header
+        const asciiYPosition = resizedHeaderCanvas.height + padding;
+        ctx.drawImage(asciiCanvas, (targetWidth - finalAsciiWidth) / 2, asciiYPosition, finalAsciiWidth, finalAsciiHeight);
+
+
+        // --- STEP 4: Download the Final Composite Image ---
+        const link = document.createElement('a');
+        const hasCustomName = currentName && currentName !== "Your PalMoji";
+        const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
+        link.download = `palmoji${safeName}-${nftId}.png`;
+        link.href = finalCanvas.toDataURL('image/png');
+        link.click();
+
+        const nameForMessage = hasCustomName ? currentName : "PalMoji";
+        setShareMessage(`Your ${nameForMessage} has been saved!`);
+        setTimeout(() => setShareMessage(''), 5000);
+
+    } catch (error) {
+        console.error("Failed to save PalMoji image:", error);
+        setShareMessage("Sorry, the image could not be saved.");
+        setTimeout(() => setShareMessage(''), 5000);
     }
 };	
 	
@@ -623,7 +651,8 @@ const asciiArtLines = useMemo(() => {
     return paddedLines;
 }, [headShape, headwearShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedMien, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
 
-
+  const asciiArtRef = useRef(null);
+  
   const toggleItem = (item) => {
     setOpenItem(prev => (prev === item ? null : item));
   };
@@ -659,7 +688,7 @@ const asciiArtLines = useMemo(() => {
 				</div>
 				{/* --- END: Added Header for Saved Image --- */}
 
-				<div className="p-2">
+				<div className="p-2" ref={asciiArtRef}>
 				  <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
 					{asciiArtLines.map((line, index) => {
 					  const style = { 
