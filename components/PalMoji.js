@@ -274,7 +274,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 	const handleSaveImage = () => {
 		if (palMojiRef.current) {
-			// This function runs right before saving, making the hidden header visible only for the screenshot
+			
 			const onclone = (document) => {
 				const header = document.getElementById('palmoji-header-for-save');
 				if (header) {
@@ -284,10 +284,34 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 			html2canvas(palMojiRef.current, {
 				backgroundColor: null,
-				scale: 10,
-				useCORS: true,      // <-- Fix for blank NFT icon
-				onclone: onclone    // <-- Fix for duplicate header
-			}).then(canvas => {
+				scale: 10,      // Use the high scale to get a perfect icon render
+				useCORS: true,
+				onclone: onclone
+			}).then(largeCanvas => { // This is the huge, high-quality canvas
+
+				// --- START: New High-Quality Resizing Logic ---
+
+				// 1. Define your final desired dimensions
+				const targetWidth = 916;
+				const targetHeight = 660;
+
+				// 2. Create a new, smaller canvas in memory
+				const resizedCanvas = document.createElement('canvas');
+				resizedCanvas.width = targetWidth;
+				resizedCanvas.height = targetHeight;
+
+				// 3. Get its context and set the resizing quality to high
+				const ctx = resizedCanvas.getContext('2d');
+				ctx.imageSmoothingQuality = 'high';
+
+				// 4. Draw the large canvas onto our new, smaller canvas.
+				// This step performs a high-quality resize.
+				ctx.drawImage(largeCanvas, 0, 0, targetWidth, targetHeight);
+
+				// --- END: New Resizing Logic ---
+
+
+				// 5. Proceed with the download using the RESIZED canvas
 				const link = document.createElement('a');
 
 				const hasCustomName = currentName && currentName !== "Your PalMoji";
@@ -296,7 +320,8 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 				  : '';
 				link.download = `palmoji${safeName}-${nftId}.png`;
 
-				link.href = canvas.toDataURL('image/png');
+				// Get the image data from our new, resized canvas
+				link.href = resizedCanvas.toDataURL('image/png');
 				link.click();
 
 				const nameForMessage = hasCustomName ? currentName : "PalMoji";
