@@ -272,56 +272,39 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		});
 	};
 
-const handleSaveImage = async () => {
-    if (palMojiRef.current) {
-        // Show the header first
-        const header = document.getElementById('palmoji-header-for-save');
-        const wasHidden = header?.classList.contains('hidden');
-        
-        if (header && wasHidden) {
-            header.classList.remove('hidden');
-        }
+	const handleSaveImage = () => {
+		if (palMojiRef.current) {
+			// This function runs right before saving, making the hidden header visible only for the screenshot
+			const onclone = (document) => {
+				const header = document.getElementById('palmoji-header-for-save');
+				if (header) {
+					header.classList.remove('hidden');
+				}
+			};
 
-        // Wait a moment for the DOM to update
-        await new Promise(resolve => setTimeout(resolve, 100));
+			html2canvas(palMojiRef.current, {
+				backgroundColor: null,
+				scale: 5,
+				useCORS: true,      // <-- Fix for blank NFT icon
+				onclone: onclone    // <-- Fix for duplicate header
+			}).then(canvas => {
+				const link = document.createElement('a');
 
-        try {
-            const canvas = await html2canvas(palMojiRef.current, {
-                height: palMojiRef.current.scrollHeight,
-                width: palMojiRef.current.scrollWidth,
-                scale: 1,
-                useCORS: true,
-                logging: true,
-            });
+				const hasCustomName = currentName && currentName !== "Your PalMoji";
+				const safeName = hasCustomName
+				  ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
+				  : '';
+				link.download = `palmoji${safeName}-${nftId}.png`;
 
-            // Hide the header again
-            if (header && wasHidden) {
-                header.classList.add('hidden');
-            }
+				link.href = canvas.toDataURL('image/png');
+				link.click();
 
-            const link = document.createElement('a');
-            const hasCustomName = currentName && currentName !== "Your PalMoji";
-            const safeName = hasCustomName
-                ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
-                : '';
-            link.download = `palmoji${safeName}-${nftId}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-
-            const nameForMessage = hasCustomName ? currentName : "PalMoji";
-            setShareMessage(`Your ${nameForMessage} has been saved!`);
-            setTimeout(() => setShareMessage(''), 5000);
-        } catch (error) {
-            // Hide the header again even if there's an error
-            if (header && wasHidden) {
-                header.classList.add('hidden');
-            }
-            console.error('Screenshot failed:', error);
-            setShareMessage('Failed to save image. Please try again.');
-            setTimeout(() => setShareMessage(''), 5000);
-        }
-    }
-};	
+				const nameForMessage = hasCustomName ? currentName : "PalMoji";
+				setShareMessage(`Your ${nameForMessage} has been saved!`);
+				setTimeout(() => setShareMessage(''), 5000);
+			});
+		}
+	};	
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
