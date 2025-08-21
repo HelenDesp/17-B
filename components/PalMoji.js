@@ -272,48 +272,39 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		});
 	};
 
-const handleSaveImage = async () => {
+const handleSaveImageAlternative = async () => {
     if (palMojiRef.current) {
-        // This function runs right before saving, making the hidden header visible only for the screenshot
-        const onclone = (clonedDoc) => {
-            const header = clonedDoc.getElementById('palmoji-header-for-save');
-            if (header) {
-                header.classList.remove('hidden');
-            }
-            
-            // FIX: Ensure all images are properly rendered
-            const images = clonedDoc.querySelectorAll('img');
-            images.forEach(img => {
-                // Force image to be fully loaded and rendered properly
-                img.style.imageRendering = 'auto';
-                img.style.webkitImageSmoothing = 'true';
-                img.style.mozImageSmoothing = 'true';
-                img.style.msImageSmoothing = 'true';
-                img.style.imageSmoothing = 'true';
-                
-                // Ensure the image has proper dimensions
-                if (img.naturalWidth && img.naturalHeight) {
-                    img.width = img.naturalWidth;
-                    img.height = img.naturalHeight;
-                }
+        // Pre-load the image to ensure it's fully cached
+        const preloadImage = (src) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = src;
             });
         };
 
         try {
+            // Pre-load the NFT image
+            if (ownerNFTImage) {
+                await preloadImage(ownerNFTImage);
+            }
+
+            const onclone = (clonedDoc) => {
+                const header = clonedDoc.getElementById('palmoji-header-for-save');
+                if (header) {
+                    header.classList.remove('hidden');
+                }
+            };
+
             const canvas = await html2canvas(palMojiRef.current, {
                 backgroundColor: null,
                 scale: 2,
                 useCORS: true,
                 allowTaint: false,
-                foreignObjectRendering: false,
-                imageTimeout: 15000,
-                removeContainer: true,
                 onclone: onclone,
-                // Additional options to improve image quality
-                width: palMojiRef.current.scrollWidth,
-                height: palMojiRef.current.scrollHeight,
-                scrollX: 0,
-                scrollY: 0
+                imageTimeout: 30000, // Increased timeout
             });
 
             const link = document.createElement('a');
@@ -322,7 +313,60 @@ const handleSaveImage = async () => {
                 ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
                 : '';
             link.download = `palmoji${safeName}-${nftId}.png`;
-            link.href = canvas.toDataURL('image/png', 1.0); // Maximum quality
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+
+            const nameForMessage = hasCustomName ? currentName : "PalMoji";
+            setShareMessage(`Your ${nameForMessage} has been saved!`);
+            setTimeout(() => setShareMessage(''), 5000);
+        } catch (error) {
+            console.error('Screenshot failed:', error);
+            setShareMessage('Failed to save image. Please try again.');
+            setTimeout(() => setShareMessage(''), 5000);
+        }
+    }
+};const handleSaveImageAlternative = async () => {
+    if (palMojiRef.current) {
+        // Pre-load the image to ensure it's fully cached
+        const preloadImage = (src) => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = src;
+            });
+        };
+
+        try {
+            // Pre-load the NFT image
+            if (ownerNFTImage) {
+                await preloadImage(ownerNFTImage);
+            }
+
+            const onclone = (clonedDoc) => {
+                const header = clonedDoc.getElementById('palmoji-header-for-save');
+                if (header) {
+                    header.classList.remove('hidden');
+                }
+            };
+
+            const canvas = await html2canvas(palMojiRef.current, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true,
+                allowTaint: false,
+                onclone: onclone,
+                imageTimeout: 30000, // Increased timeout
+            });
+
+            const link = document.createElement('a');
+            const hasCustomName = currentName && currentName !== "Your PalMoji";
+            const safeName = hasCustomName
+                ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
+                : '';
+            link.download = `palmoji${safeName}-${nftId}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
 
             const nameForMessage = hasCustomName ? currentName : "PalMoji";
