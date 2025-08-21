@@ -287,6 +287,8 @@ const createHighQualityIcon = (src, size) => {
     });
 };
 
+// In PalMoji.js
+
 const handleSaveImage = async () => {
     if (!asciiArtRef.current) return;
 
@@ -294,7 +296,7 @@ const handleSaveImage = async () => {
         // --- STEP 1: Capture ASCII Art ---
         const asciiCanvas = await html2canvas(asciiArtRef.current, {
             backgroundColor: null,
-            scale: 10,
+            scale: 20,
             useCORS: true
         });
 
@@ -306,23 +308,21 @@ const handleSaveImage = async () => {
         
         const targetWidth = 916;
         const padding = 32;
-        const iconSize = 96; // 48px at scale:2
-        const headerHeight = iconSize + (padding / 2); // Calculate height based on icon + padding
+        const iconSize = 96;
+        const headerHeight = iconSize; // Header height is just the icon size
 
         headerCanvas.width = targetWidth;
         headerCanvas.height = headerHeight;
 
-        // ---- START OF ICON FIX ----
-        // 1. Draw the icon with padding from the left
+        // Draw the icon with padding from the left
         headerCtx.imageSmoothingEnabled = true;
         headerCtx.imageSmoothingQuality = 'high';
         headerCtx.drawImage(iconImageElement, padding, 0, iconSize, iconSize);
 
-        // 2. Manually draw the 1px (2px for scale:2) border around the icon
+        // Manually draw the 1px (2px for scale:2) border around the icon
         headerCtx.strokeStyle = 'black';
         headerCtx.lineWidth = 2;
         headerCtx.strokeRect(padding, 0, iconSize, iconSize);
-        // ---- END OF ICON FIX ----
         
         const fontName = getComputedStyle(document.body).getPropertyValue('font-family');
         headerCtx.fillStyle = 'black';
@@ -339,32 +339,34 @@ const handleSaveImage = async () => {
         const finalAsciiWidth = asciiCanvas.width / 5;
         const finalAsciiHeight = asciiCanvas.height / 5;
         
-        // --- START OF ASCII ART CUTOFF FIX ---
-        // Correctly calculate total height
-        const totalHeight = headerHeight + finalAsciiHeight + padding;
+        // --- START OF FINAL FIX ---
+        // Correctly calculate total height including top, middle, and bottom padding
+        const totalHeight = headerHeight + finalAsciiHeight + (padding * 3);
         
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = targetWidth;
         finalCanvas.height = totalHeight;
         const ctx = finalCanvas.getContext('2d');
-        // --- END OF ASCII ART CUTOFF FIX ---
+        // --- END OF FINAL FIX ---
 
-        ctx.fillStyle = '#FFFFFF';
+        ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, targetWidth, totalHeight);
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 2;
         ctx.strokeRect(0, 0, targetWidth, totalHeight);
 
-        ctx.drawImage(headerCanvas, 0, 0);
+        // Draw the header with top padding
+        ctx.drawImage(headerCanvas, 0, padding);
 
         ctx.imageSmoothingEnabled = false;
-        const asciiYPosition = headerHeight;
+        // Correctly position ASCII art below header with padding
+        const asciiYPosition = headerHeight + (padding * 2);
         ctx.drawImage(asciiCanvas, (targetWidth - finalAsciiWidth) / 2, asciiYPosition, finalAsciiWidth, finalAsciiHeight);
         
         // --- STEP 4: Download ---
         const link = document.createElement('a');
         const hasCustomName = currentName && currentName !== "Your PalMoji";
-        const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
+        const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : ''
         link.download = `palmoji${safeName}-${nftId}.png`;
         link.href = finalCanvas.toDataURL('image/png');
         link.click();
