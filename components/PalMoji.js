@@ -271,22 +271,65 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 			setTimeout(() => setShareMessage(''), 5000);
 		});
 	};
+	
+	const createHighQualityIcon = (src, size) => {
+		return new Promise((resolve, reject) => {
+			const img = new Image();
+			img.crossOrigin = "anonymous";
+			img.onload = () => {
+				// Create an off-screen canvas
+				const canvas = document.createElement('canvas');
+				canvas.width = size;
+				canvas.height = size;
+				const ctx = canvas.getContext('2d');
 
-	const handleSaveImage = () => {
+				// This is the key: disable smoothing for a crisp result
+				ctx.imageSmoothingEnabled = false;
+
+				// Draw the high-res image onto the small canvas
+				ctx.drawImage(img, 0, 0, size, size);
+
+				// Resolve the promise with the new, high-quality image data
+				resolve(canvas.toDataURL('image/png'));
+			};
+			img.onerror = reject;
+			img.src = src;
+		});
+	};	
+
+	const handleSaveImage = async () => { // Make the function async
 		if (palMojiRef.current) {
+			
+			// --- START: New logic to prepare the icon ---
+			let highQualityIconSrc;
+			try {
+				// Use our new helper function to create a perfect 48x48 icon
+				highQualityIconSrc = await createHighQualityIcon(ownerNFTImage, 48);
+			} catch (error) {
+				console.error("Failed to create high-quality icon:", error);
+				// Fallback to the original image if something goes wrong
+				highQualityIconSrc = ownerNFTImage;
+			}
+			// --- END: New logic ---
 
-			// A much simpler function to just un-hide the header
 			const onclone = (clonedDocument) => {
 				const header = clonedDocument.getElementById('palmoji-header-for-save');
 				if (header) {
 					header.classList.remove('hidden');
+				}
+				
+				// Find the image placeholder in the clone
+				const placeholder = clonedDocument.getElementById('image-placeholder-for-save');
+				if (placeholder) {
+					// Set its source to our newly generated high-quality icon data
+					placeholder.src = highQualityIconSrc;
 				}
 			};
 
 			html2canvas(palMojiRef.current, {
 				backgroundColor: null,
 				scale: 2,
-				useCORS: true, // This is still needed for the external image
+				useCORS: true,
 				onclone: onclone
 			}).then(canvas => {
 				const link = document.createElement('a');
