@@ -224,36 +224,35 @@ const generateScreenshotDataURL = async () => {
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
 
-    // 1. Clone the element to create an off-screen version for the screenshot.
-    const clone = originalElement.cloneNode(true);
+    // 1. Store the element's original inline styles so we can restore them later.
+    const originalStyle = originalElement.style.cssText;
 
-    // 2. Style the clone to be a fixed size and invisible to the user.
-    // The width (512px) is based on the component's max-w-lg class.
-    clone.style.position = 'absolute';
-    clone.style.top = '-9999px';
-    clone.style.left = '0px';
-    clone.style.width = '512px'; 
-    clone.style.height = 'auto';
-
-    // 3. Add the clone to the page so it can be rendered.
-    document.body.appendChild(clone);
-
-    // This function runs on the cloned document to un-hide the header.
+    // This function runs on the library's internal clone to un-hide the header.
     const onclone = (doc) => {
       const header = doc.getElementById('palmoji-header-for-save');
-      if (header) header.classList.remove('hidden');
+      if (header) {
+        header.classList.remove('hidden');
+      }
     };
 
     try {
-      // 4. Run html2canvas on the perfectly-sized CLONE, not the original.
-      const largeCanvas = await html2canvas(clone, {
+      // 2. Temporarily apply fixed styles to the LIVE element.
+      // This forces it into a perfect, non-responsive state just for the screenshot.
+      // It happens too fast for the user to see any flicker.
+      originalElement.style.position = 'absolute';
+      originalElement.style.width = '512px';
+      originalElement.style.top = '0';
+      originalElement.style.left = '-9999px'; // Move it far off-screen.
+
+      // 3. Run html2canvas on the perfectly-styled element.
+      const largeCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
-        scale: 20, // Capture at high resolution
+        scale: 20,
         useCORS: true,
         onclone: onclone,
       });
 
-      // 5. Perform the high-quality resizing logic as before.
+      // 4. Perform the high-quality resizing logic.
       const targetWidth = 916;
       const targetHeight = 660;
       let currentCanvas = largeCanvas;
@@ -278,9 +277,12 @@ const generateScreenshotDataURL = async () => {
       finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
 
       return finalCanvas.toDataURL('image/png');
+    } catch (error) {
+      console.error("Error generating screenshot:", error);
+      return null;
     } finally {
-      // 6. CRITICAL: Always remove the clone from the page after the process is finished.
-      document.body.removeChild(clone);
+      // 5. CRITICAL: Always restore the original styles.
+      originalElement.style.cssText = originalStyle;
     }
   };	
 	
