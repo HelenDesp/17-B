@@ -238,6 +238,7 @@ const generateScreenshotDataURL = async () => {
       originalElement.style.top = '0';
       originalElement.style.left = '-9999px';
 
+      // Capture the staged element at high resolution, as before.
       const largeCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
         scale: 20,
@@ -245,46 +246,44 @@ const generateScreenshotDataURL = async () => {
         onclone: onclone,
       });
 
-      // --- START: NEW ASPECT RATIO LOGIC ---
-      const maxWidth = 916;
-      const maxHeight = 660;
+      // --- NEW "ZOOM AND CROP" LOGIC ---
+      const targetWidth = 916;
+      const targetHeight = 660;
+      const targetRatio = targetWidth / targetHeight;
 
-      // 1. Calculate the true aspect ratio from the high-resolution capture.
-      const ratio = largeCanvas.width / largeCanvas.height;
+      const sourceWidth = largeCanvas.width;
+      const sourceHeight = largeCanvas.height;
+      const sourceRatio = sourceWidth / sourceHeight;
 
-      // 2. Determine final dimensions that fit within the bounds while preserving the ratio.
-      let finalWidth = maxWidth;
-      let finalHeight = finalWidth / ratio;
+      let sx = 0, sy = 0, sWidth = sourceWidth, sHeight = sourceHeight;
 
-      if (finalHeight > maxHeight) {
-        finalHeight = maxHeight;
-        finalWidth = finalHeight * ratio;
-      }
-      // --- END: NEW ASPECT RATIO LOGIC ---
-
-      let currentCanvas = largeCanvas;
-      // The high-quality resizing loop remains the same.
-      while (currentCanvas.width > finalWidth * 2) {
-        const newWidth = Math.floor(currentCanvas.width / 2);
-        const newHeight = Math.floor(currentCanvas.height / 2);
-        const nextCanvas = document.createElement('canvas');
-        nextCanvas.width = newWidth;
-        nextCanvas.height = newHeight;
-        const ctx = nextCanvas.getContext('2d');
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-        currentCanvas = nextCanvas;
+      // Determine the crop area from the source canvas (largeCanvas).
+      // This logic finds the largest possible slice of the source image
+      // that perfectly matches the target's aspect ratio.
+      if (sourceRatio > targetRatio) {
+        // Source is wider than target. Crop the left and right sides.
+        sWidth = sourceHeight * targetRatio;
+        sx = (sourceWidth - sWidth) / 2;
+      } else {
+        // Source is taller than target. Crop the top and bottom.
+        sHeight = sourceWidth / targetRatio;
+        sy = (sourceHeight - sHeight) / 2;
       }
 
-      // 3. Create the final canvas with the CORRECT calculated dimensions.
+      // Create the final canvas with the EXACT target dimensions.
       const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = finalWidth;
-      finalCanvas.height = finalHeight;
+      finalCanvas.width = targetWidth;
+      finalCanvas.height = targetHeight;
       const finalCtx = finalCanvas.getContext('2d');
       finalCtx.imageSmoothingQuality = 'high';
 
-      // 4. Draw the image without distortion.
-      finalCtx.drawImage(currentCanvas, 0, 0, finalWidth, finalHeight);
+      // Draw the CROPPED portion of the high-res canvas onto the final canvas.
+      // This scales the cropped slice up to fill the 916x660 space perfectly.
+      finalCtx.drawImage(
+        largeCanvas,
+        sx, sy, sWidth, sHeight,         // The cropped area from the source
+        0, 0, targetWidth, targetHeight // The destination area on the final canvas
+      );
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
