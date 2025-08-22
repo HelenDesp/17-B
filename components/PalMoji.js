@@ -233,12 +233,18 @@ const generateScreenshotDataURL = async () => {
     };
 
     try {
+      // --- START: NEW PADDING AND IMAGE RENDERING FIX ---
+      // Temporarily apply styles for a perfect capture environment.
       originalElement.style.position = 'absolute';
       originalElement.style.width = '512px';
       originalElement.style.top = '0';
       originalElement.style.left = '-9999px';
+      // Add padding to create a "safe area" around the component.
+      originalElement.style.padding = '2px'; 
+      // Force crisp, clean image rendering to prevent lines on the icon.
+      originalElement.style.imageRendering = 'pixelated'; 
+      // --- END: NEW PADDING AND IMAGE RENDERING FIX ---
 
-      // Capture the staged element at high resolution, as before.
       const largeCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
         scale: 20,
@@ -246,43 +252,33 @@ const generateScreenshotDataURL = async () => {
         onclone: onclone,
       });
 
-      // --- NEW "ZOOM AND CROP" LOGIC ---
+      // The "Zoom and Crop" logic remains the same.
       const targetWidth = 916;
       const targetHeight = 660;
       const targetRatio = targetWidth / targetHeight;
-
       const sourceWidth = largeCanvas.width;
       const sourceHeight = largeCanvas.height;
       const sourceRatio = sourceWidth / sourceHeight;
-
       let sx = 0, sy = 0, sWidth = sourceWidth, sHeight = sourceHeight;
 
-      // Determine the crop area from the source canvas (largeCanvas).
-      // This logic finds the largest possible slice of the source image
-      // that perfectly matches the target's aspect ratio.
       if (sourceRatio > targetRatio) {
-        // Source is wider than target. Crop the left and right sides.
         sWidth = sourceHeight * targetRatio;
         sx = (sourceWidth - sWidth) / 2;
       } else {
-        // Source is taller than target. Crop the top and bottom.
         sHeight = sourceWidth / targetRatio;
         sy = (sourceHeight - sHeight) / 2;
       }
 
-      // Create the final canvas with the EXACT target dimensions.
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = targetWidth;
       finalCanvas.height = targetHeight;
       const finalCtx = finalCanvas.getContext('2d');
       finalCtx.imageSmoothingQuality = 'high';
 
-      // Draw the CROPPED portion of the high-res canvas onto the final canvas.
-      // This scales the cropped slice up to fill the 916x660 space perfectly.
       finalCtx.drawImage(
         largeCanvas,
-        sx, sy, sWidth, sHeight,         // The cropped area from the source
-        0, 0, targetWidth, targetHeight // The destination area on the final canvas
+        sx, sy, sWidth, sHeight,
+        0, 0, targetWidth, targetHeight
       );
 
       return finalCanvas.toDataURL('image/png');
@@ -290,6 +286,7 @@ const generateScreenshotDataURL = async () => {
       console.error("Error generating screenshot:", error);
       return null;
     } finally {
+      // Always restore the original styles.
       originalElement.style.cssText = originalStyle;
     }
   };	
