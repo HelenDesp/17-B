@@ -220,42 +220,67 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}; 
 
 // --- ADD THIS ENTIRE NEW FUNCTION ---
-  const generateScreenshotDataURL = async () => {
-    if (!palMojiRef.current) return null;
+  const generateScreenshot-DataURL = async () => {
+    const originalElement = palMojiRef.current;
+    if (!originalElement) return null;
 
-    const onclone = (document) => {
-        const header = document.getElementById('palmoji-header-for-save');
-        if (header) header.classList.remove('hidden');
+    // This function runs on the library's internal clone to make final adjustments.
+    const onclone = (doc) => {
+      // 1. Un-hide the header.
+      const header = doc.getElementById('palmoji-header-for-save');
+      if (header) {
+        header.classList.remove('hidden');
+      }
+
+      // --- YOUR SOLUTION: Hide the second row of buttons ---
+      // 2. Find the button container.
+      const buttonContainer = doc.getElementById('palmoji-action-buttons');
+      if (buttonContainer) {
+        // 3. Temporarily hide it for the screenshot.
+        buttonContainer.style.visibility = 'hidden';
+      }
     };
 
-    const largeCanvas = await html2canvas(palMojiRef.current, {
-        backgroundColor: null, scale: 2, useCORS: true, onclone: onclone
-    });
+    try {
+      // Capture the element. The button container will be hidden during this process.
+      const capturedCanvas = await html2canvas(originalElement, {
+        backgroundColor: null,
+        scale: 3,
+        useCORS: true,
+        onclone: onclone,
+      });
 
-    const targetWidth = 916;
-    const targetHeight = 660;
-    let currentCanvas = largeCanvas;
+      // Create the final 916x660 canvas.
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = 916;
+      finalCanvas.height = 660;
+      const finalCtx = finalCanvas.getContext('2d');
 
-    while (currentCanvas.width > targetWidth * 2) {
-        const newWidth = Math.floor(currentCanvas.width / 2);
-        const newHeight = Math.floor(currentCanvas.height / 2);
-        const nextCanvas = document.createElement('canvas');
-        nextCanvas.width = newWidth;
-        nextCanvas.height = newHeight;
-        const ctx = nextCanvas.getContext('2d');
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-        currentCanvas = nextCanvas; 
+      // Fill the background.
+      finalCtx.fillStyle = '#f0f0f0';
+      finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+      // Center the captured image on the canvas (letterbox method).
+      const ratio = capturedCanvas.width / capturedCanvas.height;
+      let drawWidth = finalCanvas.width;
+      let drawHeight = drawWidth / ratio;
+
+      if (drawHeight > finalCanvas.height) {
+        drawHeight = finalCanvas.height;
+        drawWidth = drawHeight * ratio;
+      }
+
+      const offsetX = (finalCanvas.width - drawWidth) / 2;
+      const offsetY = (finalCanvas.height - drawHeight) / 2;
+
+      finalCtx.imageSmoothingQuality = 'high';
+      finalCtx.drawImage(capturedCanvas, offsetX, offsetY, drawWidth, drawHeight);
+
+      return finalCanvas.toDataURL('image/png');
+    } catch (error) {
+      console.error("Error generating screenshot:", error);
+      return null;
     }
-
-    const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = targetWidth;
-    finalCanvas.height = targetHeight;
-    const finalCtx = finalCanvas.getContext('2d');
-    finalCtx.imageSmoothingQuality = 'high';
-    finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
-
-    return finalCanvas.toDataURL('image/png');
   };	
 	
   const handleUpgrade = async () => {
@@ -723,7 +748,7 @@ const asciiArtLines = useMemo(() => {
                 </button>
             </div>
             {/* Row 2: Name Button */}
-            <div className="grid grid-cols-2 gap-2 [@media(min-width:540px)]:flex [@media(min-width:540px)]:justify-between">
+            <div id="palmoji-action-buttons" className="grid grid-cols-2 gap-2 [@media(min-width:540px)]:flex [@media(min-width:540px)]:justify-between">
                 <button onClick={() => setOpenModal('name')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Name
                 </button>
