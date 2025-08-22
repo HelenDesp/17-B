@@ -22,6 +22,7 @@ export default function NFTViewer({
   const [formData, setFormData] = useState({ name: "", manifesto: "", talisman: "", weapon: "" });
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // RENAMED state variables
   const [isPalMojiOpen, setIsPalMojiOpen] = useState(false);
@@ -38,6 +39,8 @@ export default function NFTViewer({
     } else {
       setNameError("");
     }
+
+    setIsSubmitting(true); // <-- Start loading
     try {
       await axios.post("https://reversegenesis.org/edata/meta.php", {
         original: selectedNFT.name,
@@ -56,6 +59,8 @@ export default function NFTViewer({
         console.error("Submission error:", error);
         alert("Failed to submit form. Please try again.");
       }
+    } finally {
+      setIsSubmitting(false); // <-- Stop loading
     }
   };
 
@@ -230,9 +235,10 @@ export default function NFTViewer({
                 <div className="flex justify-between mt-6 space-x-4">
                   <button
                     type="submit"
+					disabled={isSubmitting}
                     className=" px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
                   >
-                    <span>UPGRADE</span>
+                    <span>{isSubmitting ? 'UPGRADING...' : 'UPGRADE'}</span>
                   </button>
                   <button
                     type="button"
