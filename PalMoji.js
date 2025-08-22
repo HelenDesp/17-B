@@ -220,44 +220,23 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}; 
 
 // --- ADD THIS ENTIRE NEW FUNCTION ---
-const generateScreenshotDataURL = async () => {
-    const originalElement = palMojiRef.current;
-    if (!originalElement) return null;
+  const generateScreenshotDataURL = async () => {
+    if (!palMojiRef.current) return null;
 
-    // 1. Store the element's original inline styles so we can restore them later.
-    const originalStyle = originalElement.style.cssText;
-
-    // This function runs on the library's internal clone to un-hide the header.
-    const onclone = (doc) => {
-      const header = doc.getElementById('palmoji-header-for-save');
-      if (header) {
-        header.classList.remove('hidden');
-      }
+    const onclone = (document) => {
+        const header = document.getElementById('palmoji-header-for-save');
+        if (header) header.classList.remove('hidden');
     };
 
-    try {
-      // 2. Temporarily apply fixed styles to the LIVE element.
-      // This forces it into a perfect, non-responsive state just for the screenshot.
-      // It happens too fast for the user to see any flicker.
-      originalElement.style.position = 'absolute';
-      originalElement.style.width = '600px';
-      originalElement.style.top = '0';
-      originalElement.style.left = '-9999px'; // Move it far off-screen.
+    const largeCanvas = await html2canvas(palMojiRef.current, {
+        backgroundColor: null, scale: 2, useCORS: true, onclone: onclone
+    });
 
-      // 3. Run html2canvas on the perfectly-styled element.
-      const largeCanvas = await html2canvas(originalElement, {
-        backgroundColor: null,
-        scale: 20,
-        useCORS: true,
-        onclone: onclone,
-      });
+    const targetWidth = 916;
+    const targetHeight = 660;
+    let currentCanvas = largeCanvas;
 
-      // 4. Perform the high-quality resizing logic.
-      const targetWidth = 916;
-      const targetHeight = 660;
-      let currentCanvas = largeCanvas;
-
-      while (currentCanvas.width > targetWidth * 2) {
+    while (currentCanvas.width > targetWidth * 2) {
         const newWidth = Math.floor(currentCanvas.width / 2);
         const newHeight = Math.floor(currentCanvas.height / 2);
         const nextCanvas = document.createElement('canvas');
@@ -266,24 +245,17 @@ const generateScreenshotDataURL = async () => {
         const ctx = nextCanvas.getContext('2d');
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-        currentCanvas = nextCanvas;
-      }
-
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = targetWidth;
-      finalCanvas.height = targetHeight;
-      const finalCtx = finalCanvas.getContext('2d');
-      finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
-
-      return finalCanvas.toDataURL('image/png');
-    } catch (error) {
-      console.error("Error generating screenshot:", error);
-      return null;
-    } finally {
-      // 5. CRITICAL: Always restore the original styles.
-      originalElement.style.cssText = originalStyle;
+        currentCanvas = nextCanvas; 
     }
+
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = targetWidth;
+    finalCanvas.height = targetHeight;
+    const finalCtx = finalCanvas.getContext('2d');
+    finalCtx.imageSmoothingQuality = 'high';
+    finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+
+    return finalCanvas.toDataURL('image/png');
   };	
 	
   const handleUpgrade = async () => {
