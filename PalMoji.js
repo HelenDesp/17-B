@@ -2,6 +2,8 @@
 "use client";
 import { useState, useMemo, useRef } from 'react';
 import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
+import axios from "axios";
+import { useAccount } from "wagmi";
 
 const catData = {
   Shapes: {
@@ -118,7 +120,9 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
 
 
 export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName, originalNFTName }) {
-  const palMojiRef = useRef(null);	
+  const palMojiRef = useRef(null);
+  const asciiArtRef = useRef(null);
+  const { address } = useAccount();  
   const [headwearShape, setHeadwearShape] = useState('None');	
   const [headShape, setHeadShape] = useState('Round');
   const [snoutShape, setSnoutShape] = useState('Round');
@@ -139,7 +143,12 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
   const [tempName, setTempName] = useState("");
-  const [shareMessage, setShareMessage] = useState("");  
+  const [shareMessage, setShareMessage] = useState("");
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [showThankYouModal, setShowThankYouModal] = useState(false);
+  const hasCustomName = currentName && currentName !== 'Your PalMoji';
+  const palMojiDisplayName = hasCustomName ? `${currentName} PalMoji` : 'Your PalMoji';  
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -208,15 +217,111 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 	  // Finally, set the eye trait you selected.
 	  setSelectedEyes(eyeOption);
-	};  
+	}; 
+
+// --- ADD THIS ENTIRE NEW FUNCTION ---
+const generateScreenshotDataURL = async () => {
+    const originalElement = palMojiRef.current;
+    if (!originalElement) return null;
+
+    // 1. Store the element's original inline styles so we can restore them later.
+    const originalStyle = originalElement.style.cssText;
+
+    // This function runs on the library's internal clone to un-hide the header.
+    const onclone = (doc) => {
+      const header = doc.getElementById('palmoji-header-for-save');
+      if (header) {
+        header.classList.remove('hidden');
+      }
+    };
+
+    try {
+      // 2. Temporarily apply fixed styles to the LIVE element.
+      // This forces it into a perfect, non-responsive state just for the screenshot.
+      // It happens too fast for the user to see any flicker.
+      originalElement.style.position = 'absolute';
+      originalElement.style.width = '600px';
+      originalElement.style.top = '0';
+      originalElement.style.left = '-9999px'; // Move it far off-screen.
+
+      // 3. Run html2canvas on the perfectly-styled element.
+      const largeCanvas = await html2canvas(originalElement, {
+        backgroundColor: null,
+        scale: 20,
+        useCORS: true,
+        onclone: onclone,
+      });
+
+      // 4. Perform the high-quality resizing logic.
+      const targetWidth = 916;
+      const targetHeight = 660;
+      let currentCanvas = largeCanvas;
+
+      while (currentCanvas.width > targetWidth * 2) {
+        const newWidth = Math.floor(currentCanvas.width / 2);
+        const newHeight = Math.floor(currentCanvas.height / 2);
+        const nextCanvas = document.createElement('canvas');
+        nextCanvas.width = newWidth;
+        nextCanvas.height = newHeight;
+        const ctx = nextCanvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+        currentCanvas = nextCanvas;
+      }
+
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = targetWidth;
+      finalCanvas.height = targetHeight;
+      const finalCtx = finalCanvas.getContext('2d');
+      finalCtx.imageSmoothingQuality = 'high';
+      finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+
+      return finalCanvas.toDataURL('image/png');
+    } catch (error) {
+      console.error("Error generating screenshot:", error);
+      return null;
+    } finally {
+      // 5. CRITICAL: Always restore the original styles.
+      originalElement.style.cssText = originalStyle;
+    }
+  };	
+	
+  const handleUpgrade = async () => {
+    setIsUpgrading(true);
+    const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
+    const screenshotDataURL = await generateScreenshotDataURL();
+
+    if (!screenshotDataURL) {
+        alert("Could not generate screenshot. Please try again.");
+        setIsUpgrading(false);
+        return;
+    }
+
+    try {
+        await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
+            original: originalNFTName,
+            owner: address,
+            name: currentName,
+            palmoji: asciiArtText,
+            screenshot: screenshotDataURL,
+			nftId: nftId,
+        });
+        setIsUpgradeModalOpen(false);
+        setShowThankYouModal(true);
+    } catch (error) {
+        console.error("PalMoji upgrade submission error:", error);
+        alert("Failed to submit PalMoji upgrade. Please try again.");
+    } finally {
+        setIsUpgrading(false);
+    }
+  };		
 
 // PASTE THE NEW CODE BLOCK HERE
 
-  const shareText = currentName && currentName !== "Your PalMoji"
-    ? `Check out my ${currentName}!`
-    : "Check out my PalMoji!";
+  const shareText = `Meet my ${palMojiDisplayName}!`;
+  const callToAction = `Want one? Head to the link to start creating.`;
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const fullText = `${shareText}\n\n${shareUrl}`;
+  const fullText = `${shareText}\n${callToAction}\n\n${shareUrl}`;
 
   const handlePlatformShare = (platform) => {
       const encodedText = encodeURIComponent(fullText);
@@ -238,26 +343,44 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   };
 
 	const handleGenericShare = async () => {
-		if (navigator.share) {
-			try {
+		if (!navigator.share) {
+            setShareMessage(
+                <>Your browser doesn't support this share feature.<br />Please use a different share option.</>
+            );
+            setTimeout(() => setShareMessage(""), 5000);
+			return;
+		}
+
+		try {
+            // 1. Generate the screenshot using the function we already have
+			const imageDataURL = await generateScreenshotDataURL();
+			if (!imageDataURL) throw new Error("Could not generate screenshot.");
+
+            // 2. Convert the image data into a file that can be shared
+            const response = await fetch(imageDataURL);
+            const blob = await response.blob();
+            const file = new File([blob], 'palmoji.png', { type: 'image/png' });
+
+            // 3. Check if the browser can share this file
+			if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                // Share with the image file
+				await navigator.share({
+					title: 'My PalMoji',
+					text: fullText,
+                    files: [file],
+				});
+			} else {
+                // Fallback for browsers that can share text but not files
 				await navigator.share({
 					title: 'My PalMoji',
 					text: fullText,
 				});
-			} catch (error) {
-				console.error('Error using Web Share API:', error);
 			}
-		} else {
-			setShareMessage(
-			  <>
-				Your browser doesn't support this share feature.
-				<br />
-				Please use a different share option.
-			  </>
-			);
-			setTimeout(() => {
-				setShareMessage("");
-			}, 5000);
+		} catch (error) {
+			console.error('Error using Web Share API:', error);
+            // Optionally, provide feedback to the user if sharing fails
+            setShareMessage('Sharing failed. Please try another option.');
+            setTimeout(() => setShareMessage(""), 5000);
 		}
 	};
 
@@ -272,56 +395,22 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 		});
 	};
 
-const handleSaveImage = async () => {
-    if (palMojiRef.current) {
-        // Show the header first
-        const header = document.getElementById('palmoji-header-for-save');
-        const wasHidden = header?.classList.contains('hidden');
-        
-        if (header && wasHidden) {
-            header.classList.remove('hidden');
-        }
+// In PalMoji.js
 
-        // Wait a moment for the DOM to update
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        try {
-            const canvas = await html2canvas(palMojiRef.current, {
-                height: palMojiRef.current.scrollHeight,
-                width: palMojiRef.current.scrollWidth,
-                scale: 10,
-                useCORS: true,
-                logging: true,
-            });
-
-            // Hide the header again
-            if (header && wasHidden) {
-                header.classList.add('hidden');
-            }
-
-            const link = document.createElement('a');
-            const hasCustomName = currentName && currentName !== "Your PalMoji";
-            const safeName = hasCustomName
-                ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
-                : '';
-            link.download = `palmoji${safeName}-${nftId}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-
-            const nameForMessage = hasCustomName ? currentName : "PalMoji";
-            setShareMessage(`Your ${nameForMessage} has been saved!`);
-            setTimeout(() => setShareMessage(''), 5000);
-        } catch (error) {
-            // Hide the header again even if there's an error
-            if (header && wasHidden) {
-                header.classList.add('hidden');
-            }
-            console.error('Screenshot failed:', error);
-            setShareMessage('Failed to save image. Please try again.');
-            setTimeout(() => setShareMessage(''), 5000);
-        }
+  const handleSaveImage = async () => {
+    const imageDataURL = await generateScreenshotDataURL();
+    if (imageDataURL) {
+        const link = document.createElement('a');
+        const hasCustomName = currentName && currentName !== "Your PalMoji";
+        const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
+        link.download = `palmoji${safeName}-${nftId}.png`;
+        link.href = imageDataURL;
+        link.click();
+        const nameForMessage = hasCustomName ? currentName : "PalMoji";
+        setShareMessage(`Your ${nameForMessage} has been saved!`);
+        setTimeout(() => setShareMessage(''), 5000);
     }
-};	
+  };	
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
@@ -625,14 +714,14 @@ const asciiArtLines = useMemo(() => {
 					<div style={{ transform: 'translateY(-7px)' }}>
 						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
 						<p className="text-sm font-bold text-black dark:text-white">
-							{currentName}
-						</p> 
+							{palMojiDisplayName}
+						</p>
 					</div>
 				</div>
 				{/* --- END: Added Header for Saved Image --- */}
 
 				<div className="p-2">
-				  <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
+				  <div ref={asciiArtRef} className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
 					{asciiArtLines.map((line, index) => {
 					  const style = { 
 						position: 'relative',
@@ -662,13 +751,16 @@ const asciiArtLines = useMemo(() => {
                 </button>
             </div>
             {/* Row 2: Name Button */}
-            <div className="flex justify-between items-center">
+            <div className="grid grid-cols-2 gap-2 [@media(min-width:540px)]:flex [@media(min-width:540px)]:justify-between">
                 <button onClick={() => setOpenModal('name')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Name
                 </button>
                 <button onClick={() => setOpenModal('share')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Share
                 </button>
+				<button onClick={() => setIsUpgradeModalOpen(true)} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
+					UPGRADE NFT
+				</button>				
                 <button onClick={handleReset} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Reset
                 </button>				
@@ -741,7 +833,7 @@ const asciiArtLines = useMemo(() => {
       </SelectionModal>
       {/* REPLACE the old <ShareModal.../> line with THIS ENTIRE BLOCK */}
       <SelectionModal 
-        title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`} 
+        title={`SHARE YOUR ${palMojiDisplayName.toUpperCase()}`}
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
 		centerContent={true}
@@ -775,6 +867,61 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
+      <SelectionModal 
+        isOpen={isUpgradeModalOpen} 
+        onClose={() => setIsUpgradeModalOpen(false)}
+        title={`${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "YOUR PALMOJI"}`}
+        centerContent={true}
+      >
+        <div className="text-center">
+            <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
+              {asciiArtRef.current?.innerText}
+            </div>
+            <div className="flex justify-between mt-6 space-x-4">
+              <button
+                onClick={handleUpgrade}
+				disabled={isUpgrading}
+                className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+              >
+                {isUpgrading ? 'UPGRADING...' : 'UPGRADE'}
+              </button>
+              <button
+                onClick={() => setIsUpgradeModalOpen(false)}
+                className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+              >
+                CLOSE
+              </button>
+            </div>
+        </div>
+      </SelectionModal>
+      {/* ===== NEW PalMoji THANK YOU MODAL ===== */}
+      {showThankYouModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
+          <div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
+            <button
+              className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
+              onClick={() => setShowThankYouModal(false)}
+            >
+              <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
+            </button>
+            <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              THANK YOU!
+            </h4>
+			<p className="text-base text-gray-700 dark:text-gray-300 mb-8">
+			  {currentName && currentName !== "Your PalMoji"
+				? `${currentName} PalMoji`
+				: 'Your PalMoji'
+			  } was sent and will be available on-chain within 48 hours due to pre-moderation to avoid spam and abuse.
+			</p>
+            <button
+              onClick={() => setShowThankYouModal(false)}
+              className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+            >
+              CLOSE
+            </button>
+          </div>
+        </div>
+      )}	  
     </div>
   );
-}
+}	  
