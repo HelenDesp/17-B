@@ -1,6 +1,7 @@
 // /components/PalMoji.js
 "use client";
 import { useState, useMemo, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
 import axios from "axios";
 import { useAccount } from "wagmi";
@@ -144,7 +145,8 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [openItem, setOpenItem] = useState(null);
   const [tempName, setTempName] = useState("");
   const [shareMessage, setShareMessage] = useState("");
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);  
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);  
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -215,23 +217,73 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	  setSelectedEyes(eyeOption);
 	}; 
 
-	const handleUpgrade = async () => {
-		const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
+// --- ADD THIS ENTIRE NEW FUNCTION ---
+  const generateScreenshotDataURL = async () => {
+    if (!palMojiRef.current) return null;
 
-		try {
-			await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
-				original: originalNFTName,
-				owner: address,
-				name: currentName,
-				palmoji: asciiArtText,
-			});
-			setIsUpgradeModalOpen(false);
-			alert("Your PalMoji upgrade request has been sent!");
-		} catch (error) {
-			console.error("PalMoji upgrade submission error:", error);
-			alert("Failed to submit PalMoji upgrade. Please try again.");
-		}
-	};	
+    const onclone = (document) => {
+        const header = document.getElementById('palmoji-header-for-save');
+        if (header) header.classList.remove('hidden');
+    };
+
+    const largeCanvas = await html2canvas(palMojiRef.current, {
+        backgroundColor: null, scale: 20, useCORS: true, onclone: onclone
+    });
+
+    const targetWidth = 916;
+    const targetHeight = 660;
+    let currentCanvas = largeCanvas;
+
+    while (currentCanvas.width > targetWidth * 2) {
+        const newWidth = Math.floor(currentCanvas.width / 2);
+        const newHeight = Math.floor(currentCanvas.height / 2);
+        const nextCanvas = document.createElement('canvas');
+        nextCanvas.width = newWidth;
+        nextCanvas.height = newHeight;
+        const ctx = nextCanvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+        currentCanvas = nextCanvas; 
+    }
+
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = targetWidth;
+    finalCanvas.height = targetHeight;
+    const finalCtx = finalCanvas.getContext('2d');
+    finalCtx.imageSmoothingQuality = 'high';
+    finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+
+    return finalCanvas.toDataURL('image/png');
+  };	
+	
+  const handleUpgrade = async () => {
+    setIsUpgrading(true);
+    const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
+    const screenshotDataURL = await generateScreenshotDataURL();
+
+    if (!screenshotDataURL) {
+        alert("Could not generate screenshot. Please try again.");
+        setIsUpgrading(false);
+        return;
+    }
+
+    try {
+        await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
+            original: originalNFTName,
+            owner: address,
+            name: currentName,
+            palmoji: asciiArtText,
+            screenshot: screenshotDataURL, // Attach screenshot data
+        });
+        setIsUpgradeModalOpen(false);
+        alert("Your PalMoji upgrade request has been sent!");
+    } catch (error) {
+        console.error("PalMoji upgrade submission error:", error);
+        alert("Failed to submit PalMoji upgrade. Please try again.");
+    } finally {
+        setIsUpgrading(false);
+    }
+  };		
 
 // PASTE THE NEW CODE BLOCK HERE
 
@@ -297,82 +349,20 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 // In PalMoji.js
 
-const handleSaveImage = () => {
-    if (palMojiRef.current) {
-        
-        const onclone = (document) => {
-            const header = document.getElementById('palmoji-header-for-save');
-            if (header) {
-                header.classList.remove('hidden');
-            }
-        };
-
-        html2canvas(palMojiRef.current, {
-            backgroundColor: null,
-            scale: 20,      // Capture at high resolution
-            useCORS: true,
-            onclone: onclone
-        }).then(largeCanvas => { // This is the huge, high-quality canvas
-
-            // --- START: NEW Multi-Step High-Quality Resizing Logic ---
-
-            const targetWidth = 916;
-            const targetHeight = 660;
-
-            // Start with the large canvas from the screenshot
-            let currentCanvas = largeCanvas;
-
-            // Loop and repeatedly halve the size of the canvas until it's manageable.
-            // This preserves much more detail than a single, large resize.
-            while (currentCanvas.width > targetWidth * 2) {
-                const newWidth = Math.floor(currentCanvas.width / 2);
-                const newHeight = Math.floor(currentCanvas.height / 2);
-
-                const nextCanvas = document.createElement('canvas');
-                nextCanvas.width = newWidth;
-                nextCanvas.height = newHeight;
-                const ctx = nextCanvas.getContext('2d');
-                
-                // Use high-quality smoothing for each step
-                ctx.imageSmoothingQuality = 'high';
-                ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-
-                // The new, smaller canvas becomes the source for the next loop iteration
-                currentCanvas = nextCanvas; 
-            }
-
-            // Create the final canvas with the exact target dimensions
-            const finalCanvas = document.createElement('canvas');
-            finalCanvas.width = targetWidth;
-            finalCanvas.height = targetHeight;
-            const finalCtx = finalCanvas.getContext('2d');
-            finalCtx.imageSmoothingQuality = 'high';
-
-            // Perform the very last resize step to get the exact dimensions
-            finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
-
-            // --- END: New Resizing Logic ---
-
-
-            // Proceed with the download using the FINAL, perfectly resized canvas
-            const link = document.createElement('a');
-
-            const hasCustomName = currentName && currentName !== "Your PalMoji";
-            const safeName = hasCustomName
-              ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}`
-              : '';
-            link.download = `palmoji${safeName}-${nftId}.png`;
-
-            // Get the image data from our final, high-quality canvas
-            link.href = finalCanvas.toDataURL('image/png');
-            link.click();
-
-            const nameForMessage = hasCustomName ? currentName : "PalMoji";
-            setShareMessage(`Your ${nameForMessage} has been saved!`);
-            setTimeout(() => setShareMessage(''), 5000);
-        });
+  const handleSaveImage = async () => {
+    const imageDataURL = await generateScreenshotDataURL();
+    if (imageDataURL) {
+        const link = document.createElement('a');
+        const hasCustomName = currentName && currentName !== "Your PalMoji";
+        const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
+        link.download = `palmoji${safeName}-${nftId}.png`;
+        link.href = imageDataURL;
+        link.click();
+        const nameForMessage = hasCustomName ? currentName : "PalMoji";
+        setShareMessage(`Your ${nameForMessage} has been saved!`);
+        setTimeout(() => setShareMessage(''), 5000);
     }
-};	
+  };	
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
@@ -832,19 +822,20 @@ const asciiArtLines = useMemo(() => {
       <SelectionModal 
         isOpen={isUpgradeModalOpen} 
         onClose={() => setIsUpgradeModalOpen(false)}
-        title={`UPGRADE ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "YOUR PALMOJI"}`}
+        title={`${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "YOUR PALMOJI"}`}
         centerContent={true}
       >
         <div className="text-center">
-            <div className="font-mono text-2xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
+            <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
               {asciiArtRef.current?.innerText}
             </div>
             <div className="flex justify-between mt-6 space-x-4">
               <button
                 onClick={handleUpgrade}
+				disabled={isUpgrading}
                 className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
               >
-                UPGRADE
+                {isUpgrading ? 'UPGRADING...' : 'UPGRADE'}
               </button>
               <button
                 onClick={() => setIsUpgradeModalOpen(false)}
