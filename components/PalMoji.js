@@ -145,7 +145,8 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [tempName, setTempName] = useState("");
   const [shareMessage, setShareMessage] = useState("");
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-  const [isUpgrading, setIsUpgrading] = useState(false);  
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [showThankYouModal, setShowThankYouModal] = useState(false);  
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -276,7 +277,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 			nftId: nftId,
         });
         setIsUpgradeModalOpen(false);
-        alert("Your PalMoji upgrade request has been sent!");
+        setShowThankYouModal(true);
     } catch (error) {
         console.error("PalMoji upgrade submission error:", error);
         alert("Failed to submit PalMoji upgrade. Please try again.");
@@ -846,6 +847,31 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
+      {/* ===== NEW PalMoji THANK YOU MODAL ===== */}
+      {showThankYouModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
+          <div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
+            <button
+              className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
+              onClick={() => setShowThankYouModal(false)}
+            >
+              <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
+            </button>
+            <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              THANK YOU
+            </h4>
+            <p className="text-base text-gray-700 dark:text-gray-300 mb-8">
+              Your data was sent and will be available on-chain within 24 hours due to premoderation to avoid spam and abuse.
+            </p>
+            <button
+              onClick={() => setShowThankYouModal(false)}
+              className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+            >
+              CLOSE
+            </button>
+          </div>
+        </div>
+      )}	  
     </div>
   );
 }	  
