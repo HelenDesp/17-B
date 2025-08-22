@@ -858,11 +858,14 @@ const asciiArtLines = useMemo(() => {
               <span className="text-4xl leading-none font-bold dark:font-bold">&#215;</span>
             </button>
             <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              THANK YOU
+              THANK YOU!
             </h4>
-            <p className="text-base text-gray-700 dark:text-gray-300 mb-8">
-              Your data was sent and will be available on-chain within 24 hours due to premoderation to avoid spam and abuse.
-            </p>
+			<p className="text-base text-gray-700 dark:text-gray-300 mb-8">
+			  {currentName && currentName !== "Your PalMoji"
+				? `${currentName} PalMoji`
+				: 'Your PalMoji'
+			  } was sent and will be available on-chain within 48 hours due to pre-moderation to avoid spam and abuse.
+			</p>
             <button
               onClick={() => setShowThankYouModal(false)}
               className="px-4 py-1.5 border-2 border-gray-900 dark:border-white bg-light-100 text-gray-900 dark:bg-dark-300 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
