@@ -146,7 +146,9 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [shareMessage, setShareMessage] = useState("");
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
-  const [showThankYouModal, setShowThankYouModal] = useState(false);  
+  const [showThankYouModal, setShowThankYouModal] = useState(false);
+  const hasCustomName = currentName && currentName !== 'Your PalMoji';
+  const palMojiDisplayName = hasCustomName ? `${currentName} PalMoji` : 'Your PalMoji';  
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -288,11 +290,10 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 // PASTE THE NEW CODE BLOCK HERE
 
-  const shareText = currentName && currentName !== "Your PalMoji"
-    ? `Check out my ${currentName}!`
-    : "Check out my PalMoji!";
+  const shareText = `Meet my ${palM-ojiDisplayName}!`;
+  const callToAction = `Want one? Head to the link to start creating.`;
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const fullText = `${shareText}\n\n${shareUrl}`;
+  const fullText = `${shareText}\n${callToAction}\n\n${shareUrl}`;
 
   const handlePlatformShare = (platform) => {
       const encodedText = encodeURIComponent(fullText);
@@ -314,26 +315,44 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   };
 
 	const handleGenericShare = async () => {
-		if (navigator.share) {
-			try {
+		if (!navigator.share) {
+            setShareMessage(
+                <>Your browser doesn't support this share feature.<br />Please use a different share option.</>
+            );
+            setTimeout(() => setShareMessage(""), 5000);
+			return;
+		}
+
+		try {
+            // 1. Generate the screenshot using the function we already have
+			const imageDataURL = await generateScreenshotDataURL();
+			if (!imageDataURL) throw new Error("Could not generate screenshot.");
+
+            // 2. Convert the image data into a file that can be shared
+            const response = await fetch(imageDataURL);
+            const blob = await response.blob();
+            const file = new File([blob], 'palmoji.png', { type: 'image/png' });
+
+            // 3. Check if the browser can share this file
+			if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                // Share with the image file
+				await navigator.share({
+					title: 'My PalMoji',
+					text: fullText,
+                    files: [file],
+				});
+			} else {
+                // Fallback for browsers that can share text but not files
 				await navigator.share({
 					title: 'My PalMoji',
 					text: fullText,
 				});
-			} catch (error) {
-				console.error('Error using Web Share API:', error);
 			}
-		} else {
-			setShareMessage(
-			  <>
-				Your browser doesn't support this share feature.
-				<br />
-				Please use a different share option.
-			  </>
-			);
-			setTimeout(() => {
-				setShareMessage("");
-			}, 5000);
+		} catch (error) {
+			console.error('Error using Web Share API:', error);
+            // Optionally, provide feedback to the user if sharing fails
+            setShareMessage('Sharing failed. Please try another option.');
+            setTimeout(() => setShareMessage(""), 5000);
 		}
 	};
 
@@ -667,8 +686,8 @@ const asciiArtLines = useMemo(() => {
 					<div style={{ transform: 'translateY(-7px)' }}>
 						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
 						<p className="text-sm font-bold text-black dark:text-white">
-							{currentName}
-						</p> 
+							{palMojiDisplayName}
+						</p>
 					</div>
 				</div>
 				{/* --- END: Added Header for Saved Image --- */}
@@ -786,7 +805,7 @@ const asciiArtLines = useMemo(() => {
       </SelectionModal>
       {/* REPLACE the old <ShareModal.../> line with THIS ENTIRE BLOCK */}
       <SelectionModal 
-        title={`SHARE YOUR ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "PALMOJI"}`} 
+        title={`SHARE YOUR ${palMojiDisplayName.toUpperCase()}`}
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
 		centerContent={true}
