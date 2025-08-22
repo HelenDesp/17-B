@@ -224,10 +224,7 @@ const generateScreenshotDataURL = async () => {
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
 
-    // 1. Store the element's original inline styles so we can restore them later.
     const originalStyle = originalElement.style.cssText;
-
-    // This function runs on the library's internal clone to un-hide the header.
     const onclone = (doc) => {
       const header = doc.getElementById('palmoji-header-for-save');
       if (header) {
@@ -236,15 +233,11 @@ const generateScreenshotDataURL = async () => {
     };
 
     try {
-      // 2. Temporarily apply fixed styles to the LIVE element.
-      // This forces it into a perfect, non-responsive state just for the screenshot.
-      // It happens too fast for the user to see any flicker.
       originalElement.style.position = 'absolute';
       originalElement.style.width = '512px';
       originalElement.style.top = '0';
-      originalElement.style.left = '-9999px'; // Move it far off-screen.
+      originalElement.style.left = '-9999px';
 
-      // 3. Run html2canvas on the perfectly-styled element.
       const largeCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
         scale: 20,
@@ -252,12 +245,26 @@ const generateScreenshotDataURL = async () => {
         onclone: onclone,
       });
 
-      // 4. Perform the high-quality resizing logic.
-      const targetWidth = 916;
-      const targetHeight = 660;
-      let currentCanvas = largeCanvas;
+      // --- START: NEW ASPECT RATIO LOGIC ---
+      const maxWidth = 916;
+      const maxHeight = 660;
 
-      while (currentCanvas.width > targetWidth * 2) {
+      // 1. Calculate the true aspect ratio from the high-resolution capture.
+      const ratio = largeCanvas.width / largeCanvas.height;
+
+      // 2. Determine final dimensions that fit within the bounds while preserving the ratio.
+      let finalWidth = maxWidth;
+      let finalHeight = finalWidth / ratio;
+
+      if (finalHeight > maxHeight) {
+        finalHeight = maxHeight;
+        finalWidth = finalHeight * ratio;
+      }
+      // --- END: NEW ASPECT RATIO LOGIC ---
+
+      let currentCanvas = largeCanvas;
+      // The high-quality resizing loop remains the same.
+      while (currentCanvas.width > finalWidth * 2) {
         const newWidth = Math.floor(currentCanvas.width / 2);
         const newHeight = Math.floor(currentCanvas.height / 2);
         const nextCanvas = document.createElement('canvas');
@@ -269,19 +276,21 @@ const generateScreenshotDataURL = async () => {
         currentCanvas = nextCanvas;
       }
 
+      // 3. Create the final canvas with the CORRECT calculated dimensions.
       const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = targetWidth;
-      finalCanvas.height = targetHeight;
+      finalCanvas.width = finalWidth;
+      finalCanvas.height = finalHeight;
       const finalCtx = finalCanvas.getContext('2d');
       finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+
+      // 4. Draw the image without distortion.
+      finalCtx.drawImage(currentCanvas, 0, 0, finalWidth, finalHeight);
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
       console.error("Error generating screenshot:", error);
       return null;
     } finally {
-      // 5. CRITICAL: Always restore the original styles.
       originalElement.style.cssText = originalStyle;
     }
   };	
