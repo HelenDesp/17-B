@@ -233,53 +233,49 @@ const generateScreenshotDataURL = async () => {
     };
 
     try {
-      // --- START: NEW PADDING AND IMAGE RENDERING FIX ---
-      // Temporarily apply styles for a perfect capture environment.
+      // Stage the element at a fixed width to ensure a consistent, non-responsive render.
       originalElement.style.position = 'absolute';
       originalElement.style.width = '512px';
       originalElement.style.top = '0';
       originalElement.style.left = '-9999px';
-      // Add padding to create a "safe area" around the component.
-      originalElement.style.padding = '2px'; 
-      // Force crisp, clean image rendering to prevent lines on the icon.
-      originalElement.style.imageRendering = 'pixelated'; 
-      // --- END: NEW PADDING AND IMAGE RENDERING FIX ---
 
       const largeCanvas = await html2canvas(originalElement, {
-        backgroundColor: null,
+        backgroundColor: null, // We'll handle the background color ourselves.
         scale: 20,
         useCORS: true,
         onclone: onclone,
       });
 
-      // The "Zoom and Crop" logic remains the same.
-      const targetWidth = 916;
-      const targetHeight = 660;
-      const targetRatio = targetWidth / targetHeight;
-      const sourceWidth = largeCanvas.width;
-      const sourceHeight = largeCanvas.height;
-      const sourceRatio = sourceWidth / sourceHeight;
-      let sx = 0, sy = 0, sWidth = sourceWidth, sHeight = sourceHeight;
+      // --- NEW, RELIABLE "LETTERBOX" LOGIC ---
 
-      if (sourceRatio > targetRatio) {
-        sWidth = sourceHeight * targetRatio;
-        sx = (sourceWidth - sWidth) / 2;
-      } else {
-        sHeight = sourceWidth / targetRatio;
-        sy = (sourceHeight - sHeight) / 2;
+      // 1. Create the final canvas with the EXACT target dimensions.
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = 916;
+      finalCanvas.height = 660;
+      const finalCtx = finalCanvas.getContext('2d');
+
+      // 2. Fill the canvas with a background color.
+      // You can change '#e5e7eb' (a light gray) to any color you prefer.
+      finalCtx.fillStyle = '#e5e7eb';
+      finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+      // 3. Calculate the dimensions to fit the screenshot inside the canvas while preserving its aspect ratio.
+      const ratio = largeCanvas.width / largeCanvas.height;
+      let drawWidth = finalCanvas.width;
+      let drawHeight = drawWidth / ratio;
+
+      if (drawHeight > finalCanvas.height) {
+        drawHeight = finalCanvas.height;
+        drawWidth = drawHeight * ratio;
       }
 
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = targetWidth;
-      finalCanvas.height = targetHeight;
-      const finalCtx = finalCanvas.getContext('2d');
-      finalCtx.imageSmoothingQuality = 'high';
+      // 4. Calculate the X and Y positions to center the image on the canvas.
+      const offsetX = (finalCanvas.width - drawWidth) / 2;
+      const offsetY = (finalCanvas.height - drawHeight) / 2;
 
-      finalCtx.drawImage(
-        largeCanvas,
-        sx, sy, sWidth, sHeight,
-        0, 0, targetWidth, targetHeight
-      );
+      // 5. Draw the high-resolution screenshot onto the centered position.
+      finalCtx.imageSmoothingQuality = 'high';
+      finalCtx.drawImage(largeCanvas, offsetX, offsetY, drawWidth, drawHeight);
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
