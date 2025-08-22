@@ -233,33 +233,35 @@ const generateScreenshotDataURL = async () => {
     };
 
     try {
-      // Stage the element at a fixed width to ensure a consistent, non-responsive render.
+      // Stage the element for a perfect capture.
       originalElement.style.position = 'absolute';
       originalElement.style.width = '512px';
       originalElement.style.top = '0';
       originalElement.style.left = '-9999px';
 
+      // --- NEW FIX: Add vertical padding to make the component taller ---
+      originalElement.style.paddingTop = '40px';
+      originalElement.style.paddingBottom = '40px';
+      // --- You can adjust these '40px' values to fine-tune the spacing ---
+
       const largeCanvas = await html2canvas(originalElement, {
-        backgroundColor: null, // We'll handle the background color ourselves.
+        backgroundColor: null,
         scale: 20,
         useCORS: true,
         onclone: onclone,
       });
 
-      // --- NEW, RELIABLE "LETTERBOX" LOGIC ---
-
-      // 1. Create the final canvas with the EXACT target dimensions.
+      // Create the final canvas with the EXACT target dimensions.
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = 916;
       finalCanvas.height = 660;
       const finalCtx = finalCanvas.getContext('2d');
 
-      // 2. Fill the canvas with a background color.
-      // You can change '#e5e7eb' (a light gray) to any color you prefer.
-      finalCtx.fillStyle = '#e5e7eb';
+      // Fill the canvas with a background color.
+      finalCtx.fillStyle = '#f0f0f0'; // A neutral light gray
       finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
-      // 3. Calculate the dimensions to fit the screenshot inside the canvas while preserving its aspect ratio.
+      // Calculate the dimensions to fit the new, taller screenshot inside the canvas.
       const ratio = largeCanvas.width / largeCanvas.height;
       let drawWidth = finalCanvas.width;
       let drawHeight = drawWidth / ratio;
@@ -269,11 +271,10 @@ const generateScreenshotDataURL = async () => {
         drawWidth = drawHeight * ratio;
       }
 
-      // 4. Calculate the X and Y positions to center the image on the canvas.
       const offsetX = (finalCanvas.width - drawWidth) / 2;
       const offsetY = (finalCanvas.height - drawHeight) / 2;
 
-      // 5. Draw the high-resolution screenshot onto the centered position.
+      // Draw the screenshot onto the canvas.
       finalCtx.imageSmoothingQuality = 'high';
       finalCtx.drawImage(largeCanvas, offsetX, offsetY, drawWidth, drawHeight);
 
