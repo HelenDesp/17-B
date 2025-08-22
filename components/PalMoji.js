@@ -829,42 +829,32 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
-      {isUpgradeModalOpen && (
-        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black bg-opacity-70 z-[10000]" onClick={() => setIsUpgradeModalOpen(false)} />
-          <div className="relative z-[10001] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full">
-            <button
-                className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                onClick={() => setIsUpgradeModalOpen(false)}
-                aria-label="Close"
-            >
-                <span className="text-4xl leading-none font-bold">&#215;</span>
-            </button>
-            <div className="text-center">
-              <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
-                {currentName}
-              </h3>
-              <div className="font-mono text-2xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
-                {asciiArtRef.current?.innerText}
-              </div>
-              <div className="flex justify-between mt-6 space-x-4">
-                <button
-                  onClick={handleUpgrade}
-                  className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                >
-                  UPGRADE
-                </button>
-                <button
-                  onClick={() => setIsUpgradeModalOpen(false)}
-                  className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
-                >
-                  CLOSE
-                </button>
-              </div>
+      <SelectionModal 
+        isOpen={isUpgradeModalOpen} 
+        onClose={() => setIsUpgradeModalOpen(false)}
+        title={`UPGRADE ${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "YOUR PALMOJI"}`}
+        centerContent={true}
+      >
+        <div className="text-center">
+            <div className="font-mono text-2xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
+              {asciiArtRef.current?.innerText}
             </div>
-          </div>
+            <div className="flex justify-between mt-6 space-x-4">
+              <button
+                onClick={handleUpgrade}
+                className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+              >
+                UPGRADE
+              </button>
+              <button
+                onClick={() => setIsUpgradeModalOpen(false)}
+                className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+              >
+                CLOSE
+              </button>
+            </div>
         </div>
-      )}
+      </SelectionModal>
     </div>
   );
 }	  
