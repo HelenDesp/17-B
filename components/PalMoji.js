@@ -290,7 +290,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
 // PASTE THE NEW CODE BLOCK HERE
 
-  const shareText = `Meet my ${palM-ojiDisplayName}!`;
+  const shareText = `Meet my ${palMojiDisplayName}!`;
   const callToAction = `Want one? Head to the link to start creating.`;
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const fullText = `${shareText}\n${callToAction}\n\n${shareUrl}`;
