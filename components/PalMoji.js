@@ -224,50 +224,56 @@ const generateScreenshotDataURL = async () => {
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
 
-    const originalStyle = originalElement.style.cssText;
+    // This function runs on the library's internal clone to make final adjustments.
     const onclone = (doc) => {
+      // 1. Un-hide the header.
       const header = doc.getElementById('palmoji-header-for-save');
       if (header) {
         header.classList.remove('hidden');
       }
+
+      // 2. Find and hide the button container for a clean screenshot.
+      const buttonContainer = doc.getElementById('palmoji-action-buttons');
+      if (buttonContainer) {
+        buttonContainer.style.visibility = 'hidden';
+      }
     };
 
     try {
-      // Stage the element for a perfect capture.
-      originalElement.style.position = 'absolute';
-      originalElement.style.width = '512px';
-      originalElement.style.top = '0';
-      originalElement.style.left = '-9999px';
-      originalElement.style.paddingTop = '40px';
-      originalElement.style.paddingBottom = '40px';
-      
-      // --- NEW FIX: Make the component's background transparent ---
-      originalElement.style.backgroundColor = 'transparent';
-
-      const largeCanvas = await html2canvas(originalElement, {
-        backgroundColor: null, // Ensure html2canvas captures with transparency.
+      // Capture the element.
+      const capturedCanvas = await html2canvas(originalElement, {
+        backgroundColor: null,
         scale: 20,
         useCORS: true,
         onclone: onclone,
       });
 
-      // Create the final canvas with the EXACT target dimensions.
+      // --- NEW: Determine final canvas size based on screen width ---
+      let targetWidth;
+      let targetHeight;
+
+      if (window.innerWidth <= 540) {
+        // For small screens, use the 792x660 size
+        targetWidth = 792;
+        targetHeight = 660;
+      } else {
+        // For larger screens, use the 916x660 size
+        targetWidth = 916;
+        targetHeight = 660;
+      }
+
+      // Create the final canvas using the DYNAMIC dimensions.
       const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = 916;
-      finalCanvas.height = 660;
+      finalCanvas.width = targetWidth;
+      finalCanvas.height = targetHeight;
       const finalCtx = finalCanvas.getContext('2d');
 
-      // Fill the canvas with a single, clean background color.
-      finalCtx.fillStyle = '#f0f0f0'; // A neutral light gray
+      // Fill the background.
+      finalCtx.fillStyle = '#f0f0f0';
       finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-      
-      // Draw a 1px black border around the entire canvas.
-      finalCtx.strokeStyle = '#000000';
-      finalCtx.lineWidth = 2; // The border is 2px thick to be visible at this resolution
-      finalCtx.strokeRect(1, 1, finalCanvas.width - 2, finalCanvas.height - 2);
 
-      // Place the transparent screenshot onto the canvas, preserving its aspect ratio.
-      const ratio = largeCanvas.width / largeCanvas.height;
+      // Center the captured image on the canvas (letterbox method).
+      const ratio = capturedCanvas.width / capturedCanvas.height;
       let drawWidth = finalCanvas.width;
       let drawHeight = drawWidth / ratio;
 
@@ -280,15 +286,12 @@ const generateScreenshotDataURL = async () => {
       const offsetY = (finalCanvas.height - drawHeight) / 2;
 
       finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(largeCanvas, offsetX, offsetY, drawWidth, drawHeight);
+      finalCtx.drawImage(capturedCanvas, offsetX, offsetY, drawWidth, drawHeight);
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
       console.error("Error generating screenshot:", error);
       return null;
-    } finally {
-      // Always restore the original styles.
-      originalElement.style.cssText = originalStyle;
     }
   };	
 	
