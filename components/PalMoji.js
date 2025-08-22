@@ -220,72 +220,42 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}; 
 
 // --- ADD THIS ENTIRE NEW FUNCTION ---
-const generateScreenshotDataURL = async () => {
-    const originalElement = palMojiRef.current;
-    if (!originalElement) return null;
+  const generateScreenshotDataURL = async () => {
+    if (!palMojiRef.current) return null;
 
-    const originalStyle = originalElement.style.cssText;
-    const onclone = (doc) => {
-      const header = doc.getElementById('palmoji-header-for-save');
-      if (header) {
-        header.classList.remove('hidden');
-      }
+    const onclone = (document) => {
+        const header = document.getElementById('palmoji-header-for-save');
+        if (header) header.classList.remove('hidden');
     };
 
-    try {
-      // Stage the element for a perfect capture.
-      originalElement.style.position = 'absolute';
-      originalElement.style.width = '512px';
-      originalElement.style.top = '0';
-      originalElement.style.left = '-9999px';
+    const largeCanvas = await html2canvas(palMojiRef.current, {
+        backgroundColor: null, scale: 2, useCORS: true, onclone: onclone
+    });
 
-      // --- NEW FIX: Add vertical padding to make the component taller ---
-      originalElement.style.paddingTop = '40px';
-      originalElement.style.paddingBottom = '40px';
-      // --- You can adjust these '40px' values to fine-tune the spacing ---
+    const targetWidth = 916;
+    const targetHeight = 660;
+    let currentCanvas = largeCanvas;
 
-      const largeCanvas = await html2canvas(originalElement, {
-        backgroundColor: null,
-        scale: 20,
-        useCORS: true,
-        onclone: onclone,
-      });
-
-      // Create the final canvas with the EXACT target dimensions.
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = 916;
-      finalCanvas.height = 660;
-      const finalCtx = finalCanvas.getContext('2d');
-
-      // Fill the canvas with a background color.
-      finalCtx.fillStyle = '#f0f0f0'; // A neutral light gray
-      finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-
-      // Calculate the dimensions to fit the new, taller screenshot inside the canvas.
-      const ratio = largeCanvas.width / largeCanvas.height;
-      let drawWidth = finalCanvas.width;
-      let drawHeight = drawWidth / ratio;
-
-      if (drawHeight > finalCanvas.height) {
-        drawHeight = finalCanvas.height;
-        drawWidth = drawHeight * ratio;
-      }
-
-      const offsetX = (finalCanvas.width - drawWidth) / 2;
-      const offsetY = (finalCanvas.height - drawHeight) / 2;
-
-      // Draw the screenshot onto the canvas.
-      finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(largeCanvas, offsetX, offsetY, drawWidth, drawHeight);
-
-      return finalCanvas.toDataURL('image/png');
-    } catch (error) {
-      console.error("Error generating screenshot:", error);
-      return null;
-    } finally {
-      // Always restore the original styles.
-      originalElement.style.cssText = originalStyle;
+    while (currentCanvas.width > targetWidth * 2) {
+        const newWidth = Math.floor(currentCanvas.width / 2);
+        const newHeight = Math.floor(currentCanvas.height / 2);
+        const nextCanvas = document.createElement('canvas');
+        nextCanvas.width = newWidth;
+        nextCanvas.height = newHeight;
+        const ctx = nextCanvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+        currentCanvas = nextCanvas; 
     }
+
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = targetWidth;
+    finalCanvas.height = targetHeight;
+    const finalCtx = finalCanvas.getContext('2d');
+    finalCtx.imageSmoothingQuality = 'high';
+    finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+
+    return finalCanvas.toDataURL('image/png');
   };	
 	
   const handleUpgrade = async () => {
