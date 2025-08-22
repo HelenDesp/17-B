@@ -220,23 +220,45 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}; 
 
 // --- ADD THIS ENTIRE NEW FUNCTION ---
-  const generateScreenshotDataURL = async () => {
-    if (!palMojiRef.current) return null;
+const generateScreenshotDataURL = async () => {
+    const originalElement = palMojiRef.current;
+    if (!originalElement) return null;
 
-    const onclone = (document) => {
-        const header = document.getElementById('palmoji-header-for-save');
-        if (header) header.classList.remove('hidden');
+    // 1. Clone the element to create an off-screen version for the screenshot.
+    const clone = originalElement.cloneNode(true);
+
+    // 2. Style the clone to be a fixed size and invisible to the user.
+    // The width (512px) is based on the component's max-w-lg class.
+    clone.style.position = 'absolute';
+    clone.style.top = '-9999px';
+    clone.style.left = '0px';
+    clone.style.width = '512px'; 
+    clone.style.height = 'auto';
+
+    // 3. Add the clone to the page so it can be rendered.
+    document.body.appendChild(clone);
+
+    // This function runs on the cloned document to un-hide the header.
+    const onclone = (doc) => {
+      const header = doc.getElementById('palmoji-header-for-save');
+      if (header) header.classList.remove('hidden');
     };
 
-    const largeCanvas = await html2canvas(palMojiRef.current, {
-        backgroundColor: null, scale: 20, useCORS: true, onclone: onclone
-    });
+    try {
+      // 4. Run html2canvas on the perfectly-sized CLONE, not the original.
+      const largeCanvas = await html2canvas(clone, {
+        backgroundColor: null,
+        scale: 20, // Capture at high resolution
+        useCORS: true,
+        onclone: onclone,
+      });
 
-    const targetWidth = 916;
-    const targetHeight = 660;
-    let currentCanvas = largeCanvas;
+      // 5. Perform the high-quality resizing logic as before.
+      const targetWidth = 916;
+      const targetHeight = 660;
+      let currentCanvas = largeCanvas;
 
-    while (currentCanvas.width > targetWidth * 2) {
+      while (currentCanvas.width > targetWidth * 2) {
         const newWidth = Math.floor(currentCanvas.width / 2);
         const newHeight = Math.floor(currentCanvas.height / 2);
         const nextCanvas = document.createElement('canvas');
@@ -245,17 +267,21 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         const ctx = nextCanvas.getContext('2d');
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-        currentCanvas = nextCanvas; 
+        currentCanvas = nextCanvas;
+      }
+
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = targetWidth;
+      finalCanvas.height = targetHeight;
+      const finalCtx = finalCanvas.getContext('2d');
+      finalCtx.imageSmoothingQuality = 'high';
+      finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+
+      return finalCanvas.toDataURL('image/png');
+    } finally {
+      // 6. CRITICAL: Always remove the clone from the page after the process is finished.
+      document.body.removeChild(clone);
     }
-
-    const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = targetWidth;
-    finalCanvas.height = targetHeight;
-    const finalCtx = finalCanvas.getContext('2d');
-    finalCtx.imageSmoothingQuality = 'high';
-    finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
-
-    return finalCanvas.toDataURL('image/png');
   };	
 	
   const handleUpgrade = async () => {
