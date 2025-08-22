@@ -19,7 +19,7 @@ export default function NFTViewer({
   
   const [loading] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState(null);
-  const [formData, setFormData] = useState({ name: "", manifesto: "", friend: "", weapon: "" });
+  const [formData, setFormData] = useState({ name: "", manifesto: "", talisman: "", weapon: "" });
   const [nameError, setNameError] = useState("");
   const [showThankYou, setShowThankYou] = useState(false);
 
@@ -44,7 +44,7 @@ export default function NFTViewer({
         owner: address,
         name: formData.name,
         manifesto: formData.manifesto,
-        friend: formData.friend,
+        talisman: formData.talisman,
         weapon: formData.weapon,
       });
       setSelectedNFT(null);
@@ -213,7 +213,7 @@ export default function NFTViewer({
                     </p>
                   )}
                 </div>
-                {["manifesto", "friend", "weapon"].map(field => (
+                {["manifesto", "talisman", "weapon"].map(field => (
                   <div key={field}>
                     <label className="block text-base font-medium text-gray-700 dark:text-gray-100 capitalize">{field}</label>
                     <input
