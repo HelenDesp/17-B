@@ -220,48 +220,54 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}; 
 
 // --- ADD THIS ENTIRE NEW FUNCTION ---
-  const generateScreenshotDataURL = async () => {
+const generateScreenshotDataURL = async () => {
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
 
-    // This function runs on the library's internal clone to make final adjustments.
+    const originalStyle = originalElement.style.cssText;
     const onclone = (doc) => {
-      // 1. Un-hide the header.
       const header = doc.getElementById('palmoji-header-for-save');
       if (header) {
         header.classList.remove('hidden');
       }
-
-      // --- YOUR SOLUTION: Hide the second row of buttons ---
-      // 2. Find the button container.
-      const buttonContainer = doc.getElementById('palmoji-action-buttons');
-      if (buttonContainer) {
-        // 3. Temporarily hide it for the screenshot.
-        buttonContainer.style.visibility = 'hidden';
-      }
     };
 
     try {
-      // Capture the element. The button container will be hidden during this process.
-      const capturedCanvas = await html2canvas(originalElement, {
-        backgroundColor: null,
-        scale: 3,
+      // Stage the element for a perfect capture.
+      originalElement.style.position = 'absolute';
+      originalElement.style.width = '512px';
+      originalElement.style.top = '0';
+      originalElement.style.left = '-9999px';
+      originalElement.style.paddingTop = '40px';
+      originalElement.style.paddingBottom = '40px';
+      
+      // --- NEW FIX: Make the component's background transparent ---
+      originalElement.style.backgroundColor = 'transparent';
+
+      const largeCanvas = await html2canvas(originalElement, {
+        backgroundColor: null, // Ensure html2canvas captures with transparency.
+        scale: 20,
         useCORS: true,
         onclone: onclone,
       });
 
-      // Create the final 916x660 canvas.
+      // Create the final canvas with the EXACT target dimensions.
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = 916;
       finalCanvas.height = 660;
       const finalCtx = finalCanvas.getContext('2d');
 
-      // Fill the background.
-      finalCtx.fillStyle = '#f0f0f0';
+      // Fill the canvas with a single, clean background color.
+      finalCtx.fillStyle = '#f0f0f0'; // A neutral light gray
       finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+      
+      // Draw a 1px black border around the entire canvas.
+      finalCtx.strokeStyle = '#000000';
+      finalCtx.lineWidth = 2; // The border is 2px thick to be visible at this resolution
+      finalCtx.strokeRect(1, 1, finalCanvas.width - 2, finalCanvas.height - 2);
 
-      // Center the captured image on the canvas (letterbox method).
-      const ratio = capturedCanvas.width / capturedCanvas.height;
+      // Place the transparent screenshot onto the canvas, preserving its aspect ratio.
+      const ratio = largeCanvas.width / largeCanvas.height;
       let drawWidth = finalCanvas.width;
       let drawHeight = drawWidth / ratio;
 
@@ -274,12 +280,15 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
       const offsetY = (finalCanvas.height - drawHeight) / 2;
 
       finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(capturedCanvas, offsetX, offsetY, drawWidth, drawHeight);
+      finalCtx.drawImage(largeCanvas, offsetX, offsetY, drawWidth, drawHeight);
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
       console.error("Error generating screenshot:", error);
       return null;
+    } finally {
+      // Always restore the original styles.
+      originalElement.style.cssText = originalStyle;
     }
   };	
 	
