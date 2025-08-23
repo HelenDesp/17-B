@@ -117,18 +117,7 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
     );
 };
 
-// Helper function to convert a Data URL to a Blob without using fetch()
-const dataURLtoBlob = (dataurl) => {
-    let arr = dataurl.split(','), 
-        mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(arr[1]), 
-        n = bstr.length, 
-        u8arr = new Uint8Array(n);
-    while(n--){
-        u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], {type:mime});
-}
+
 
 export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName, originalNFTName }) {
   const palMojiRef = useRef(null);
@@ -231,12 +220,9 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}; 
 
 // --- ADD THIS ENTIRE NEW FUNCTION ---
-const generateScreenshotDataURL = async () => {
+  const generateScreenshotDataURL = async () => {
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
-
-    // Store original styles to restore them later.
-    const originalStyle = originalElement.style.cssText;
 
     const onclone = (doc) => {
       const header = doc.getElementById('palmoji-header-for-save');
@@ -250,31 +236,29 @@ const generateScreenshotDataURL = async () => {
     };
 
     try {
-      // Temporarily force a fixed width to ensure a consistent capture.
-      originalElement.style.width = '458px';
-
-      const capturedCanvas = await html2canvas(originalElement, {
+      // Capture the element at high resolution.
+      const largeCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
         scale: 20,
         useCORS: true,
         onclone: onclone,
       });
 
-      // 1. Set a fixed target height for the final image.
-      const targetHeight = 660;
-      
-      // 2. Calculate the target width based on the component's natural aspect ratio.
-      const ratio = capturedCanvas.width / capturedCanvas.height;
-      const targetWidth = Math.round(targetHeight * ratio);
 
-      // Create the final canvas with the new dynamic dimensions.
+
+      // Create the final canvas with the dynamic dimensions.
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = targetWidth;
       finalCanvas.height = targetHeight;
       const finalCtx = finalCanvas.getContext('2d');
 
-      // High-quality resizing loop.
-      let currentCanvas = capturedCanvas;
+      // Fill the background.
+      finalCtx.fillStyle = '#f0f0f0';
+      finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+
+      // --- RE-INTRODUCED: High-Quality Resizing Loop ---
+      let currentCanvas = largeCanvas;
+      // This loop smoothly shrinks the massive image down before the final draw.
       while (currentCanvas.width > targetWidth * 2) {
         const newWidth = Math.floor(currentCanvas.width / 2);
         const newHeight = Math.floor(currentCanvas.height / 2);
@@ -286,18 +270,29 @@ const generateScreenshotDataURL = async () => {
         ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
         currentCanvas = nextCanvas;
       }
-      
-      // Draw the final, perfectly proportioned image.
+      // --- END: High-Quality Resizing Loop ---
+
+      // Center the captured image on the canvas (letterbox method).
+      const ratio = currentCanvas.width / currentCanvas.height;
+      let drawWidth = finalCanvas.width;
+      let drawHeight = drawWidth / ratio;
+
+      if (drawHeight > finalCanvas.height) {
+        drawHeight = finalCanvas.height;
+        drawWidth = drawHeight * ratio;
+      }
+
+      const offsetX = (finalCanvas.width - drawWidth) / 2;
+      const offsetY = (finalCanvas.height - drawHeight) / 2;
+
       finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
+      // Draw the SMOOTHED DOWN canvas, not the original large one.
+      finalCtx.drawImage(currentCanvas, offsetX, offsetY, drawWidth, drawHeight);
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
       console.error("Error generating screenshot:", error);
       return null;
-    } finally {
-      // Always restore the original styles.
-      originalElement.style.cssText = originalStyle;
     }
   };	
 	
@@ -415,36 +410,15 @@ const generateScreenshotDataURL = async () => {
   const handleSaveImage = async () => {
     const imageDataURL = await generateScreenshotDataURL();
     if (imageDataURL) {
-      try {
-        // --- START OF NEW FIX ---
-        // 1. Manually convert the Data URL to a Blob. This is more reliable than fetch().
-        const blob = dataURLtoBlob(imageDataURL);
-        
-        // 2. Create a temporary, browser-friendly URL for the Blob.
-        const blobUrl = URL.createObjectURL(blob);
-        // --- END OF NEW FIX ---
-
         const link = document.createElement('a');
         const hasCustomName = currentName && currentName !== "Your PalMoji";
         const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
-        
         link.download = `palmoji${safeName}-${nftId}.png`;
-        link.href = blobUrl;
-        
-        document.body.appendChild(link);
+        link.href = imageDataURL;
         link.click();
-        document.body.removeChild(link);
-
-        URL.revokeObjectURL(blobUrl);
-
         const nameForMessage = hasCustomName ? currentName : "PalMoji";
         setShareMessage(`Your ${nameForMessage} has been saved!`);
         setTimeout(() => setShareMessage(''), 5000);
-      } catch (error) {
-          console.error("Error saving image:", error);
-          setShareMessage("Failed to save image. Please try again.");
-          setTimeout(() => setShareMessage(''), 5000);
-      }
     }
   };	
 	
