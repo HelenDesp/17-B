@@ -770,7 +770,7 @@ const asciiArtLines = useMemo(() => {
                 </button>
             </div>
             {/* Row 2: Name Button */}
-            <div id="palmoji-action-buttons" className="grid grid-cols-2 gap-2 [@media(min-width:540px)]:flex [@media(min-width:540px)]:justify-between">
+            <div className="flex justify-between items-center">
                 <button onClick={() => setOpenModal('name')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Name
                 </button>
