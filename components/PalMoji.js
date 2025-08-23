@@ -148,7 +148,8 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const hasCustomName = currentName && currentName !== 'Your PalMoji';
-  const palMojiDisplayName = hasCustomName ? `${currentName} PalMoji` : 'Your PalMoji';  
+  const palMojiDisplayName = hasCustomName ? currentName : 'Your PalMoji';
+  const palMojiFullName = hasCustomName ? `${currentName} PalMoji` : 'Your PalMoji';
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -403,20 +404,39 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
 
 // In PalMoji.js
 
-  const handleSaveImage = async () => {
+const handleSaveImage = async () => {
     const imageDataURL = await generateScreenshotDataURL();
     if (imageDataURL) {
         const link = document.createElement('a');
         const hasCustomName = currentName && currentName !== "Your PalMoji";
-        const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
-        link.download = `palmoji${safeName}-${nftId}.png`;
-        link.href = imageDataURL;
+
+        // Corrected filename logic
+        let fileName;
+        if (hasCustomName) {
+            const safeName = currentName.toLowerCase().replace(/\s+/g, '-');
+            fileName = `palmoji-${safeName}-${nftId}.png`;
+        } else {
+            fileName = `palmoji-${nftId}.png`;
+        }
+
+        link.download = fileName;
+        
+        // Use a more robust download method
+        const response = await fetch(imageDataURL);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        link.href = blobUrl;
+
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+        
         const nameForMessage = hasCustomName ? currentName : "PalMoji";
         setShareMessage(`Your ${nameForMessage} has been saved!`);
         setTimeout(() => setShareMessage(''), 5000);
     }
-  };	
+};	
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
@@ -720,7 +740,7 @@ const asciiArtLines = useMemo(() => {
 					<div style={{ transform: 'translateY(-7px)' }}>
 						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
 						<p className="text-sm font-bold text-black dark:text-white">
-							{palMojiDisplayName}
+							{palMojiFullName}
 						</p>
 					</div>
 				</div>
@@ -839,7 +859,7 @@ const asciiArtLines = useMemo(() => {
       </SelectionModal>
       {/* REPLACE the old <ShareModal.../> line with THIS ENTIRE BLOCK */}
       <SelectionModal 
-        title={`SHARE YOUR ${palMojiDisplayName.toUpperCase()}`}
+        title={`SHARE ${palMojiFullName.toUpperCase()}`}
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
 		centerContent={true}
@@ -873,12 +893,12 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
-      <SelectionModal 
-        isOpen={isUpgradeModalOpen} 
-        onClose={() => setIsUpgradeModalOpen(false)}
-        title={`${currentName && currentName !== "Your PalMoji" ? currentName.toUpperCase() : "YOUR PALMOJI"}`}
-        centerContent={true}
-      >
+		<SelectionModal 
+			isOpen={isUpgradeModalOpen} 
+			onClose={() => setIsUpgradeModalOpen(false)}
+			title={`${palMojiFullName.toUpperCase()}`}
+			centerContent={true}
+		>
         <div className="text-center">
             <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
               {asciiArtRef.current?.innerText}
