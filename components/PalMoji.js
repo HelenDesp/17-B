@@ -251,15 +251,8 @@ const generateScreenshotDataURL = async () => {
 
       // --- YOUR SOLUTION IMPLEMENTED ---
       // 1. Set a fixed target width for the final image.
-      let targetWidth;
-      let targetHeight;
-      if (window.innerWidth <= 540) {
-        targetWidth = 792;
-        targetHeight = 660;
-      } else {
-        targetWidth = 916;
-        targetHeight = 660;
-      }
+      const targetWidth = 916;
+	  const targetHeight = 660;
       
       // 2. Calculate the target height based on the component's natural aspect ratio.
       // This removes the fixed height and prevents the solid bars.
