@@ -54,11 +54,21 @@ function MyApp({ Component, pageProps }) {
   if (!mounted) return null;
 
   return (
-    <ThemeProvider>
-      <ContextProvider cookies={cookieString}>
-        <Component {...pageProps} />
-      </ContextProvider>
-    </ThemeProvider>
+    <>
+      {/* --- ADD THIS ENTIRE HEAD COMPONENT --- */}
+      <Head>
+        <title>Your App Title</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
+        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+      </Head>
+      
+      <ThemeProvider>
+        <ContextProvider cookies={cookieString}>
+          <Component {...pageProps} />
+        </ContextProvider>
+      </ThemeProvider>
+    </>
   );
 }
 
