@@ -220,68 +220,81 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}; 
 
 // --- ADD THIS ENTIRE NEW FUNCTION ---
-  const generateScreenshotDataURL = async () => {
-    const originalElement = palMojiRef.current;
-    if (!originalElement) return null;
+// Replace the generateScreenshotDataURL function in your PalMoji.js with this fixed version:
 
-    const onclone = (doc) => {
-      const header = doc.getElementById('palmoji-header-for-save');
-      if (header) {
-        header.classList.remove('hidden');
-      }
-      const buttonContainer = doc.getElementById('palmoji-action-buttons');
-      if (buttonContainer) {
-        buttonContainer.style.visibility = 'hidden';
-      }
-    };
+const generateScreenshotDataURL = async () => {
+  const originalElement = palMojiRef.current;
+  if (!originalElement) return null;
 
-    try {
-      // Capture the element at high resolution.
-      const largeCanvas = await html2canvas(originalElement, {
-        backgroundColor: null,
-        scale: 20,
-        useCORS: true,
-        onclone: onclone,
-      });
+  const onclone = (doc) => {
+    const header = doc.getElementById('palmoji-header-for-save');
+    if (header) {
+      header.classList.remove('hidden');
+    }
+    const buttonContainer = doc.getElementById('palmoji-action-buttons');
+    if (buttonContainer) {
+      buttonContainer.style.visibility = 'hidden';
+    }
+  };
 
-      // Determine final canvas size based on screen width.
-      let targetWidth;
-      let targetHeight;
-      if (window.innerWidth <= 540) {
-        targetWidth = 792;
+  try {
+    // Capture the element at high resolution.
+    const largeCanvas = await html2canvas(originalElement, {
+      backgroundColor: null,
+      scale: 20,
+      useCORS: true,
+      onclone: onclone,
+    });
+
+    // For mobile screens, use the actual captured dimensions to avoid extra borders
+    let targetWidth;
+    let targetHeight;
+    if (window.innerWidth <= 540) {
+      // Use a ratio that matches the captured content more closely
+      const aspectRatio = largeCanvas.width / largeCanvas.height;
+      targetWidth = 792;
+      targetHeight = Math.round(targetWidth / aspectRatio);
+      
+      // If height is too large, adjust based on height constraint
+      if (targetHeight > 660) {
         targetHeight = 660;
-      } else {
-        targetWidth = 916;
-        targetHeight = 660;
+        targetWidth = Math.round(targetHeight * aspectRatio);
       }
+    } else {
+      targetWidth = 916;
+      targetHeight = 660;
+    }
 
-      // Create the final canvas with the dynamic dimensions.
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = targetWidth;
-      finalCanvas.height = targetHeight;
-      const finalCtx = finalCanvas.getContext('2d');
+    // Create the final canvas with the dynamic dimensions.
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = targetWidth;
+    finalCanvas.height = targetHeight;
+    const finalCtx = finalCanvas.getContext('2d');
 
-      // Fill the background.
-      finalCtx.fillStyle = '#f0f0f0';
-      finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+    // Fill the background with white/transparent instead of gray
+    finalCtx.fillStyle = 'transparent';
+    finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
-      // --- RE-INTRODUCED: High-Quality Resizing Loop ---
-      let currentCanvas = largeCanvas;
-      // This loop smoothly shrinks the massive image down before the final draw.
-      while (currentCanvas.width > targetWidth * 2) {
-        const newWidth = Math.floor(currentCanvas.width / 2);
-        const newHeight = Math.floor(currentCanvas.height / 2);
-        const nextCanvas = document.createElement('canvas');
-        nextCanvas.width = newWidth;
-        nextCanvas.height = newHeight;
-        const ctx = nextCanvas.getContext('2d');
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-        currentCanvas = nextCanvas;
-      }
-      // --- END: High-Quality Resizing Loop ---
+    // High-Quality Resizing Loop
+    let currentCanvas = largeCanvas;
+    while (currentCanvas.width > targetWidth * 2) {
+      const newWidth = Math.floor(currentCanvas.width / 2);
+      const newHeight = Math.floor(currentCanvas.height / 2);
+      const nextCanvas = document.createElement('canvas');
+      nextCanvas.width = newWidth;
+      nextCanvas.height = newHeight;
+      const ctx = nextCanvas.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+      currentCanvas = nextCanvas;
+    }
 
-      // Center the captured image on the canvas (letterbox method).
+    // For mobile, fit the content to fill the canvas without letterboxing
+    if (window.innerWidth <= 540) {
+      finalCtx.imageSmoothingQuality = 'high';
+      finalCtx.drawImage(currentCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
+    } else {
+      // For desktop, keep the original letterbox method
       const ratio = currentCanvas.width / currentCanvas.height;
       let drawWidth = finalCanvas.width;
       let drawHeight = drawWidth / ratio;
@@ -295,45 +308,15 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
       const offsetY = (finalCanvas.height - drawHeight) / 2;
 
       finalCtx.imageSmoothingQuality = 'high';
-      // Draw the SMOOTHED DOWN canvas, not the original large one.
       finalCtx.drawImage(currentCanvas, offsetX, offsetY, drawWidth, drawHeight);
-
-      return finalCanvas.toDataURL('image/png');
-    } catch (error) {
-      console.error("Error generating screenshot:", error);
-      return null;
-    }
-  };	
-	
-  const handleUpgrade = async () => {
-    setIsUpgrading(true);
-    const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
-    const screenshotDataURL = await generateScreenshotDataURL();
-
-    if (!screenshotDataURL) {
-        alert("Could not generate screenshot. Please try again.");
-        setIsUpgrading(false);
-        return;
     }
 
-    try {
-        await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
-            original: originalNFTName,
-            owner: address,
-            name: currentName,
-            palmoji: asciiArtText,
-            screenshot: screenshotDataURL,
-			nftId: nftId,
-        });
-        setIsUpgradeModalOpen(false);
-        setShowThankYouModal(true);
-    } catch (error) {
-        console.error("PalMoji upgrade submission error:", error);
-        alert("Failed to submit PalMoji upgrade. Please try again.");
-    } finally {
-        setIsUpgrading(false);
-    }
-  };		
+    return finalCanvas.toDataURL('image/png');
+  } catch (error) {
+    console.error("Error generating screenshot:", error);
+    return null;
+  }
+};		
 
 // PASTE THE NEW CODE BLOCK HERE
 
@@ -770,7 +753,7 @@ const asciiArtLines = useMemo(() => {
                 </button>
             </div>
             {/* Row 2: Name Button */}
-            <div className="flex justify-between items-center">
+            <div id="palmoji-action-buttons" className="grid grid-cols-2 gap-2 [@media(min-width:540px)]:flex [@media(min-width:540px)]:justify-between">
                 <button onClick={() => setOpenModal('name')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Name
                 </button>
