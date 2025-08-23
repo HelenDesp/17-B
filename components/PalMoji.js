@@ -244,7 +244,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         onclone: onclone,
       });
 
-
+      const targetHeight = 660;
 
       // Create the final canvas with the dynamic dimensions.
       const finalCanvas = document.createElement('canvas');
