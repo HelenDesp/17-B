@@ -224,8 +224,7 @@ const generateScreenshotDataURL = async () => {
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
 
-    // Store original styles to restore them later.
-    const originalStyle = originalElement.style.cssText;
+
 
     const onclone = (doc) => {
       const header = doc.getElementById('palmoji-header-for-save');
@@ -283,10 +282,6 @@ const generateScreenshotDataURL = async () => {
     } catch (error) {
       console.error("Error generating screenshot:", error);
       return null;
-    } finally {
-      // Always restore the original styles.
-      originalElement.style.cssText = originalStyle;
-    }
   };	
 	
   const handleUpgrade = async () => {
