@@ -220,103 +220,107 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}; 
 
 // --- ADD THIS ENTIRE NEW FUNCTION ---
-// Replace the generateScreenshotDataURL function in your PalMoji.js with this fixed version:
-
 const generateScreenshotDataURL = async () => {
-  const originalElement = palMojiRef.current;
-  if (!originalElement) return null;
+    const originalElement = palMojiRef.current;
+    if (!originalElement) return null;
 
-  const onclone = (doc) => {
-    const header = doc.getElementById('palmoji-header-for-save');
-    if (header) {
-      header.classList.remove('hidden');
-    }
-    const buttonContainer = doc.getElementById('palmoji-action-buttons');
-    if (buttonContainer) {
-      buttonContainer.style.visibility = 'hidden';
-    }
-  };
+    // Store original styles to restore them later.
+    const originalStyle = originalElement.style.cssText;
 
-  try {
-    // Capture the element at high resolution.
-    const largeCanvas = await html2canvas(originalElement, {
-      backgroundColor: null,
-      scale: 20,
-      useCORS: true,
-      onclone: onclone,
-    });
+    const onclone = (doc) => {
+      const header = doc.getElementById('palmoji-header-for-save');
+      if (header) {
+        header.classList.remove('hidden');
+      }
+      const buttonContainer = doc.getElementById('palmoji-action-buttons');
+      if (buttonContainer) {
+        buttonContainer.style.visibility = 'hidden';
+      }
+    };
 
-    // For mobile screens, use the actual captured dimensions to avoid extra borders
-    let targetWidth;
-    let targetHeight;
-    if (window.innerWidth <= 540) {
-      // Use a ratio that matches the captured content more closely
-      const aspectRatio = largeCanvas.width / largeCanvas.height;
-      targetWidth = 792;
-      targetHeight = Math.round(targetWidth / aspectRatio);
+    try {
+      // Temporarily force a fixed width to ensure a consistent capture.
+      originalElement.style.width = '512px';
+
+      const capturedCanvas = await html2canvas(originalElement, {
+        backgroundColor: null,
+        scale: 20,
+        useCORS: true,
+        onclone: onclone,
+      });
+
+      // --- YOUR SOLUTION IMPLEMENTED ---
+      // 1. Set a fixed target width for the final image.
+      const targetWidth = 916;
       
-      // If height is too large, adjust based on height constraint
-      if (targetHeight > 660) {
-        targetHeight = 660;
-        targetWidth = Math.round(targetHeight * aspectRatio);
+      // 2. Calculate the target height based on the component's natural aspect ratio.
+      // This removes the fixed height and prevents the solid bars.
+      const ratio = capturedCanvas.width / capturedCanvas.height;
+      const targetHeight = Math.round(targetWidth / ratio);
+
+      // Create the final canvas with the new dynamic dimensions.
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = targetWidth;
+      finalCanvas.height = targetHeight;
+      const finalCtx = finalCanvas.getContext('2d');
+
+      // High-quality resizing loop.
+      let currentCanvas = capturedCanvas;
+      while (currentCanvas.width > targetWidth * 2) {
+        const newWidth = Math.floor(currentCanvas.width / 2);
+        const newHeight = Math.floor(currentCanvas.height / 2);
+        const nextCanvas = document.createElement('canvas');
+        nextCanvas.width = newWidth;
+        nextCanvas.height = newHeight;
+        const ctx = nextCanvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+        currentCanvas = nextCanvas;
       }
-    } else {
-      targetWidth = 916;
-      targetHeight = 660;
-    }
-
-    // Create the final canvas with the dynamic dimensions.
-    const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = targetWidth;
-    finalCanvas.height = targetHeight;
-    const finalCtx = finalCanvas.getContext('2d');
-
-    // Fill the background with white/transparent instead of gray
-    finalCtx.fillStyle = 'transparent';
-    finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-
-    // High-Quality Resizing Loop
-    let currentCanvas = largeCanvas;
-    while (currentCanvas.width > targetWidth * 2) {
-      const newWidth = Math.floor(currentCanvas.width / 2);
-      const newHeight = Math.floor(currentCanvas.height / 2);
-      const nextCanvas = document.createElement('canvas');
-      nextCanvas.width = newWidth;
-      nextCanvas.height = newHeight;
-      const ctx = nextCanvas.getContext('2d');
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-      currentCanvas = nextCanvas;
-    }
-
-    // For mobile, fit the content to fill the canvas without letterboxing
-    if (window.innerWidth <= 540) {
+      
+      // Draw the final, perfectly proportioned image.
       finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(currentCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
-    } else {
-      // For desktop, keep the original letterbox method
-      const ratio = currentCanvas.width / currentCanvas.height;
-      let drawWidth = finalCanvas.width;
-      let drawHeight = drawWidth / ratio;
+      finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
 
-      if (drawHeight > finalCanvas.height) {
-        drawHeight = finalCanvas.height;
-        drawWidth = drawHeight * ratio;
-      }
+      return finalCanvas.toDataURL('image/png');
+    } catch (error) {
+      console.error("Error generating screenshot:", error);
+      return null;
+    } finally {
+      // Always restore the original styles.
+      originalElement.style.cssText = originalStyle;
+    }
+  };	
+	
+  const handleUpgrade = async () => {
+    setIsUpgrading(true);
+    const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
+    const screenshotDataURL = await generateScreenshotDataURL();
 
-      const offsetX = (finalCanvas.width - drawWidth) / 2;
-      const offsetY = (finalCanvas.height - drawHeight) / 2;
-
-      finalCtx.imageSmoothingQuality = 'high';
-      finalCtx.drawImage(currentCanvas, offsetX, offsetY, drawWidth, drawHeight);
+    if (!screenshotDataURL) {
+        alert("Could not generate screenshot. Please try again.");
+        setIsUpgrading(false);
+        return;
     }
 
-    return finalCanvas.toDataURL('image/png');
-  } catch (error) {
-    console.error("Error generating screenshot:", error);
-    return null;
-  }
-};		
+    try {
+        await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
+            original: originalNFTName,
+            owner: address,
+            name: currentName,
+            palmoji: asciiArtText,
+            screenshot: screenshotDataURL,
+			nftId: nftId,
+        });
+        setIsUpgradeModalOpen(false);
+        setShowThankYouModal(true);
+    } catch (error) {
+        console.error("PalMoji upgrade submission error:", error);
+        alert("Failed to submit PalMoji upgrade. Please try again.");
+    } finally {
+        setIsUpgrading(false);
+    }
+  };		
 
 // PASTE THE NEW CODE BLOCK HERE
 
