@@ -220,20 +220,15 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}; 
 
 // --- ADD THIS ENTIRE NEW FUNCTION ---
-const generateScreenshotDataURL = async () => {
+  const generateScreenshotDataURL = async () => {
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
 
-    // Store the original inline styles to restore them later.
-    const originalStyle = originalElement.style.cssText;
-
     const onclone = (doc) => {
-      // Un-hide the header for the screenshot.
       const header = doc.getElementById('palmoji-header-for-save');
       if (header) {
         header.classList.remove('hidden');
       }
-      // Hide the button container for a clean screenshot.
       const buttonContainer = doc.getElementById('palmoji-action-buttons');
       if (buttonContainer) {
         buttonContainer.style.visibility = 'hidden';
@@ -241,13 +236,8 @@ const generateScreenshotDataURL = async () => {
     };
 
     try {
-      // --- THE KEY FIX: Temporarily force a fixed width ---
-      // This forces the component to render at a consistent size, preventing
-      // text wrapping and aspect ratio changes on small screens.
-      originalElement.style.width = '512px';
-      
-      // Capture the element. It will now have a consistent shape.
-      const capturedCanvas = await html2canvas(originalElement, {
+      // Capture the element at high resolution.
+      const largeCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
         scale: 20,
         useCORS: true,
@@ -275,8 +265,9 @@ const generateScreenshotDataURL = async () => {
       finalCtx.fillStyle = '#f0f0f0';
       finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
-      // High-Quality Resizing Loop for a smoother result.
-      let currentCanvas = capturedCanvas;
+      // --- RE-INTRODUCED: High-Quality Resizing Loop ---
+      let currentCanvas = largeCanvas;
+      // This loop smoothly shrinks the massive image down before the final draw.
       while (currentCanvas.width > targetWidth * 2) {
         const newWidth = Math.floor(currentCanvas.width / 2);
         const newHeight = Math.floor(currentCanvas.height / 2);
@@ -288,6 +279,7 @@ const generateScreenshotDataURL = async () => {
         ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
         currentCanvas = nextCanvas;
       }
+      // --- END: High-Quality Resizing Loop ---
 
       // Center the captured image on the canvas (letterbox method).
       const ratio = currentCanvas.width / currentCanvas.height;
@@ -303,15 +295,13 @@ const generateScreenshotDataURL = async () => {
       const offsetY = (finalCanvas.height - drawHeight) / 2;
 
       finalCtx.imageSmoothingQuality = 'high';
+      // Draw the SMOOTHED DOWN canvas, not the original large one.
       finalCtx.drawImage(currentCanvas, offsetX, offsetY, drawWidth, drawHeight);
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
       console.error("Error generating screenshot:", error);
       return null;
-    } finally {
-      // CRITICAL: Always restore the element's original styles.
-      originalElement.style.cssText = originalStyle;
     }
   };	
 	
