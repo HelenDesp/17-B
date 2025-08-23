@@ -224,7 +224,8 @@ const generateScreenshotDataURL = async () => {
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
 
-
+    // Store original styles to restore them later.
+    const originalStyle = originalElement.style.cssText;
 
     const onclone = (doc) => {
       const header = doc.getElementById('palmoji-header-for-save');
@@ -237,7 +238,9 @@ const generateScreenshotDataURL = async () => {
       }
     };
 
-
+    try {
+      // Temporarily force a fixed width to ensure a consistent capture.
+      originalElement.style.width = '458px';
 
       const capturedCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
@@ -246,7 +249,6 @@ const generateScreenshotDataURL = async () => {
         onclone: onclone,
       });
 
-      // --- YOUR SOLUTION IMPLEMENTED ---
       // 1. Set a fixed target height for the final image.
       const targetHeight = 660;
       
@@ -282,6 +284,10 @@ const generateScreenshotDataURL = async () => {
     } catch (error) {
       console.error("Error generating screenshot:", error);
       return null;
+    } finally {
+      // Always restore the original styles.
+      originalElement.style.cssText = originalStyle;
+    }
   };	
 	
   const handleUpgrade = async () => {
