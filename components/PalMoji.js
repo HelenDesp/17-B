@@ -220,9 +220,12 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	}; 
 
 // --- ADD THIS ENTIRE NEW FUNCTION ---
-  const generateScreenshotDataURL = async () => {
+const generateScreenshotDataURL = async () => {
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
+
+    // Store original styles to restore them later.
+    const originalStyle = originalElement.style.cssText;
 
     const onclone = (doc) => {
       const header = doc.getElementById('palmoji-header-for-save');
@@ -236,38 +239,33 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
     };
 
     try {
-      // Capture the element at high resolution.
-      const largeCanvas = await html2canvas(originalElement, {
+      // Temporarily force a fixed width to ensure a consistent capture.
+      originalElement.style.width = '458px';
+
+      const capturedCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
         scale: 20,
         useCORS: true,
         onclone: onclone,
       });
 
-      // Determine final canvas size based on screen width.
-      let targetWidth;
-      let targetHeight;
-      if (window.innerWidth <= 540) {
-        targetWidth = 792;
-        targetHeight = 660;
-      } else {
-        targetWidth = 916;
-        targetHeight = 660;
-      }
+      // --- YOUR SOLUTION IMPLEMENTED ---
+      // 1. Set a fixed target width for the final image.
+      const targetWidth = 916;
+      
+      // 2. Calculate the target height based on the component's natural aspect ratio.
+      // This removes the fixed height and prevents the solid bars.
+      const ratio = capturedCanvas.width / capturedCanvas.height;
+      const targetHeight = Math.round(targetWidth / ratio);
 
-      // Create the final canvas with the dynamic dimensions.
+      // Create the final canvas with the new dynamic dimensions.
       const finalCanvas = document.createElement('canvas');
       finalCanvas.width = targetWidth;
       finalCanvas.height = targetHeight;
       const finalCtx = finalCanvas.getContext('2d');
 
-      // Fill the background.
-      finalCtx.fillStyle = '#f0f0f0';
-      finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-
-      // --- RE-INTRODUCED: High-Quality Resizing Loop ---
-      let currentCanvas = largeCanvas;
-      // This loop smoothly shrinks the massive image down before the final draw.
+      // High-quality resizing loop.
+      let currentCanvas = capturedCanvas;
       while (currentCanvas.width > targetWidth * 2) {
         const newWidth = Math.floor(currentCanvas.width / 2);
         const newHeight = Math.floor(currentCanvas.height / 2);
@@ -279,29 +277,18 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
         currentCanvas = nextCanvas;
       }
-      // --- END: High-Quality Resizing Loop ---
-
-      // Center the captured image on the canvas (letterbox method).
-      const ratio = currentCanvas.width / currentCanvas.height;
-      let drawWidth = finalCanvas.width;
-      let drawHeight = drawWidth / ratio;
-
-      if (drawHeight > finalCanvas.height) {
-        drawHeight = finalCanvas.height;
-        drawWidth = drawHeight * ratio;
-      }
-
-      const offsetX = (finalCanvas.width - drawWidth) / 2;
-      const offsetY = (finalCanvas.height - drawHeight) / 2;
-
+      
+      // Draw the final, perfectly proportioned image.
       finalCtx.imageSmoothingQuality = 'high';
-      // Draw the SMOOTHED DOWN canvas, not the original large one.
-      finalCtx.drawImage(currentCanvas, offsetX, offsetY, drawWidth, drawHeight);
+      finalCtx.drawImage(currentCanvas, 0, 0, targetWidth, targetHeight);
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
       console.error("Error generating screenshot:", error);
       return null;
+    } finally {
+      // Always restore the original styles.
+      originalElement.style.cssText = originalStyle;
     }
   };	
 	
