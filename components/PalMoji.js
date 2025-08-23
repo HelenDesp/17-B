@@ -296,7 +296,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 
       finalCtx.imageSmoothingQuality = 'high';
       // Draw the SMOOTHED DOWN canvas, not the original large one.
-      finalCtx.drawImage(currentCanvas, offsetX - 1, offsetY - 1, drawWidth + 2, drawHeight + 2);
+      finalCtx.drawImage(currentCanvas, offsetX, offsetY, drawWidth, drawHeight);
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
