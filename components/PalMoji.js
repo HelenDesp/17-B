@@ -238,9 +238,7 @@ const generateScreenshotDataURL = async () => {
       }
     };
 
-    try {
-      // Temporarily force a fixed width to ensure a consistent capture.
-      originalElement.style.width = '458px';
+
 
       const capturedCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
@@ -250,9 +248,12 @@ const generateScreenshotDataURL = async () => {
       });
 
       // --- YOUR SOLUTION IMPLEMENTED ---
-      // 1. Set a fixed target width for the final image.
-      const targetWidth = 916;
-      const targetHeight = 660
+      // 1. Set a fixed target height for the final image.
+      const targetHeight = 660;
+      
+      // 2. Calculate the target width based on the component's natural aspect ratio.
+      const ratio = capturedCanvas.width / capturedCanvas.height;
+      const targetWidth = Math.round(targetHeight * ratio);
 
       // Create the final canvas with the new dynamic dimensions.
       const finalCanvas = document.createElement('canvas');
