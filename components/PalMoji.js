@@ -401,18 +401,44 @@ const generateScreenshotDataURL = async () => {
 
 // In PalMoji.js
 
+// In PalMoji.js
+
   const handleSaveImage = async () => {
     const imageDataURL = await generateScreenshotDataURL();
     if (imageDataURL) {
+      try {
+        // --- START OF FIX ---
+        // 1. Convert the Base64 Data URL into a Blob (a file-like object)
+        const response = await fetch(imageDataURL);
+        const blob = await response.blob();
+
+        // 2. Create a temporary, browser-friendly URL for the Blob
+        const blobUrl = URL.createObjectURL(blob);
+        // --- END OF FIX ---
+
         const link = document.createElement('a');
         const hasCustomName = currentName && currentName !== "Your PalMoji";
         const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
+        
         link.download = `palmoji${safeName}-${nftId}.png`;
-        link.href = imageDataURL;
+        // 3. Use the new Blob URL instead of the long Data URL string
+        link.href = blobUrl; 
+        
+        document.body.appendChild(link); // Append link to body for better browser compatibility
         link.click();
+        document.body.removeChild(link); // Clean up by removing the link
+
+        // 4. Revoke the temporary URL to free up memory
+        URL.revokeObjectURL(blobUrl);
+
         const nameForMessage = hasCustomName ? currentName : "PalMoji";
         setShareMessage(`Your ${nameForMessage} has been saved!`);
         setTimeout(() => setShareMessage(''), 5000);
+      } catch (error) {
+          console.error("Error saving image:", error);
+          setShareMessage("Failed to save image. Please try again.");
+          setTimeout(() => setShareMessage(''), 5000);
+      }
     }
   };	
 	
