@@ -21,6 +21,7 @@
 // export default MyApp;
 
 import { useEffect, useState } from "react";
+import Head from 'next/head';
 import ContextProvider from "../context";
 import { ThemeProvider } from "../context/ThemeContext";
 import { useAppKitTheme } from "@reown/appkit/react"; // ✅ Reown hook
