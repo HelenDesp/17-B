@@ -148,7 +148,8 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const hasCustomName = currentName && currentName !== 'Your PalMoji';
-  const palMojiDisplayName = hasCustomName ? `${currentName} PalMoji` : 'Your PalMoji';  
+  const palMojiDisplayName = hasCustomName ? `${currentName} PalMoji` : 'Your PalMoji';
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(null);  
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -403,19 +404,33 @@ const generateScreenshotDataURL = async () => {
 
 // In PalMoji.js
 
-  const handleSaveImage = async () => {
+const handleSaveImage = async () => {
+    // Generate the screenshot as before.
     const imageDataURL = await generateScreenshotDataURL();
-    if (imageDataURL) {
-        const link = document.createElement('a');
-        const hasCustomName = currentName && currentName !== "Your PalMoji";
-        const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
-        link.download = `palmoji${safeName}-${nftId}.png`;
-        link.href = imageDataURL;
-        link.click();
-        const nameForMessage = hasCustomName ? currentName : "PalMoji";
-        setShareMessage(`Your ${nameForMessage} has been saved!`);
-        setTimeout(() => setShareMessage(''), 5000);
+    if (!imageDataURL) {
+      alert("Sorry, the screenshot could not be created.");
+      return;
     }
+
+    // Check if the user is likely on a mobile device.
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // On mobile, open a preview modal instead of forcing a download.
+      setImagePreviewUrl(imageDataURL);
+    } else {
+      // On desktop, trigger the download directly.
+      const link = document.createElement('a');
+      const hasCustomName = currentName && currentName !== "Your PalMoji";
+      const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
+      link.download = `palmoji${safeName}-${nftId}.png`;
+      link.href = imageDataURL;
+      link.click();
+    }
+    
+    // Change the message to reflect that the image is ready, not necessarily "saved" yet on mobile.
+    setShareMessage(`Your PalMoji has been created!`);
+    setTimeout(() => setShareMessage(''), 5000);
   };	
 	
 const asciiArtLines = useMemo(() => {
@@ -930,4 +945,22 @@ const asciiArtLines = useMemo(() => {
       )}	  
     </div>
   );
+  {/* --- ADD THIS MODAL FOR MOBILE IMAGE SAVING --- */}
+  {imagePreviewUrl && (
+    <div className="fixed inset-0 z-[10002] flex items-center justify-center p-4 bg-black bg-opacity-80">
+      <div className="relative bg-white dark:bg-gray-800 p-4 border-2 border-black dark:border-white rounded-none shadow-lg max-w-lg w-full text-center">
+        <button
+          className="absolute -top-3 -right-3 border-2 border-black dark:border-white bg-white dark:bg-gray-800 w-8 h-8 flex items-center justify-center transition hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded-full cursor-pointer"
+          onClick={() => setImagePreviewUrl(null)}
+          aria-label="Close"
+        >
+          <span className="text-3xl leading-none font-bold">&#215;</span>
+        </button>
+        <p className="text-sm font-bold text-gray-800 dark:text-white mb-4">
+          Press and hold the image to save
+        </p>
+        <img src={imagePreviewUrl} alt="Your generated PalMoji" className="w-full border-2 border-black dark:border-white" />
+      </div>
+    </div>
+  )}  
 }	  
