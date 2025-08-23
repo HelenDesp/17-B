@@ -239,7 +239,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
       // Capture the element at high resolution.
       const largeCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
-        scale: window.devicePixelRatio * 10,
+        scale: window.devicePixelRatio * 5,
         useCORS: true,
         onclone: onclone,
       });
