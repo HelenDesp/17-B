@@ -244,50 +244,46 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         onclone: onclone,
       });
 
-      const targetHeight = 660;
+let currentCanvas = largeCanvas;
+const tempTargetWidthForScaling = 916; // A reference width for the scaling loop.
 
-      // Create the final canvas with the dynamic dimensions.
-      const finalCanvas = document.createElement('canvas');
-      finalCanvas.width = targetWidth;
-      finalCanvas.height = targetHeight;
-      const finalCtx = finalCanvas.getContext('2d');
+// This loop smoothly shrinks the massive image down to a manageable size.
+while (currentCanvas.width > tempTargetWidthForScaling * 2) {
+    const newWidth = Math.floor(currentCanvas.width / 2);
+    const newHeight = Math.floor(currentCanvas.height / 2);
+    const nextCanvas = document.createElement('canvas');
+    nextCanvas.width = newWidth;
+    nextCanvas.height = newHeight;
+    const ctx = nextCanvas.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+    currentCanvas = nextCanvas;
+}
+// --- END: High-Quality Resizing Loop ---
 
-      // Fill the background.
-      finalCtx.fillStyle = '#f0f0f0';
-      finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+// --- Dynamic Size Calculation ---
+// Define the final height you want.
+const targetHeight = 660;
 
-      // --- RE-INTRODUCED: High-Quality Resizing Loop ---
-      let currentCanvas = largeCanvas;
-      // This loop smoothly shrinks the massive image down before the final draw.
-      while (currentCanvas.width > targetWidth * 2) {
-        const newWidth = Math.floor(currentCanvas.width / 2);
-        const newHeight = Math.floor(currentCanvas.height / 2);
-        const nextCanvas = document.createElement('canvas');
-        nextCanvas.width = newWidth;
-        nextCanvas.height = newHeight;
-        const ctx = nextCanvas.getContext('2d');
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-        currentCanvas = nextCanvas;
-      }
-      // --- END: High-Quality Resizing Loop ---
+// Calculate the aspect ratio of the captured content.
+const aspectRatio = currentCanvas.width / currentCanvas.height;
 
-      // Center the captured image on the canvas (letterbox method).
-      const ratio = currentCanvas.width / currentCanvas.height;
-      let drawWidth = finalCanvas.width;
-      let drawHeight = drawWidth / ratio;
+// Calculate the new width needed to maintain the aspect ratio for your target height.
+const dynamicWidth = Math.round(targetHeight * aspectRatio);
 
-      if (drawHeight > finalCanvas.height) {
-        drawHeight = finalCanvas.height;
-        drawWidth = drawHeight * ratio;
-      }
+// Create the final canvas with the perfectly calculated dimensions.
+const finalCanvas = document.createElement('canvas');
+finalCanvas.width = dynamicWidth;
+finalCanvas.height = targetHeight;
+const finalCtx = finalCanvas.getContext('2d');
 
-      const offsetX = (finalCanvas.width - drawWidth) / 2;
-      const offsetY = (finalCanvas.height - drawHeight) / 2;
+// Fill the background.
+finalCtx.fillStyle = '#f0f0f0';
+finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
 
-      finalCtx.imageSmoothingQuality = 'high';
-      // Draw the SMOOTHED DOWN canvas, not the original large one.
-      finalCtx.drawImage(currentCanvas, offsetX, offsetY, drawWidth, drawHeight);
+// Draw the resized content to fill the new canvas completely (no sidebars).
+finalCtx.imageSmoothingQuality = 'high';
+finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
