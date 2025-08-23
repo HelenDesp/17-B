@@ -117,7 +117,18 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
     );
 };
 
-
+// Helper function to convert a Data URL to a Blob without using fetch()
+const dataURLtoBlob = (dataurl) => {
+    let arr = dataurl.split(','), 
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), 
+        n = bstr.length, 
+        u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], {type:mime});
+}
 
 export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName, originalNFTName }) {
   const palMojiRef = useRef(null);
@@ -401,34 +412,29 @@ const generateScreenshotDataURL = async () => {
 
 // In PalMoji.js
 
-// In PalMoji.js
-
   const handleSaveImage = async () => {
     const imageDataURL = await generateScreenshotDataURL();
     if (imageDataURL) {
       try {
-        // --- START OF FIX ---
-        // 1. Convert the Base64 Data URL into a Blob (a file-like object)
-        const response = await fetch(imageDataURL);
-        const blob = await response.blob();
-
-        // 2. Create a temporary, browser-friendly URL for the Blob
+        // --- START OF NEW FIX ---
+        // 1. Manually convert the Data URL to a Blob. This is more reliable than fetch().
+        const blob = dataURLtoBlob(imageDataURL);
+        
+        // 2. Create a temporary, browser-friendly URL for the Blob.
         const blobUrl = URL.createObjectURL(blob);
-        // --- END OF FIX ---
+        // --- END OF NEW FIX ---
 
         const link = document.createElement('a');
         const hasCustomName = currentName && currentName !== "Your PalMoji";
         const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
         
         link.download = `palmoji${safeName}-${nftId}.png`;
-        // 3. Use the new Blob URL instead of the long Data URL string
-        link.href = blobUrl; 
+        link.href = blobUrl;
         
-        document.body.appendChild(link); // Append link to body for better browser compatibility
+        document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link); // Clean up by removing the link
+        document.body.removeChild(link);
 
-        // 4. Revoke the temporary URL to free up memory
         URL.revokeObjectURL(blobUrl);
 
         const nameForMessage = hasCustomName ? currentName : "PalMoji";
