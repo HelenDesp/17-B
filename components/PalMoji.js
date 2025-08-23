@@ -240,7 +240,7 @@ const generateScreenshotDataURL = async () => {
 
     try {
       // Temporarily force a fixed width to ensure a consistent capture.
-      originalElement.style.width = '480px';
+      originalElement.style.width = '460px';
 
       const capturedCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
