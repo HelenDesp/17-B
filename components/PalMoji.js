@@ -252,12 +252,7 @@ const generateScreenshotDataURL = async () => {
       // --- YOUR SOLUTION IMPLEMENTED ---
       // 1. Set a fixed target width for the final image.
       const targetWidth = 916;
-	  const targetHeight = 660;
-      
-      // 2. Calculate the target height based on the component's natural aspect ratio.
-      // This removes the fixed height and prevents the solid bars.
-      const ratio = capturedCanvas.width / capturedCanvas.height;
-      const targetHeight = Math.round(targetWidth / ratio);
+      const targetHeight = 660
 
       // Create the final canvas with the new dynamic dimensions.
       const finalCanvas = document.createElement('canvas');
