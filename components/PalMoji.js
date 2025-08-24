@@ -293,7 +293,7 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
     }
   };	
 	
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (fileName) => {
     setIsUpgrading(true);
     const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
     const screenshotDataURL = await generateScreenshotDataURL();
@@ -312,6 +312,7 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
             palmoji: asciiArtText,
             screenshot: screenshotDataURL,
 			nftId: nftId,
+			fileName: fileName,
         });
         setIsUpgradeModalOpen(false);
         setShowThankYouModal(true);
@@ -904,9 +905,21 @@ const asciiArtLines = useMemo(() => {
               {asciiArtRef.current?.innerText}
             </div>
             <div className="flex justify-between mt-6 space-x-4">
-              <button
-                onClick={handleUpgrade}
-				disabled={isUpgrading}
+				<button
+					onClick={() => {
+						const hasCustomName = currentName && currentName !== "Your PalMoji";
+						let fileName;
+						if (hasCustomName) {
+							// Extract just the name part (e.g., "Andy" from "Andy PalMoji")
+							const nameOnly = currentName.replace(/ PalMoji$/, '');
+							const safeName = nameOnly.toLowerCase().replace(/\s+/g, '-');
+							fileName = `palmoji-${safeName}-${nftId}.png`;
+						} else {
+							fileName = `palmoji-${nftId}.png`;
+						}
+						handleUpgrade(fileName);
+					}}
+					disabled={isUpgrading}
                 className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
               >
                 {isUpgrading ? 'UPGRADING...' : 'UPGRADE'}
