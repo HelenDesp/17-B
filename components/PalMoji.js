@@ -920,9 +920,18 @@ const asciiArtLines = useMemo(() => {
 			centerContent={true}
 		>
         <div className="text-center">
-            <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
-              {asciiArtRef.current?.innerText}
-            </div>
+			<div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
+			  {asciiArtLines.map((line, index) => {
+				const style = { 
+				  position: 'relative',
+				};
+				return (
+				  <div key={index} style={style} >
+					{typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
+				  </div>
+				);
+			  })}
+			</div>
             <div className="flex justify-between mt-6 space-x-4">
 				<button
 				onClick={() => {
