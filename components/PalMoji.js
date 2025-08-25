@@ -4,6 +4,7 @@ import { useState, useMemo, useRef } from 'react';
 import { Traits, outfitStyleMap } from './Traits.js';
 import axios from "axios";
 import { useAccount } from "wagmi";
+import { useIsMobile } from './useIsMobile';
 
 const catData = {
   Shapes: {
@@ -136,6 +137,7 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
 
 
 export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName, originalNFTName }) {
+  const isMobile = useIsMobile(); 
   const palMojiRef = useRef(null);
   const asciiArtRef = useRef(null);
   const { address } = useAccount();  
@@ -155,6 +157,29 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [selectedWhiskers, setSelectedWhiskers] = useState('None');
   const [selectedWings, setSelectedWings] = useState('None');
   const [selectedTail, setSelectedTail] = useState('None');
+  
+  const mobileDisabledOutfits = useMemo(() => new Set([
+      'Kimono', 'Skull', 'Farcaster', 'Rocket', 'Invader', 'Trident', 'Diamond', 
+      'Fireball', 'Crown', 'Volcano', 'Paw', 'Wave', 'Pizza', 'Cookie', 'Cactus', 
+      'Mushroom', 'Turtle', 'Octopus', 'Palette', 'Donut', 'Gift', 'Lollipop', 
+      'Bomb', 'Hurricane', 'Trophy', 'Banana', 'Pineapple', 'Rainbow', 'Gamer', 
+      'Crystal Ball', 'Billiards', 'Sax', 'Guitar', 'Ghost', 'Pumpkin', 'Money', 
+      'Flag', 'Birthday', 'Bowling', 'Target', 'Ring', 'Ice Cream', 'Alien', 
+      'Anchor', 'Coffee', 'Baseball'
+  ]), []);
+
+  const filteredOutfitTraits = useMemo(() => {
+    if (isMobile) {
+      // On mobile, filter out the disabled outfits
+      return Object.fromEntries(
+        Object.entries(Traits.Outfit).filter(
+          ([name]) => !mobileDisabledOutfits.has(name)
+        )
+      );
+    }
+    // On desktop, return all outfits
+    return Traits.Outfit;
+  }, [isMobile, mobileDisabledOutfits]);  
 
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
@@ -589,30 +614,14 @@ const asciiArtLines = useMemo(() => {
 	line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
     
 	// LINE 4: Outfit & Body
-	const styleRef = outfitStyleMap[selectedOutfit];
-
-	// *** START OF FINAL FIX ***
-
-	// This list contains all characters that are NOT in the "Doto" font
-	// and therefore need special emoji styling.
-	const emojiCharacterList = [
-	  '🌸', '💀', '🏰', '🚀', '👾', '🔱', '💎', '🔥', '👑', '🌋', '🐾', '🌊', '🍕', '🍪', '🌵', '🍄', '🐢', '🐙', '🎨', '🍩', '🎁', '🍭', '💣', '🌀', '🏆', '🍌', '🍍', '🌈', '🎮', '🔮', '🎱', '🎷', '🎸', '👻', '🎃', '💸', '🏁', '🎂', '🎳', '🎯', '💍', '🍦', '👽', '⚓️', '☕️', '⚾️'
-	];
-
-	if (styleRef && specialStyles[styleRef]) {
-		const styleToApply = specialStyles[styleRef];
-		const styledOutfit = outfit.split('').map((char, i) => {
-			// If the character is in our emoji list, wrap it in a styled span.
-			if (emojiCharacterList.includes(char)) {
-				return <span key={i} style={styleToApply}>{char}</span>;
-			}
-			// Otherwise, render it as a plain character to use the "Doto" font.
-			return char;
-		});
-		line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
-	} else {
-		line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
-	}
+    const styleRef = outfitStyleMap[selectedOutfit];
+    if (styleRef && specialStyles[styleRef]) {
+        const styleToApply = specialStyles[styleRef];
+        const styledOutfit = outfit.split('').map((char, i) => (/[^\u0000-\u00ff]/).test(char) ? <span key={i} style={styleToApply}>{char}</span> : char);
+        line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
+    } else {
+        line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
+    }
 
 	// *** END OF FINAL FIX ***
 
@@ -846,7 +855,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Eyes" options={Traits.Eyes} selected={selectedEyes} onSelect={handleSetSelectedEyes} isOpen={openItem === 'Trait:Eyes'} onToggle={() => toggleItem('Trait:Eyes')} />
         <AccordionItem label="Mien" options={Traits.Mien} selected={selectedMien} onSelect={handleSetSelectedMien} isOpen={openItem === 'Trait:Mien'} onToggle={() => toggleItem('Trait:Mien')} />
         <AccordionItem label="Snout" options={Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Trait:Snout'} onToggle={() => toggleItem('Trait:Snout')} />
-        <AccordionItem label="Outfit" options={Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
+        <AccordionItem label="Outfit" options={filteredOutfitTraits} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
         <AccordionItem label="Feet" options={Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
         <AccordionItem label="Whiskers" options={Traits.Whiskers} selected={selectedWhiskers} onSelect={handleSetSelectedWhiskers} isOpen={openItem === 'Trait:Whiskers'} onToggle={() => toggleItem('Trait:Whiskers')} />
         <AccordionItem label="Wings" options={Traits.Wings} selected={selectedWings} onSelect={setSelectedWings} isOpen={openItem === 'Trait:Wings'} onToggle={() => toggleItem('Trait:Wings')} />
