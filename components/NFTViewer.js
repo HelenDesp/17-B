@@ -255,49 +255,54 @@ export default function NFTViewer({
       )}
 
       {/* ===== PalMoji MODAL with updated header ===== */}
-      {isPalMojiOpen && activePalMojiNFT && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black bg-opacity-70 z-[9999]" onClick={handleClosePalMoji} />
-          <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full">
-            
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center space-x-3">
-                    <img 
-                        src={activePalMojiNFT.image} 
-                        alt={activePalMojiNFT.name}
-                        className="h-12 w-12 object-cover border border-black dark:border-white"
-                    />
-                    <div>
-                        <p className="text-base text-gray-500 dark:text-gray-400">{activePalMojiNFT.name}</p>
-						<p className="text-sm font-normal text-gray-800 dark:text-white">
-							{palMojiNames[activePalMojiNFT.tokenId] || 'Your PalMoji'}
-						</p> 
-                    </div>
-                </div>
-                <button
-                    className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
-                    onClick={handleClosePalMoji}
-                    aria-label="Close"
-                >
-                    <span className="text-4xl leading-none font-bold">&#215;</span>
-                </button>
+      {isPalMojiOpen && activePalMojiNFT && (() => {
+        // 1. DEFINE YOUR VARIABLES HERE FIRST
+        const palMojiName = palMojiNames[activePalMojiNFT.tokenId];
+        const displayName = palMojiName ? `${palMojiName} PalMoji` : 'Your PalMoji';
+
+        // 2. THEN, RETURN ALL THE VISUAL ELEMENTS
+        return (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black bg-opacity-70 z-[9999]" onClick={handleClosePalMoji} />
+            <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full">
+              
+              {/* THIS IS THE HEADER SNIPPET YOU POSTED */}
+              <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center space-x-3">
+                      <img 
+                          src={activePalMojiNFT.image} 
+                          alt={activePalMojiNFT.name}
+                          className="h-12 w-12 object-cover border border-black dark:border-white"
+                      />
+                      <div>
+                          <p className="text-base text-gray-500 dark:text-gray-400">{activePalMojiNFT.name}</p>
+                          <p className="text-sm font-normal text-gray-800 dark:text-white">
+                            {palMojiNames[activePalMojiNFT.tokenId] || 'Your PalMoji'}
+                          </p> 
+                      </div>
+                  </div>
+                  <button
+                      className="border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+                      onClick={handleClosePalMoji}
+                      aria-label="Close"
+                  >
+                      <span className="text-4xl leading-none font-bold">&#215;</span>
+                  </button>
+              </div>
+              
+              {/* AND THE PALMOJI COMPONENT GOES RIGHT AFTER IT */}
+              <PalMoji 
+                PalMojiTrait={activePalMojiNFT.traits?.PalMoji || '...'}
+                nftId={activePalMojiNFT.tokenId}
+                ownerNFTImage={activePalMojiNFT.image}
+                onNameChange={handleNameChange}
+                currentName={displayName} // This uses the variable we defined above
+                originalNFTName={activePalMojiNFT.name}
+              />
             </div>
-
-            const palMojiName = palMojiNames[activePalMojiNFT.tokenId];
-            const displayName = palMojiName ? `${palMojiName} PalMoji` : 'Your PalMoji';			
-			
-			<PalMoji 
-				PalMojiTrait={activePalMojiNFT.traits?.PalMoji || '...'}
-				nftId={activePalMojiNFT.tokenId}
-				ownerNFTImage={activePalMojiNFT.image}
-				onNameChange={handleNameChange}
-				currentName={displayName}
-				originalNFTName={activePalMojiNFT.name}
-			/>
           </div>
-        </div>
-      )}
-
+        );
+      })()}
       {/* ===== FULL THANK YOU MODAL ===== */}
       {showThankYou && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
