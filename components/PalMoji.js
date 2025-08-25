@@ -1,85 +1,36 @@
 // /components/PalMoji.js
 "use client";
 import { useState, useMemo, useRef } from 'react';
-import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
+import { Traits, outfitStyleMap } from './Traits.js'; // specialStyles removed from import
 import axios from "axios";
 import { useAccount } from "wagmi";
 
 const catData = {
   Shapes: {
-	Headwear: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '/\\', 'Chevron Down': '\\/', 'Curly': '{}', 'Square': '[]' },  
+	Headwear: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '/\\', 'Chevron Down': '\\/', 'Curly': '{}', 'Square': '[]' },
     Head: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '/\\', 'Chevron Down': '\\/', 'Curly': '{}', 'Square': '[]' },
     Snout: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '/\\', 'Chevron Down': '\\/', 'Curly': '{}', 'Square': '[]' },
     Body: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '/\\', 'Chevron Down': '\\/', 'Curly': '{}', 'Square': '[]' },
   },
 };
 
-
-// ---> PASTE THE ENTIRE NEW BLOCK OF CODE HERE <---
+// --- NEW: specialStyles object moved here and updated ---
 const emojiFontStack = `'apple color emoji', 'segoe ui emoji', 'noto color emoji', sans-serif`;
 
 const specialStyles = {
-    kimono: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    skull: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    peace: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    farcaster: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    rocket: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    snowflake: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    invader: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    atom: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    swords: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    biohazard: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    trident: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    anchor: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    diamond: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    fireball: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    'yin yang': { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    crown: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    love: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    radioactive: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    'fleur-de-lis': { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    volcano: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    paw: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    shamrock: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    wave: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    bowtie: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    coffee: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    pizza: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    cookie: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    poison: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    cactus: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    mushroom: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    turtle: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    octopus: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    palette: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    donut: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    gift: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    lollipop: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    bomb: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    hurricane: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    trophy: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    banana: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    pineapple: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    rainbow: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    gamer: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    'crystal ball': { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    billiards: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    baseball: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    sax: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    guitar: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    ghost: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    pumpkin: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    money: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    flag: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    birthday: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    bowling: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    target: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    ring: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    'ice cream': { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
-    alien: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    Ssmall: { textShadow: 'none', fontSize: '0.5em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    Lsmall: { textShadow: 'none', fontSize: '0.55em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    default: { textShadow: 'none', fontSize: '0.6em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    Smedium: { textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    Mmedium: { textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    Lmedium: { textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    XLmedium: { textShadow: 'none', fontSize: '0.8em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    Slarge: { textShadow: 'none', fontSize: '0.85em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    Mlarge: { textShadow: 'none', fontSize: '0.9em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    Llarge: { textShadow: 'none', fontSize: '0.95em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    XLlarge: { textShadow: 'none', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
 };
 
-// /components/PalMoji.js
 
 const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
     const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
@@ -94,18 +45,14 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
         }
     };
 
-    // Helper function to get the displayable ASCII for each trait
     const getAsciiDisplay = (optionName) => {
         if (optionName === 'Random' || optionName === 'None') {
-            return ''; // Don't show ASCII for "Random" or "None"
+            return '';
         }
         const value = options[optionName];
-
-        // If the trait is an array (like Wings, Tail, Whiskers), join it with a space
         if (Array.isArray(value)) {
             return value.join(' ');
         }
-        // Otherwise, just return the string value
         return value;
     };
 
@@ -117,14 +64,13 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
             >
                 <span className="font-bold">{label}</span>
                 <div className="flex items-center space-x-2">
-                    {/* START OF MODIFICATION */}
                     {getAsciiDisplay(selected) && (
-                        <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
+                        // --- MODIFIED: Added grayscale filter to preview ---
+                        <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre', filter: 'grayscale(100%)' }}>
                             {getAsciiDisplay(selected)}
                         </span>
                     )}
                     <span className="font-normal">{selected}</span>
-                    {/* END OF MODIFICATION */}
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
                 </div>
             </button>
@@ -141,8 +87,8 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                                 <span className="mr-2 text-lg">•</span>
                                 <span>{optionName}</span>
                             </div>
-                            {/* This is the new part that displays the ASCII art */}
-                            <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
+                             {/* --- MODIFIED: Added grayscale filter to preview list --- */}
+                            <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre', filter: 'grayscale(100%)' }}>
                                 {getAsciiDisplay(optionName)}
                             </span>
                         </button>
@@ -156,7 +102,6 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
 const SelectionModal = ({ title, isOpen, onClose, centerContent = false, children, headerClassName = "relative flex-shrink-0 p-4 pb-2 mb-4" }) => {
     if (!isOpen) return null;
 
-    // NEW: Conditionally add classes for vertical centering
     const bodyClasses = `flex-grow space-y-2 overflow-y-auto px-4 pb-4 ${
         centerContent ? 'flex flex-col justify-center' : ''
     }`;
@@ -173,8 +118,6 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
                     <span className="text-4xl leading-none font-bold">&#215;</span>
                 </button>
             </div>
-
-            {/* The `className` here now uses the conditional variable */}
             <div className={bodyClasses}>
                 {children}
             </div>
@@ -182,13 +125,11 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
     );
 };
 
-
-
 export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName, originalNFTName }) {
   const palMojiRef = useRef(null);
   const asciiArtRef = useRef(null);
-  const { address } = useAccount();  
-  const [headwearShape, setHeadwearShape] = useState('None');	
+  const { address } = useAccount();
+  const [headwearShape, setHeadwearShape] = useState('None');
   const [headShape, setHeadShape] = useState('Round');
   const [snoutShape, setSnoutShape] = useState('Round');
   const [bodyShape, setBodyShape] = useState('Round');
@@ -214,7 +155,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const customNameOnly = (currentName && currentName !== "Your PalMoji") ? currentName.replace(/ PalMoji$/, '') : null;
   const palMojiFullName = customNameOnly ? `${customNameOnly} PalMoji` : 'Your PalMoji';
-  
+
   const handleReset = () => {
     setHeadwearShape('None');
     setHeadShape('Round');
@@ -247,44 +188,29 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
       setSelectedEarsHead('None');
     }
   };
-  
-  const handleSetSelectedMien = (mienOption) => {
-    // First, set the mien that the user chose.
-    setSelectedMien(mienOption);
 
-    // NEW: If 'Doubt' eyes are active, switch them to 'Open' when a Mien is chosen.
+  const handleSetSelectedMien = (mienOption) => {
+    setSelectedMien(mienOption);
     if (selectedEyes === 'Doubt' && mienOption !== 'None') {
         setSelectedEyes('Open');
     }
-
-    // Define the only Mien traits that are allowed to be worn with Glasses.
     const allowedMienForGlasses = ['Bit', 'Neutral', 'Smirk'];
-
-    // If the current eyes are 'Glasses' AND the newly selected mien is NOT in our allowed list...
     if (selectedEyes === 'Glasses' && !allowedMienForGlasses.includes(mienOption)) {
-      // ...then disable the glasses by switching the eyes to 'Open'.
       setSelectedEyes('Open');
     }
   };
 
 	const handleSetSelectedEyes = (eyeOption) => {
-		
 	  if (eyeOption === 'Doubt' && selectedMien !== 'None') {
 		  return;
-	  }		
+	  }
 	  const allowedMienForGlasses = ['Bit', 'Neutral', 'Smirk'];
-
-	  // If you're trying to select 'Glasses' but the current Mien is not allowed...
 	  if (eyeOption === 'Glasses' && !allowedMienForGlasses.includes(selectedMien)) {
-		// ...reset the Mien to 'None' to allow the Glasses to be equipped.
 		setSelectedMien('None');
 	  }
-
-	  // Finally, set the eye trait you selected.
 	  setSelectedEyes(eyeOption);
-	}; 
+	};
 
-// --- ADD THIS ENTIRE NEW FUNCTION ---
   const generateScreenshotDataURL = async () => {
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
@@ -301,7 +227,6 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
     };
 
     try {
-      // Capture the element at high resolution.
       const largeCanvas = await html2canvas(originalElement, {
         backgroundColor: null,
         scale: window.devicePixelRatio * 5,
@@ -309,59 +234,43 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
         onclone: onclone,
       });
 
-let currentCanvas = largeCanvas;
-const tempTargetWidthForScaling = 916; // A reference width for the scaling loop.
+      let currentCanvas = largeCanvas;
+      const tempTargetWidthForScaling = 916;
 
-// This loop smoothly shrinks the massive image down to a manageable size.
-while (currentCanvas.width > tempTargetWidthForScaling * 2) {
-    const newWidth = Math.floor(currentCanvas.width / 2);
-    const newHeight = Math.floor(currentCanvas.height / 2);
-    const nextCanvas = document.createElement('canvas');
-    nextCanvas.width = newWidth;
-    nextCanvas.height = newHeight;
-    const ctx = nextCanvas.getContext('2d');
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
-    currentCanvas = nextCanvas;
-}
-// --- END: High-Quality Resizing Loop ---
+      while (currentCanvas.width > tempTargetWidthForScaling * 2) {
+          const newWidth = Math.floor(currentCanvas.width / 2);
+          const newHeight = Math.floor(currentCanvas.height / 2);
+          const nextCanvas = document.createElement('canvas');
+          nextCanvas.width = newWidth;
+          nextCanvas.height = newHeight;
+          const ctx = nextCanvas.getContext('2d');
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(currentCanvas, 0, 0, newWidth, newHeight);
+          currentCanvas = nextCanvas;
+      }
 
-// --- Dynamic Size Calculation ---
-// Define the final height you want.
-const targetHeight = 660;
-
-// Calculate the aspect ratio of the captured content.
-const aspectRatio = currentCanvas.width / currentCanvas.height;
-
-// Calculate the new width needed to maintain the aspect ratio for your target height.
-const dynamicWidth = Math.round(targetHeight * aspectRatio);
-
-// Create the final canvas with the perfectly calculated dimensions.
-const finalCanvas = document.createElement('canvas');
-finalCanvas.width = dynamicWidth;
-finalCanvas.height = targetHeight;
-const finalCtx = finalCanvas.getContext('2d');
-
-// Fill the background.
-finalCtx.fillStyle = '#f0f0f0';
-finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-
-// Draw the resized content to fill the new canvas completely (no sidebars).
-finalCtx.imageSmoothingQuality = 'high';
-finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
+      const targetHeight = 660;
+      const aspectRatio = currentCanvas.width / currentCanvas.height;
+      const dynamicWidth = Math.round(targetHeight * aspectRatio);
+      const finalCanvas = document.createElement('canvas');
+      finalCanvas.width = dynamicWidth;
+      finalCanvas.height = targetHeight;
+      const finalCtx = finalCanvas.getContext('2d');
+      finalCtx.fillStyle = '#f0f0f0';
+      finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+      finalCtx.imageSmoothingQuality = 'high';
+      finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
 
       return finalCanvas.toDataURL('image/png');
     } catch (error) {
       console.error("Error generating screenshot:", error);
       return null;
     }
-  };	
-	
+  };
+
 	const handleUpgrade = async (fileName) => {
 	  setIsUpgrading(true);
 	  const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
-	  
-	  // THIS LINE WAS MISSING
 	  const screenshotDataURL = await generateScreenshotDataURL();
 
 	  if (!screenshotDataURL) {
@@ -374,12 +283,10 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
 		  await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
 			  original: originalNFTName,
 			  owner: address,
-			  // Use `palMojiFullName` for consistency
 			  name: palMojiFullName,
 			  palmoji: asciiArtText,
 			  screenshot: screenshotDataURL,
 			  nftId: nftId,
-			  // The fileName passed from the button is now correctly used
 			  fileName: fileName,
 		  });
 		  setIsUpgradeModalOpen(false);
@@ -390,9 +297,7 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
 	  } finally {
 		  setIsUpgrading(false);
 	  }
-	};		
-
-// PASTE THE NEW CODE BLOCK HERE
+	};
 
   const shareText = `Meet my ${palMojiFullName}!`;
   const callToAction = `Want one? Head to the link to start creating.`;
@@ -426,27 +331,19 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
             setTimeout(() => setShareMessage(""), 5000);
 			return;
 		}
-
 		try {
-            // 1. Generate the screenshot using the function we already have
 			const imageDataURL = await generateScreenshotDataURL();
 			if (!imageDataURL) throw new Error("Could not generate screenshot.");
-
-            // 2. Convert the image data into a file that can be shared
             const response = await fetch(imageDataURL);
             const blob = await response.blob();
             const file = new File([blob], 'palmoji.png', { type: 'image/png' });
-
-            // 3. Check if the browser can share this file
 			if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                // Share with the image file
 				await navigator.share({
 					title: 'My PalMoji',
 					text: fullText,
                     files: [file],
 				});
 			} else {
-                // Fallback for browsers that can share text but not files
 				await navigator.share({
 					title: 'My PalMoji',
 					text: fullText,
@@ -454,7 +351,6 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
 			}
 		} catch (error) {
 			console.error('Error using Web Share API:', error);
-            // Optionally, provide feedback to the user if sharing fails
             setShareMessage('Sharing failed. Please try another option.');
             setTimeout(() => setShareMessage(""), 5000);
 		}
@@ -471,314 +367,271 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
 		});
 	};
 
-// In PalMoji.js
-
-const handleSaveImage = async () => {
-    const imageDataURL = await generateScreenshotDataURL();
-    if (imageDataURL) {
-        const link = document.createElement('a');
-        const hasCustomName = currentName && currentName !== "Your PalMoji";
-
-        // Corrected filename logic
-        let fileName;
-        if (hasCustomName) {
-            const safeName = currentName.toLowerCase().replace(/\s+/g, '-');
-            fileName = `palmoji-${safeName}-${nftId}.png`;
-        } else {
-            fileName = `palmoji-${nftId}.png`;
+    const handleSaveImage = async () => {
+        const imageDataURL = await generateScreenshotDataURL();
+        if (imageDataURL) {
+            const link = document.createElement('a');
+            const hasCustomName = currentName && currentName !== "Your PalMoji";
+            let fileName;
+            if (hasCustomName) {
+                const safeName = currentName.toLowerCase().replace(/\s+/g, '-');
+                fileName = `palmoji-${safeName}-${nftId}.png`;
+            } else {
+                fileName = `palmoji-${nftId}.png`;
+            }
+            link.download = fileName;
+            const response = await fetch(imageDataURL);
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            link.href = blobUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+            const nameForMessage = hasCustomName ? currentName : "PalMoji";
+            setShareMessage(`Your ${nameForMessage} has been saved!`);
+            setTimeout(() => setShareMessage(''), 5000);
         }
-
-        link.download = fileName;
-        
-        // Use a more robust download method
-        const response = await fetch(imageDataURL);
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        link.href = blobUrl;
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl);
-        
-        const nameForMessage = hasCustomName ? currentName : "PalMoji";
-        setShareMessage(`Your ${nameForMessage} has been saved!`);
-        setTimeout(() => setShareMessage(''), 5000);
-    }
-};	
-	
-const asciiArtLines = useMemo(() => {
-    const headwear = Traits.Headwear[selectedHeadwear] || '';	  
-    const earsTop = Traits.EarsTop[selectedEarsTop] || '';
-    const earsHead = Traits.EarsHead[selectedEarsHead] || '';
-    const hShape = catData.Shapes.Head[headShape] || '';
-    const hwShape = catData.Shapes.Headwear[headwearShape] || '';
-    const eyes = Traits.Eyes[selectedEyes] || '';
-    const mien = Traits.Mien[selectedMien] || '';
-    const sShape = catData.Shapes.Snout[snoutShape] || '';
-    const snoutTrait = Traits.Snout[selectedSnoutTrait] || '';
-    const bShape = catData.Shapes.Body[bodyShape] || '';
-    const outfit = Traits.Outfit[selectedOutfit] || '';
-    const feet = Traits.Feet[selectedFeet] || '';
-    const whiskers = Traits.Whiskers[selectedWhiskers];
-    const wings = Traits.Wings[selectedWings];
-    const tail = Traits.Tail[selectedTail];
-	
-    // --- Controls for 'Aqua' Ears Top and Head ---
-    const aquaEarsLeftShiftPx = -3;
-    const aquaEarsRightShiftPx = -3;
-    // ------------------------------------
-
-    // --- Controls for 'Slit' Snout ---
-    const slitSnoutShiftPx = -1;    // Controls horizontal position of the '≈' symbol.
-    const slitSnoutPaddingLeft = 0;  // Adds empty space to the left of the '≈'
-    const slitSnoutPaddingRight = 3; // Adds empty space to the right of the '≈'
-
-    // --- Controls for 'Anger' Eyes ---
-    const angerEyeRightShiftPx = -4; // Moves the right '´' character.
-    // ---------------------------------	
-
-    // Helper function for applying the alignment style
-    const applyShift = (text) => {
-        if (typeof text === 'string' && (text.startsWith('<') || text.startsWith('>') || text.startsWith('{'))) {
-            const firstChar = text.substring(0, 1);
-            const rest = text.substring(1);
-            return (
-                <>
-                    <span style={{ position: 'relative', left: '-5px' }}>{firstChar}</span>
-                    {rest}
-                </>
-            );
-        }
-        return text;
     };
 
-    // --- BASE LINE CONSTRUCTION ---
-    let line1;
-    let line2;
-    let line3;
-    let line4;
-    let line5;
+    const asciiArtLines = useMemo(() => {
+        const headwear = Traits.Headwear[selectedHeadwear] || '';
+        const earsTop = Traits.EarsTop[selectedEarsTop] || '';
+        const earsHead = Traits.EarsHead[selectedEarsHead] || '';
+        const hShape = catData.Shapes.Head[headShape] || '';
+        const hwShape = catData.Shapes.Headwear[headwearShape] || '';
+        const eyes = Traits.Eyes[selectedEyes] || '';
+        const mien = Traits.Mien[selectedMien] || '';
+        const sShape = catData.Shapes.Snout[snoutShape] || '';
+        const snoutTrait = Traits.Snout[selectedSnoutTrait] || '';
+        const bShape = catData.Shapes.Body[bodyShape] || '';
+        const outfit = Traits.Outfit[selectedOutfit] || '';
+        const feet = Traits.Feet[selectedFeet] || '';
+        const whiskers = Traits.Whiskers[selectedWhiskers];
+        const wings = Traits.Wings[selectedWings];
+        const tail = Traits.Tail[selectedTail];
+        const aquaEarsLeftShiftPx = -3;
+        const aquaEarsRightShiftPx = -3;
+        const slitSnoutShiftPx = -1;
+        const slitSnoutPaddingLeft = 0;
+        const slitSnoutPaddingRight = 3;
+        const angerEyeRightShiftPx = -4;
 
-    // CORRECTED LINE 1: Style the headwear trait FIRST, then wrap it in the Headwear Shape
-    const styledHeadwearTrait = applyShift(headwear);
-    const styledHeadwear = hwShape ? <>{applyShift(hwShape.slice(0, 1))}{styledHeadwearTrait}{hwShape.slice(-1)}</> : styledHeadwearTrait;
+        const applyShift = (text) => {
+            if (typeof text === 'string' && (text.startsWith('<') || text.startsWith('>') || text.startsWith('{'))) {
+                const firstChar = text.substring(0, 1);
+                const rest = text.substring(1);
+                return (
+                    <>
+                        <span style={{ position: 'relative', left: '-5px' }}>{firstChar}</span>
+                        {rest}
+                    </>
+                );
+            }
+            return text;
+        };
 
-    // NEW LOGIC FOR LINE 1 with 'Aqua' Ears control
-    if (selectedEarsTop === 'Aqua') {
-        const earParts = earsTop.split('   '); // Splits "≈   ≈"
-        const middlePart = selectedHeadwear !== 'None' ? styledHeadwear : '   ';
-        line1 = (
-            <>
-                <span style={{ position: 'relative', left: `${aquaEarsLeftShiftPx}px` }}>{applyShift(earParts[0])}</span>
-                {middlePart}
-                <span style={{ position: 'relative', left: `${aquaEarsRightShiftPx}px` }}>{earParts[1]}</span>
-            </>
-        );
-    } else if (earsTop && !earsTop.includes('   ')) {
-        line1 = applyShift(earsTop);
-    } else {
-        const leftPart = earsTop ? earsTop.split('   ')[0] : '';
-        const rightPart = earsTop ? earsTop.split('   ')[1] : '';
-        const middlePart = selectedHeadwear !== 'None' ? styledHeadwear : (earsTop ? '   ' : '');
-        line1 = <>{applyShift(leftPart)}{middlePart}{rightPart}</>;
-    }
+        let line1;
+        let line2;
+        let line3;
+        let line4;
+        let line5;
 
-	// LINE 2: Head & Eyes
-	let faceLine;
-	if (selectedEyes === 'Glasses') {
-		faceLine = (
-			<>o<span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}><span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>{selectedMien !== 'None' && (<span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>)}</span>o</>
-		);
-	} else if (selectedEyes === 'Doubt') {
-		// --- Controls for 'Doubt' Eyes ---
-		const doubtEyeLeftShiftPx = -6;   // Negative values move the left eye left, positive values move it right.
-		const doubtEyeSpacingPx = -9;    // Controls the space between the eyes.
-		// ------------------------------------
+        const styledHeadwearTrait = applyShift(headwear);
+        const styledHeadwear = hwShape ? <>{applyShift(hwShape.slice(0, 1))}{styledHeadwearTrait}{hwShape.slice(-1)}</> : styledHeadwearTrait;
 
-		const eyeParts = eyes.split(' ');
-		const joiningChar = selectedMien === 'None' ? '' : mien;
-		faceLine = (
-			<>
-				<span style={{ position: 'relative', left: `${doubtEyeLeftShiftPx}px` }}>{eyeParts[0]}</span>
-				{joiningChar}
-				<span style={{ position: 'relative', marginLeft: `${doubtEyeSpacingPx}px` }}>{eyeParts[1]}</span>
-			</>
-		);
-		
-		} else if (selectedEyes === 'Anger') {
-			const eyeParts = eyes.split(' '); // Splits "` ´"
-			const joiningChar = selectedMien === 'None' ? ' ' : mien;
-			faceLine = (
-				<>
-					{applyShift(eyeParts[0])}
-					{joiningChar}
-					<span style={{ position: 'relative', left: `${angerEyeRightShiftPx}px` }}>{eyeParts[1]}</span>
-				</>
-			);
-
-		} else if (selectedEyes === 'Cyclope') {
-			// Use the Mien character if selected, otherwise default to '0'
-			const character = selectedMien === 'None' ? '0' : mien;
-			// Use non-breaking spaces (\u00A0) to guarantee spacing
-			faceLine = `\u00A0${character}\u00A0`;
-		
-	} else {
-		// This is the default logic for all other eye types
-		if (eyes.includes(' ')) {
-			const eyeParts = eyes.split(' ');
-			const leftEye = applyShift(eyeParts[0]);
-			const rightEye = eyeParts[1];
-			const joiningChar = selectedMien === 'None' ? ' ' : mien; // Reverted to default space
-			faceLine = <>{leftEye}{joiningChar}{rightEye}</>;
-		} else {
-			faceLine = mien;
-		}
-	}
-	line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
-    
-    // LINE 4: Outfit & Body
-    const styleRef = outfitStyleMap[selectedOutfit];
-    if (styleRef && specialStyles[styleRef]) {
-        const styleToApply = specialStyles[styleRef];
-        const styledOutfit = outfit.split('').map((char, i) => (/[^\u0000-\u00ff]/).test(char) ? <span key={i} style={styleToApply}>{char}</span> : char);
-        line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
-	} else {
-		line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
-	}
-
-    // LINE 5: Feet
-    line5 = applyShift(feet);
-
-    // --- RE-DEFINE ORIGINAL LINES FOR LENGTH CALCULATION ---
-    let originalFaceLine;
-    if (selectedEyes === 'Glasses') {
-        originalFaceLine = 'o-o';
-    } else {
-        originalFaceLine = eyes.includes(' ') ? eyes.split(' ').join(selectedMien === 'None' ? ' ' : mien) : mien;
-    }
-    let originalLine2 = hShape ? `${hShape.slice(0, 1)}${originalFaceLine}${hShape.slice(-1)}` : originalFaceLine;
-    let originalLine3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
-    let originalLine4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
-    let originalLine5 = feet;
-
-    // --- MODIFIERS (Adding traits around the base lines) ---
-	if (selectedEarsHead === 'Aqua') {
-		const earParts = earsHead.split('   '); // Splits "≈   ≈"
-		line2 = (
-			<>
-				<span style={{ position: 'relative', left: `${aquaEarsLeftShiftPx}px` }}>{applyShift(earParts[0])}</span>
-				{line2}
-				<span style={{ position: 'relative', left: `${aquaEarsRightShiftPx}px` }}>{earParts[1]}</span>
-			</>
-		);
-	} else if (earsHead) {
-		const earParts = earsHead.split('   ');
-		line2 = <>{applyShift(earParts[0])}{line2}{earParts[1]}</>;
-	}
-    
-    // Whiskers on Head (Simplified to remove special 'Sharp' styling)
-    if (whiskers && selectedWhiskers.includes('Head')) {
-        const leftWhisker = applyShift(whiskers[0]);
-        line2 = <>{leftWhisker}{line2}{whiskers[1]}</>;
-    }
-    
-	// CORRECTED LOGIC FOR LINE 3 (SNOUT + WHISKERS) with 'Slit' Snout control
-    let styledSnoutTrait;
-    if (selectedSnoutTrait === 'Slit') {
-        const slitParts = snoutTrait.split('≈'); // Splits "\≈/"
-
-        styledSnoutTrait = (
-            <>
-                {slitParts[0]}
-                <span style={{
-                    position: 'relative',
-                    left: `${slitSnoutShiftPx}px`,
-                    paddingLeft: `${slitSnoutPaddingLeft}px`,
-                    paddingRight: `${slitSnoutPaddingRight}px`
-                }}>≈</span>
-                {slitParts[1]}
-            </>
-        );
-    } else {
-        styledSnoutTrait = applyShift(snoutTrait); // Default styling for all other snouts
-    }
-
-	const styledSnout = sShape ? <>{applyShift(sShape.slice(0, 1))}{styledSnoutTrait}{sShape.slice(-1)}</> : styledSnoutTrait;
-	if (whiskers && selectedWhiskers.includes('Snout')) {
-		const leftWhisker = applyShift(whiskers[0]);
-		line3 = <>{leftWhisker}{styledSnout}{whiskers[1]}</>;
-	} else {
-		line3 = styledSnout;
-	}
-
-    if (wings) {
-        line4 = <>{applyShift(wings[0])}{line4}{wings[1]}</>;
-    }
-
-    if (tail) {
-        const rightTail = tail[1].replace(/ /g, '\u00A0');
-        const leftTail = applyShift(tail[0]);
-        if (selectedFeet === 'None') {
-            line4 = <>{leftTail}{line4}{rightTail}</>;
+        if (selectedEarsTop === 'Aqua') {
+            const earParts = earsTop.split('   ');
+            const middlePart = selectedHeadwear !== 'None' ? styledHeadwear : '   ';
+            line1 = (
+                <>
+                    <span style={{ position: 'relative', left: `${aquaEarsLeftShiftPx}px` }}>{applyShift(earParts[0])}</span>
+                    {middlePart}
+                    <span style={{ position: 'relative', left: `${aquaEarsRightShiftPx}px` }}>{earParts[1]}</span>
+                </>
+            );
+        } else if (earsTop && !earsTop.includes('   ')) {
+            line1 = applyShift(earsTop);
         } else {
-            const currentLine5isJsx = typeof line5 !== 'string';
-            line5 = <>{leftTail}{currentLine5isJsx ? line5 : originalLine5}{rightTail}</>;
+            const leftPart = earsTop ? earsTop.split('   ')[0] : '';
+            const rightPart = earsTop ? earsTop.split('   ')[1] : '';
+            const middlePart = selectedHeadwear !== 'None' ? styledHeadwear : (earsTop ? '   ' : '');
+            line1 = <>{applyShift(leftPart)}{middlePart}{rightPart}</>;
         }
-    }
 
-    // --- CENTERING LOGIC ---
-    const lines = [line1, line2, line3, line4, line5];
-    const lineLengths = lines.map((line, index) => {
-        if (typeof line === 'string') return line.length;
-
-        if (index === 0) {
-            let len = 0;
-            if (selectedEarsTop !== 'None' && earsTop.includes('   ')) {
-                len += earsTop.length;
+        let faceLine;
+        if (selectedEyes === 'Glasses') {
+            faceLine = (
+                <>o<span style={{ display: 'inline-block', position: 'relative', width: '1ch' }}><span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 1 }}>-</span>{selectedMien !== 'None' && (<span style={{ position: 'absolute', left: 0, top: '-0.8em', zIndex: 2 }}>{mien}</span>)}</span>o</>
+            );
+        } else if (selectedEyes === 'Doubt') {
+            const doubtEyeLeftShiftPx = -6;
+            const doubtEyeSpacingPx = -9;
+            const eyeParts = eyes.split(' ');
+            const joiningChar = selectedMien === 'None' ? '' : mien;
+            faceLine = (
+                <>
+                    <span style={{ position: 'relative', left: `${doubtEyeLeftShiftPx}px` }}>{eyeParts[0]}</span>
+                    {joiningChar}
+                    <span style={{ position: 'relative', marginLeft: `${doubtEyeSpacingPx}px` }}>{eyeParts[1]}</span>
+                </>
+            );
+        } else if (selectedEyes === 'Anger') {
+            const eyeParts = eyes.split(' ');
+            const joiningChar = selectedMien === 'None' ? ' ' : mien;
+            faceLine = (
+                <>
+                    {applyShift(eyeParts[0])}
+                    {joiningChar}
+                    <span style={{ position: 'relative', left: `${angerEyeRightShiftPx}px` }}>{eyeParts[1]}</span>
+                </>
+            );
+        } else if (selectedEyes === 'Cyclope') {
+            const character = selectedMien === 'None' ? '0' : mien;
+            faceLine = `\u00A0${character}\u00A0`;
+        } else {
+            if (eyes.includes(' ')) {
+                const eyeParts = eyes.split(' ');
+                const leftEye = applyShift(eyeParts[0]);
+                const rightEye = eyeParts[1];
+                const joiningChar = selectedMien === 'None' ? ' ' : mien;
+                faceLine = <>{leftEye}{joiningChar}{rightEye}</>;
+            } else {
+                faceLine = mien;
             }
-            if (selectedHeadwear !== 'None') {
-                len += headwear.length;
+        }
+        line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
+
+        const styleRef = outfitStyleMap[selectedOutfit.toLowerCase().replace(/\s+/g, ' ')];
+        if (styleRef && specialStyles[styleRef]) {
+            const styleToApply = specialStyles[styleRef];
+            const styledOutfit = outfit.split('').map((char, i) => (/[^\u0000-\u00ff]/).test(char) ? <span key={i} style={styleToApply}>{char}</span> : char);
+            line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
+        } else {
+            line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
+        }
+
+        line5 = applyShift(feet);
+
+        let originalFaceLine;
+        if (selectedEyes === 'Glasses') {
+            originalFaceLine = 'o-o';
+        } else {
+            originalFaceLine = eyes.includes(' ') ? eyes.split(' ').join(selectedMien === 'None' ? ' ' : mien) : mien;
+        }
+        let originalLine2 = hShape ? `${hShape.slice(0, 1)}${originalFaceLine}${hShape.slice(-1)}` : originalFaceLine;
+        let originalLine3 = sShape ? `${sShape.slice(0, 1)}${snoutTrait}${sShape.slice(-1)}` : snoutTrait;
+        let originalLine4 = bShape ? `${bShape.slice(0, 1)}${outfit}${bShape.slice(-1)}` : outfit;
+        let originalLine5 = feet;
+
+        if (selectedEarsHead === 'Aqua') {
+            const earParts = earsHead.split('   ');
+            line2 = (
+                <>
+                    <span style={{ position: 'relative', left: `${aquaEarsLeftShiftPx}px` }}>{applyShift(earParts[0])}</span>
+                    {line2}
+                    <span style={{ position: 'relative', left: `${aquaEarsRightShiftPx}px` }}>{earParts[1]}</span>
+                </>
+            );
+        } else if (earsHead) {
+            const earParts = earsHead.split('   ');
+            line2 = <>{applyShift(earParts[0])}{line2}{earParts[1]}</>;
+        }
+
+        if (whiskers && selectedWhiskers.includes('Head')) {
+            const leftWhisker = applyShift(whiskers[0]);
+            line2 = <>{leftWhisker}{line2}{whiskers[1]}</>;
+        }
+
+        let styledSnoutTrait;
+        if (selectedSnoutTrait === 'Slit') {
+            const slitParts = snoutTrait.split('≈');
+            styledSnoutTrait = (
+                <>
+                    {slitParts[0]}
+                    <span style={{
+                        position: 'relative',
+                        left: `${slitSnoutShiftPx}px`,
+                        paddingLeft: `${slitSnoutPaddingLeft}px`,
+                        paddingRight: `${slitSnoutPaddingRight}px`
+                    }}>≈</span>
+                    {slitParts[1]}
+                </>
+            );
+        } else {
+            styledSnoutTrait = applyShift(snoutTrait);
+        }
+
+        const styledSnout = sShape ? <>{applyShift(sShape.slice(0, 1))}{styledSnoutTrait}{sShape.slice(-1)}</> : styledSnoutTrait;
+        if (whiskers && selectedWhiskers.includes('Snout')) {
+            const leftWhisker = applyShift(whiskers[0]);
+            line3 = <>{leftWhisker}{styledSnout}{whiskers[1]}</>;
+        } else {
+            line3 = styledSnout;
+        }
+
+        if (wings) {
+            line4 = <>{applyShift(wings[0])}{line4}{wings[1]}</>;
+        }
+
+        if (tail) {
+            const rightTail = tail[1].replace(/ /g, '\u00A0');
+            const leftTail = applyShift(tail[0]);
+            if (selectedFeet === 'None') {
+                line4 = <>{leftTail}{line4}{rightTail}</>;
+            } else {
+                const currentLine5isJsx = typeof line5 !== 'string';
+                line5 = <>{leftTail}{currentLine5isJsx ? line5 : originalLine5}{rightTail}</>;
             }
-            return len;
         }
-        if (index === 1) {
-            let len = originalLine2.length;
-            if (earsHead) len += earsHead.replace('   ', '').length;
-            // Reverted to simple calculation
-            if (whiskers && selectedWhiskers.includes('Head')) len += 2;
-            return len;
-        }
-        if (index === 2) {
-            let len = originalLine3.length;
-            // Reverted to simple calculation
-            if (whiskers && selectedWhiskers.includes('Snout')) len += 2;
-            return len;
-        }
-        if (index === 3) {
-            let len = originalLine4.length;
-            if (wings) len += (wings[0] + wings[1]).length;
-            if (tail && selectedFeet === 'None') len += (tail[0] + tail[1]).length;
-            return len;
-        }
-        if (index === 4) {
-            let len = originalLine5.length;
-            if (tail && selectedFeet !== 'None') len += (tail[0] + tail[1]).length;
-            return len;
-        }
-        return 0;
-    });
 
-    const maxLength = Math.max(...lineLengths);
-    const paddedLines = lines.map((line, index) => {
-        const currentLength = lineLengths[index];
-        const padding = ' '.repeat(Math.floor((maxLength - currentLength) / 2));
-        return (typeof line === 'string') ? (padding + line) : <>{padding}{line}</>;
-    });
+        const lines = [line1, line2, line3, line4, line5];
+        const lineLengths = lines.map((line, index) => {
+            if (typeof line === 'string') return line.length;
+            if (index === 0) {
+                let len = 0;
+                if (selectedEarsTop !== 'None' && earsTop.includes('   ')) {
+                    len += earsTop.length;
+                }
+                if (selectedHeadwear !== 'None') {
+                    len += headwear.length;
+                }
+                return len;
+            }
+            if (index === 1) {
+                let len = originalLine2.length;
+                if (earsHead) len += earsHead.replace('   ', '').length;
+                if (whiskers && selectedWhiskers.includes('Head')) len += 2;
+                return len;
+            }
+            if (index === 2) {
+                let len = originalLine3.length;
+                if (whiskers && selectedWhiskers.includes('Snout')) len += 2;
+                return len;
+            }
+            if (index === 3) {
+                let len = originalLine4.length;
+                if (wings) len += (wings[0] + wings[1]).length;
+                if (tail && selectedFeet === 'None') len += (tail[0] + tail[1]).length;
+                return len;
+            }
+            if (index === 4) {
+                let len = originalLine5.length;
+                if (tail && selectedFeet !== 'None') len += (tail[0] + tail[1]).length;
+                return len;
+            }
+            return 0;
+        });
 
-    return paddedLines;
-}, [headShape, headwearShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedMien, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
+        const maxLength = Math.max(...lineLengths);
+        const paddedLines = lines.map((line, index) => {
+            const currentLength = lineLengths[index];
+            const padding = ' '.repeat(Math.floor((maxLength - currentLength) / 2));
+            return (typeof line === 'string') ? (padding + line) : <>{padding}{line}</>;
+        });
 
+        return paddedLines;
+    }, [headShape, headwearShape, snoutShape, bodyShape, selectedEarsTop, selectedEarsHead, selectedHeadwear, selectedEyes, selectedMien, selectedSnoutTrait, selectedOutfit, selectedFeet, selectedWhiskers, selectedWings, selectedTail]);
 
   const toggleItem = (item) => {
     setOpenItem(prev => (prev === item ? null : item));
@@ -792,17 +645,12 @@ const asciiArtLines = useMemo(() => {
   return (
     <div className="flex flex-col items-center bg-gray-200 dark:bg-gray-900 rounded-md border border-black dark:border-white relative overflow-hidden">
       <style jsx global>{`@import url('https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap');`}</style>
-
 		<div ref={palMojiRef} className="w-full h-auto relative bg-blue-200 dark:bg-blue-900/50 rounded-t-md overflow-hidden flex flex-col items-center justify-center p-4 border border-black">
 			<div className="absolute bottom-0 w-full h-full bg-gradient-to-t from-gray-400 to-gray-300 dark:from-gray-800 dark:to-gray-700"></div>
-			
 			<div className="relative z-10 w-full">
-				{/* --- START: Added Header for Saved Image (hidden by default) --- */}
-				{/* FIX #2: Changed 'items-center' to 'items-start' to align text to the top */}
 				<div id="palmoji-header-for-save" className="hidden flex items-start space-x-3 mb-4">
-					{/* FIX #1: Added inline style to ensure smooth image rendering */}
-					<img 
-						src={ownerNFTImage} 
+					<img
+						src={ownerNFTImage}
 						alt={originalNFTName}
 						className="h-12 w-12 object-cover border border-black dark:border-white"
 					/>
@@ -813,12 +661,10 @@ const asciiArtLines = useMemo(() => {
 						</p>
 					</div>
 				</div>
-				{/* --- END: Added Header for Saved Image --- */}
-
 				<div className="p-2">
 				  <div ref={asciiArtRef} className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
 					{asciiArtLines.map((line, index) => {
-					  const style = { 
+					  const style = {
 						position: 'relative',
 					  };
 					  return (
@@ -831,10 +677,8 @@ const asciiArtLines = useMemo(() => {
 				</div>
 			</div>
 		</div>
-
       <div className="w-full p-4 bg-gray-300 dark:bg-gray-800 rounded-b-md border-t border-black dark:border-white">
         <div className="space-y-2">
-            {/* Row 1: Shapes and Traits */}
             <div className="grid grid-cols-2 gap-2">
                 <button onClick={() => setOpenModal('shapes')} className={`w-full flex items-center justify-between p-2 bg-white dark:bg-gray-700 text-black dark:text-white rounded-md text-left border-black dark:border-white ${openModal === 'shapes' ? 'border-2' : 'border'}`} style={{ fontFamily: "'Cygnito Mono', monospace" }}>
                     <span className="font-bold">Shapes</span>
@@ -845,7 +689,6 @@ const asciiArtLines = useMemo(() => {
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor"><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
                 </button>
             </div>
-            {/* Row 2: Name Button */}
             <div id="palmoji-action-buttons" className="grid grid-cols-2 gap-2 [@media(min-width:540px)]:flex [@media(min-width:540px)]:justify-between">
                 <button onClick={() => setOpenModal('name')} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Name
@@ -855,21 +698,19 @@ const asciiArtLines = useMemo(() => {
                 </button>
 				<button onClick={() => setIsUpgradeModalOpen(true)} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
 					UPGRADE NFT
-				</button>				
+				</button>
                 <button onClick={handleReset} className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black">
                     Reset
-                </button>				
+                </button>
             </div>
         </div>
       </div>
-
       <SelectionModal title="SHAPES" isOpen={openModal === 'shapes'} onClose={handleCloseModal}>
 	    <AccordionItem label="Headwear" options={catData.Shapes.Headwear} selected={headwearShape} onSelect={setHeadwearShape} isOpen={openItem === 'Shape:Headwear'} onToggle={() => toggleItem('Shape:Headwear')} />
         <AccordionItem label="Head" options={catData.Shapes.Head} selected={headShape} onSelect={setHeadShape} isOpen={openItem === 'Shape:Head'} onToggle={() => toggleItem('Shape:Head')} />
         <AccordionItem label="Snout" options={catData.Shapes.Snout} selected={snoutShape} onSelect={setSnoutShape} isOpen={openItem === 'Shape:Snout'} onToggle={() => toggleItem('Shape:Snout')} />
         <AccordionItem label="Body" options={catData.Shapes.Body} selected={bodyShape} onSelect={setBodyShape} isOpen={openItem === 'Shape:Body'} onToggle={() => toggleItem('Shape:Body')} />
       </SelectionModal>
-
       <SelectionModal title="TRAITS" isOpen={openModal === 'traits'} onClose={handleCloseModal}>
         <AccordionItem label="Headwear" options={Traits.Headwear} selected={selectedHeadwear} onSelect={setSelectedHeadwear} isOpen={openItem === 'Trait:Headwear'} onToggle={() => toggleItem('Trait:Headwear')} />
         <AccordionItem label="Ears Top" options={Traits.EarsTop} selected={selectedEarsTop} onSelect={setSelectedEarsTop} isOpen={openItem === 'Trait:EarsTop'} onToggle={() => toggleItem('Trait:EarsTop')} />
@@ -883,16 +724,14 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Wings" options={Traits.Wings} selected={selectedWings} onSelect={setSelectedWings} isOpen={openItem === 'Trait:Wings'} onToggle={() => toggleItem('Trait:Wings')} />
         <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
-      {/* ===== NEW MODAL FOR NAMING ===== */}
-      <SelectionModal 
-        title="NAME YOUR PALMOJI" 
-        isOpen={openModal === 'name'} 
-        onClose={handleCloseModal} 
+      <SelectionModal
+        title="NAME YOUR PALMOJI"
+        isOpen={openModal === 'name'}
+        onClose={handleCloseModal}
         centerContent={true}
         headerClassName="relative flex-shrink-0 p-4 pb-0 -mb-8"
       >
         <div className="space-y-4">
-            {/* Request 4: Label is removed */}
             <div>
                 <input
                     id="palmoji-name"
@@ -900,19 +739,16 @@ const asciiArtLines = useMemo(() => {
                     value={tempName}
                     onChange={(e) => setTempName(e.target.value)}
                     placeholder="Enter a name..."
-                    // The classes "bg-white" and "dark:bg-black" have been replaced with "bg-transparent"
                     className="mt-1 w-full p-2 border !border-black dark:!border-white bg-transparent text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
                     style={{ boxShadow: 'none', backgroundColor: 'transparent' }}
                 />
             </div>
-            {/* Requests 5, 6, 7: Buttons are swapped and styled */}
             <div className="flex justify-between items-center pt-2">
                 <button
                     onClick={() => {
                         onNameChange(tempName);
                         handleCloseModal();
                     }}
-                    // Use the same classes as the "Close" button
                     className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
                 >
                     Save Name
@@ -926,10 +762,9 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
-      {/* REPLACE the old <ShareModal.../> line with THIS ENTIRE BLOCK */}
-      <SelectionModal 
+      <SelectionModal
         title={`SHARE ${palMojiFullName.toUpperCase()}`}
-        isOpen={openModal === 'share'} 
+        isOpen={openModal === 'share'}
         onClose={handleCloseModal}
 		centerContent={true}
 		headerClassName="relative flex-shrink-0 p-4 pb-0 -mb-8"
@@ -938,7 +773,7 @@ const asciiArtLines = useMemo(() => {
 		  <div className="text-center text-black dark:text-white mb-4 p-2">
 			{shareMessage}
 		  </div>
-		)}	  
+		)}
         <div className="flex flex-col items-center justify-center w-full">
             <div className="flex flex-row flex-wrap justify-center items-center w-full gap-4">
                 <a href="#" onClick={(e) => { e.preventDefault(); handleGenericShare(); }} title="Share" className="flex justify-center text-black dark:text-white hover:opacity-75">
@@ -962,8 +797,8 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
-		<SelectionModal 
-			isOpen={isUpgradeModalOpen} 
+		<SelectionModal
+			isOpen={isUpgradeModalOpen}
 			onClose={() => setIsUpgradeModalOpen(false)}
 			title={`${palMojiFullName.toUpperCase()}`}
 			centerContent={true}
@@ -975,7 +810,6 @@ const asciiArtLines = useMemo(() => {
             <div className="flex justify-between mt-6 space-x-4">
 				<button
 				onClick={() => {
-					// This logic is now corrected and robust
 					let fileName;
 					if (customNameOnly) {
 						const safeName = customNameOnly.toLowerCase().replace(/\s+/g, '-');
@@ -999,7 +833,6 @@ const asciiArtLines = useMemo(() => {
             </div>
         </div>
       </SelectionModal>
-      {/* ===== NEW PalMoji THANK YOU MODAL ===== */}
       {showThankYouModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4 py-10">
           <div className="relative bg-white dark:bg-gray-800 p-10 rounded shadow-lg max-w-lg w-full text-center">
@@ -1026,7 +859,7 @@ const asciiArtLines = useMemo(() => {
             </button>
           </div>
         </div>
-      )}	  
+      )}
     </div>
   );
-}	  
+}
