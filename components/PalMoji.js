@@ -1,7 +1,7 @@
 // /components/PalMoji.js
 "use client";
 import { useState, useMemo, useRef } from 'react';
-import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
+import { Traits, outfitStyleMap } from './Traits.js';
 import axios from "axios";
 import { useAccount } from "wagmi";
 
@@ -12,6 +12,71 @@ const catData = {
     Snout: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '/\\', 'Chevron Down': '\\/', 'Curly': '{}', 'Square': '[]' },
     Body: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '/\\', 'Chevron Down': '\\/', 'Curly': '{}', 'Square': '[]' },
   },
+};
+
+
+// ---> PASTE THE ENTIRE NEW BLOCK OF CODE HERE <---
+const emojiFontStack = `'apple color emoji', 'segoe ui emoji', 'noto color emoji', sans-serif`;
+
+const specialStyles = {
+    kimono: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    skull: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    peace: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    farcaster: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    rocket: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    snowflake: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    invader: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    atom: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    swords: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    biohazard: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    trident: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    anchor: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    diamond: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    fireball: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    'yin yang': { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    crown: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    love: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    radioactive: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    'fleur-de-lis': { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    volcano: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    paw: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    shamrock: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    wave: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    bowtie: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    coffee: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    pizza: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    cookie: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    poison: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    cactus: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    mushroom: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    turtle: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    octopus: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    palette: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    donut: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    gift: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    lollipop: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    bomb: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    hurricane: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    trophy: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    banana: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    pineapple: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    rainbow: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    gamer: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    'crystal ball': { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    billiards: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    baseball: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    sax: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    guitar: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    ghost: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    pumpkin: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    money: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    flag: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    birthday: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    bowling: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    target: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    ring: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    'ice cream': { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
+    alien: { color: 'currentColor', filter: 'grayscale(100%)', fontFamily: emojiFontStack },
 };
 
 // /components/PalMoji.js
