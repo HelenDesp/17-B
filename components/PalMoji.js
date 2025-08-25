@@ -17,17 +17,17 @@ const catData = {
 const emojiFontStack = `'apple color emoji', 'segoe ui emoji', 'noto color emoji', sans-serif`;
 
 const specialStyles = {
-  Ssmall: { textShadow: 'none', fontSize: '0.5em', position: 'relative', top: '-7px', left: '-2px' },
-  Lsmall: { textShadow: 'none', fontSize: '0.55em', position: 'relative', top: '-7px', left: '-2px' },
-  default: { textShadow: 'none', fontSize: '0.6em', position: 'relative', top: '-7px', left: '-2px' },
-  Smedium: { textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-7px', left: '-2px' },
-  Mmedium: { textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-7px', left: '-2px' },
-  Lmedium: { textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-7px', left: '-2px' },
-  XLmedium: { textShadow: 'none', fontSize: '0.8em', position: 'relative', top: '-7px', left: '-2px' },
-  Slarge: { textShadow: 'none', fontSize: '0.85em', position: 'relative', top: '-7px', left: '-2px' },
-  Mlarge: { textShadow: 'none', fontSize: '0.9em', position: 'relative', top: '-7px', left: '-2px' },
-  Llarge: { textShadow: 'none', fontSize: '0.95em', position: 'relative', top: '-7px', left: '-2px' },
-  XLlarge: { textShadow: 'none', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px' },
+  Ssmall: { textShadow: 'none', fontSize: '0.5em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Lsmall: { textShadow: 'none', fontSize: '0.55em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  default: { textShadow: 'none', fontSize: '0.6em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Smedium: { textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Mmedium: { textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Lmedium: { textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  XLmedium: { textShadow: 'none', fontSize: '0.8em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Slarge: { textShadow: 'none', fontSize: '0.85em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Mlarge: { textShadow: 'none', fontSize: '0.9em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Llarge: { textShadow: 'none', fontSize: '0.95em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  XLlarge: { textShadow: 'none', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
 };
 
 // /components/PalMoji.js
@@ -588,15 +588,33 @@ const asciiArtLines = useMemo(() => {
 	}
 	line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
     
-    // LINE 4: Outfit & Body
+	// LINE 4: Outfit & Body
 	const styleRef = outfitStyleMap[selectedOutfit];
+
+	// *** START OF FINAL FIX ***
+
+	// This list contains all characters that are NOT in the "Doto" font
+	// and therefore need special emoji styling.
+	const emojiCharacterList = [
+	  '🌸', '💀', '🏰', '🚀', '👾', '🔱', '💎', '🔥', '👑', '🌋', '🐾', '🌊', '🍕', '🍪', '🌵', '🍄', '🐢', '🐙', '🎨', '🍩', '🎁', '🍭', '💣', '🌀', '🏆', '🍌', '🍍', '🌈', '🎮', '🔮', '🎱', '🎷', '🎸', '👻', '🎃', '💸', '🏁', '🎂', '🎳', '🎯', '💍', '🍦', '👽', '⚓️', '☕️', '⚾️'
+	];
+
 	if (styleRef && specialStyles[styleRef]) {
 		const styleToApply = specialStyles[styleRef];
-		const styledOutfit = outfit.split('').map((char, i) => (/[^\u0000-\u00ff]/).test(char) ? <span key={i} style={styleToApply}>{char}</span> : char);
+		const styledOutfit = outfit.split('').map((char, i) => {
+			// If the character is in our emoji list, wrap it in a styled span.
+			if (emojiCharacterList.includes(char)) {
+				return <span key={i} style={styleToApply}>{char}</span>;
+			}
+			// Otherwise, render it as a plain character to use the "Doto" font.
+			return char;
+		});
 		line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
 	} else {
 		line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
 	}
+
+	// *** END OF FINAL FIX ***
 
     // LINE 5: Feet
     line5 = applyShift(feet);
