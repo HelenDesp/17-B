@@ -147,9 +147,8 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
-  const hasCustomName = currentName && currentName !== 'Your PalMoji';
-  const palMojiDisplayName = hasCustomName ? currentName : 'Your PalMoji';
-  const palMojiFullName = hasCustomName ? `${currentName} PalMoji` : 'Your PalMoji';
+  const customNameOnly = (currentName && currentName !== "Your PalMoji") ? currentName.replace(/ PalMoji$/, '') : null;
+  const palMojiFullName = customNameOnly ? `${customNameOnly} PalMoji` : 'Your PalMoji';
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -293,36 +292,40 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
     }
   };	
 	
-  const handleUpgrade = async (fileName) => {
-    setIsUpgrading(true);
-    const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
-    const screenshotDataURL = await generateScreenshotDataURL();
+	const handleUpgrade = async (fileName) => {
+	  setIsUpgrading(true);
+	  const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
+	  
+	  // THIS LINE WAS MISSING
+	  const screenshotDataURL = await generateScreenshotDataURL();
 
-    if (!screenshotDataURL) {
-        alert("Could not generate screenshot. Please try again.");
-        setIsUpgrading(false);
-        return;
-    }
+	  if (!screenshotDataURL) {
+		  alert("Could not generate screenshot for upgrade. Please try again.");
+		  setIsUpgrading(false);
+		  return;
+	  }
 
-    try {
-        await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
-            original: originalNFTName,
-            owner: address,
-            name: currentName,
-            palmoji: asciiArtText,
-            screenshot: screenshotDataURL,
-			nftId: nftId,
-			fileName: fileName,
-        });
-        setIsUpgradeModalOpen(false);
-        setShowThankYouModal(true);
-    } catch (error) {
-        console.error("PalMoji upgrade submission error:", error);
-        alert("Failed to submit PalMoji upgrade. Please try again.");
-    } finally {
-        setIsUpgrading(false);
-    }
-  };		
+	  try {
+		  await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
+			  original: originalNFTName,
+			  owner: address,
+			  // Use `palMojiFullName` for consistency
+			  name: palMojiFullName,
+			  palmoji: asciiArtText,
+			  screenshot: screenshotDataURL,
+			  nftId: nftId,
+			  // The fileName passed from the button is now correctly used
+			  fileName: fileName,
+		  });
+		  setIsUpgradeModalOpen(false);
+		  setShowThankYouModal(true);
+	  } catch (error) {
+		  console.error("PalMoji upgrade submission error:", error);
+		  alert("Failed to submit PalMoji upgrade. Please try again.");
+	  } finally {
+		  setIsUpgrading(false);
+	  }
+	};		
 
 // PASTE THE NEW CODE BLOCK HERE
 

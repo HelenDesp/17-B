@@ -256,9 +256,6 @@ export default function NFTViewer({
 
       {/* ===== PalMoji MODAL with updated header ===== */}
       {isPalMojiOpen && activePalMojiNFT && (() => {
-        // 1. DEFINE YOUR VARIABLES HERE FIRST
-        const palMojiName = palMojiNames[activePalMojiNFT.tokenId];
-        const displayName = palMojiName ? `${palMojiName} PalMoji` : 'Your PalMoji';
 
         // 2. THEN, RETURN ALL THE VISUAL ELEMENTS
         return (
@@ -296,7 +293,7 @@ export default function NFTViewer({
                 nftId={activePalMojiNFT.tokenId}
                 ownerNFTImage={activePalMojiNFT.image}
                 onNameChange={handleNameChange}
-                currentName={displayName} // This uses the variable we defined above
+                currentName={palMojiNames[activePalMojiNFT.tokenId] || 'Your PalMoji'}
                 originalNFTName={activePalMojiNFT.name}
               />
             </div>
