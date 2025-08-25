@@ -909,20 +909,18 @@ const asciiArtLines = useMemo(() => {
             </div>
             <div className="flex justify-between mt-6 space-x-4">
 				<button
-					onClick={() => {
-						const hasCustomName = currentName && currentName !== "Your PalMoji";
-						let fileName;
-						if (hasCustomName) {
-							// Extract just the name part (e.g., "Andy" from "Andy PalMoji")
-							const nameOnly = currentName.replace(/ PalMoji$/, '');
-							const safeName = nameOnly.toLowerCase().replace(/\s+/g, '-');
-							fileName = `palmoji-${safeName}-${nftId}.png`;
-						} else {
-							fileName = `palmoji-${nftId}.png`;
-						}
-						handleUpgrade(fileName);
-					}}
-					disabled={isUpgrading}
+				onClick={() => {
+					// This logic is now corrected and robust
+					let fileName;
+					if (customNameOnly) {
+						const safeName = customNameOnly.toLowerCase().replace(/\s+/g, '-');
+						fileName = `palmoji-${safeName}-${nftId}.png`;
+					} else {
+						fileName = `palmoji-${nftId}.png`;
+					}
+					handleUpgrade(fileName);
+				}}
+				disabled={isUpgrading}
                 className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
               >
                 {isUpgrading ? 'UPGRADING...' : 'UPGRADE'}

@@ -256,14 +256,15 @@ export default function NFTViewer({
 
       {/* ===== PalMoji MODAL with updated header ===== */}
       {isPalMojiOpen && activePalMojiNFT && (() => {
+        // This logic now correctly formats the name for display
+        const palMojiName = palMojiNames[activePalMojiNFT.tokenId];
+        const displayName = palMojiName ? `${palMojiName} PalMoji` : 'Your PalMoji';
 
-        // 2. THEN, RETURN ALL THE VISUAL ELEMENTS
         return (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black bg-opacity-70 z-[9999]" onClick={handleClosePalMoji} />
             <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full">
               
-              {/* THIS IS THE HEADER SNIPPET YOU POSTED */}
               <div className="flex justify-between items-center mb-4">
                   <div className="flex items-center space-x-3">
                       <img 
@@ -273,8 +274,9 @@ export default function NFTViewer({
                       />
                       <div>
                           <p className="text-base text-gray-500 dark:text-gray-400">{activePalMojiNFT.name}</p>
+                          {/* THIS LINE IS NOW FIXED to use the displayName variable */}
                           <p className="text-sm font-normal text-gray-800 dark:text-white">
-                            {palMojiNames[activePalMojiNFT.tokenId] || 'Your PalMoji'}
+                            {displayName}
                           </p> 
                       </div>
                   </div>
@@ -287,13 +289,12 @@ export default function NFTViewer({
                   </button>
               </div>
               
-              {/* AND THE PALMOJI COMPONENT GOES RIGHT AFTER IT */}
               <PalMoji 
                 PalMojiTrait={activePalMojiNFT.traits?.PalMoji || '...'}
                 nftId={activePalMojiNFT.tokenId}
                 ownerNFTImage={activePalMojiNFT.image}
                 onNameChange={handleNameChange}
-                currentName={palMojiNames[activePalMojiNFT.tokenId] || 'Your PalMoji'}
+                currentName={displayName} // This also uses the correct displayName
                 originalNFTName={activePalMojiNFT.name}
               />
             </div>
