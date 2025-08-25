@@ -17,17 +17,17 @@ const catData = {
 const emojiFontStack = `'apple color emoji', 'segoe ui emoji', 'noto color emoji', sans-serif`;
 
 const specialStyles = {
-  Ssmall: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '0.5em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
-  Lsmall: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '0.55em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
-  default: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '0.6em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
-  Smedium: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '0.65em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
-  Mmedium: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '0.7em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
-  Lmedium: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '0.75em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
-  XLmedium: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '0.8em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
-  Slarge: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '0.85em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
-  Mlarge: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '0.9em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
-  Llarge: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '0.95em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
-  XLlarge: { textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px', color: 'transparent', fontFamily: emojiFontStack },
+  Ssmall: { textShadow: 'none', fontSize: '0.5em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Lsmall: { textShadow: 'none', fontSize: '0.55em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  default: { textShadow: 'none', fontSize: '0.6em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Smedium: { textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Mmedium: { textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Lmedium: { textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  XLmedium: { textShadow: 'none', fontSize: '0.8em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Slarge: { textShadow: 'none', fontSize: '0.85em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Mlarge: { textShadow: 'none', fontSize: '0.9em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Llarge: { textShadow: 'none', fontSize: '0.95em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  XLlarge: { textShadow: 'none', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
 };
 
 // /components/PalMoji.js
@@ -70,7 +70,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                 <div className="flex items-center space-x-2">
                     {/* START OF MODIFICATION */}
                     {getAsciiDisplay(selected) && (
-					<span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre', color: 'transparent', textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor' }}>
+					<span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre', filter: 'grayscale(100%) contrast(1000%)' }}>
 						{getAsciiDisplay(selected)}
 					</span>
                     )}
@@ -93,7 +93,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                                 <span>{optionName}</span>
                             </div>
                             {/* This is the new part that displays the ASCII art */}
-							<span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre', color: 'transparent', textShadow: '-1px -1px 0 currentColor, 1px -1px 0 currentColor, -1px 1px 0 currentColor, 1px 1px 0 currentColor' }}>
+							<span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre', filter: 'grayscale(100%) contrast(1000%)' }}>
 								{getAsciiDisplay(optionName)}
 							</span>
                         </button>
