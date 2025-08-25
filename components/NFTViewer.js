@@ -184,7 +184,7 @@ export default function NFTViewer({
         <div className="fixed inset-0 z-[9999] flex items-center justify-center">
           <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" onClick={() => setSelectedNFT(null)} />
           <div className="relative z-[10000] flex items-center justify-center min-h-screen w-full px-4 py-10">
-            <div className="relative bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
+            <div className="relative bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full max-h-[95vh] overflow-y-auto">
               <button
                 className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white rounded cursor-pointer"
                 onClick={() => setSelectedNFT(null)}
@@ -263,7 +263,7 @@ export default function NFTViewer({
         return (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black bg-opacity-70 z-[9999]" onClick={handleClosePalMoji} />
-            <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full">
+            <div className="relative z-[10000] bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-lg w-full max-h-[95vh] overflow-y-auto">
               
               <div className="flex justify-between items-center mb-4">
                   <div className="flex items-center space-x-3">
