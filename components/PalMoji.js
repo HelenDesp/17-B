@@ -1,7 +1,7 @@
 // /components/PalMoji.js
 "use client";
 import { useState, useMemo, useRef } from 'react';
-import { Traits, outfitStyleMap } from './Traits.js';
+import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
 import axios from "axios";
 import { useAccount } from "wagmi";
 
