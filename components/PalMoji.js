@@ -17,17 +17,17 @@ const catData = {
 const emojiFontStack = `'apple color emoji', 'segoe ui emoji', 'noto color emoji', sans-serif`;
 
 const specialStyles = {
-  Ssmall: { textShadow: 'none', fontSize: '0.5em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Lsmall: { textShadow: 'none', fontSize: '0.55em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  default: { textShadow: 'none', fontSize: '0.6em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Smedium: { textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Mmedium: { textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Lmedium: { textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  XLmedium: { textShadow: 'none', fontSize: '0.8em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Slarge: { textShadow: 'none', fontSize: '0.85em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Mlarge: { textShadow: 'none', fontSize: '0.9em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Llarge: { textShadow: 'none', fontSize: '0.95em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  XLlarge: { textShadow: 'none', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px', color: 'currentColor', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Ssmall: { textShadow: 'none', fontSize: '0.5em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Lsmall: { textShadow: 'none', fontSize: '0.55em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  default: { textShadow: 'none', fontSize: '0.6em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Smedium: { textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Mmedium: { textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Lmedium: { textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  XLmedium: { textShadow: 'none', fontSize: '0.8em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Slarge: { textShadow: 'none', fontSize: '0.85em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Mlarge: { textShadow: 'none', fontSize: '0.9em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  Llarge: { textShadow: 'none', fontSize: '0.95em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
+  XLlarge: { textShadow: 'none', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
 };
 
 // /components/PalMoji.js
