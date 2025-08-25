@@ -283,12 +283,15 @@ export default function NFTViewer({
                 </button>
             </div>
 
+            const palMojiName = palMojiNames[activePalMojiNFT.tokenId];
+            const displayName = palMojiName ? `${palMojiName} PalMoji` : 'Your PalMoji';			
+			
 			<PalMoji 
 				PalMojiTrait={activePalMojiNFT.traits?.PalMoji || '...'}
 				nftId={activePalMojiNFT.tokenId}
 				ownerNFTImage={activePalMojiNFT.image}
 				onNameChange={handleNameChange}
-				currentName={palMojiNames[activePalMojiNFT.tokenId] || 'Your PalMoji'}
+				currentName={displayName}
 				originalNFTName={activePalMojiNFT.name}
 			/>
           </div>
