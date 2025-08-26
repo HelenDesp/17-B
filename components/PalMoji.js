@@ -572,26 +572,27 @@ const asciiArtLines = useMemo(() => {
 	}
 	line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
     
-	// LINE 4: Outfit & Body
-	const styleRef = outfitStyleMap[selectedOutfit];
+// LINE 4: Outfit & Body
+const styleRef = outfitStyleMap[selectedOutfit];
 
-	// This regex correctly identifies only the modern emojis that need styling.
-	const modernEmojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
+const modernEmojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
 
-	if (styleRef && specialStyles[styleRef]) {
-		const styleToApply = specialStyles[styleRef];
-		const styledOutfit = outfit.split('').map((char, i) => {
-			if (modernEmojiRegex.test(char)) {
-				// Apply style only to modern emojis
-				return <span key={i} style={styleToApply}>{char}</span>;
-			}
-			// Leave symbols like ⚔️ alone
-			return char;
-		});
-		line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
-	} else {
-		line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
-	}
+if (styleRef && specialStyles[styleRef]) {
+    const styleToApply = specialStyles[styleRef];
+    
+    // 👇 ADD THIS ONE LINE FOR DEBUGGING
+    console.log("DEBUG:", { selectedOutfit, styleRef, styleToApply });
+
+    const styledOutfit = outfit.split('').map((char, i) => {
+        if (modernEmojiRegex.test(char)) {
+            return <span key={i} style={styleToApply}>{char}</span>;
+        }
+        return char;
+    });
+    line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
+} else {
+    line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
+}
 
     // LINE 5: Feet
     line5 = applyShift(feet);
