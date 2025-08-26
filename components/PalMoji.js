@@ -1,10 +1,9 @@
 // /components/PalMoji.js
 "use client";
 import { useState, useMemo, useRef } from 'react';
-import { Traits, outfitStyleMap } from './Traits.js';
+import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
 import axios from "axios";
 import { useAccount } from "wagmi";
-import { useIsMobile } from './useIsMobile';
 
 const catData = {
   Shapes: {
@@ -13,22 +12,6 @@ const catData = {
     Snout: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '/\\', 'Chevron Down': '\\/', 'Curly': '{}', 'Square': '[]' },
     Body: { 'None': '', 'Round': '()', 'Parallel': '||', 'Chevron Up': '/\\', 'Chevron Down': '\\/', 'Curly': '{}', 'Square': '[]' },
   },
-};
-
-const emojiFontStack = `'apple color emoji', 'segoe ui emoji', 'noto color emoji', sans-serif`;
-
-const specialStyles = {
-  Ssmall: { textShadow: 'none', fontSize: '0.5em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Lsmall: { textShadow: 'none', fontSize: '0.55em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  default: { textShadow: 'none', fontSize: '0.6em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Smedium: { textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Mmedium: { textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Lmedium: { textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  XLmedium: { textShadow: 'none', fontSize: '0.8em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Slarge: { textShadow: 'none', fontSize: '0.85em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Mlarge: { textShadow: 'none', fontSize: '0.9em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  Llarge: { textShadow: 'none', fontSize: '0.95em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
-  XLlarge: { textShadow: 'none', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px', filter: 'grayscale(100%) contrast(1000%)', fontFamily: emojiFontStack },
 };
 
 // /components/PalMoji.js
@@ -71,9 +54,9 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                 <div className="flex items-center space-x-2">
                     {/* START OF MODIFICATION */}
                     {getAsciiDisplay(selected) && (
-					<span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre', filter: 'grayscale(100%) contrast(1000%)' }}>
-						{getAsciiDisplay(selected)}
-					</span>
+                        <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
+                            {getAsciiDisplay(selected)}
+                        </span>
                     )}
                     <span className="font-normal">{selected}</span>
                     {/* END OF MODIFICATION */}
@@ -94,9 +77,9 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                                 <span>{optionName}</span>
                             </div>
                             {/* This is the new part that displays the ASCII art */}
-							<span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre', filter: 'grayscale(100%) contrast(1000%)' }}>
-								{getAsciiDisplay(optionName)}
-							</span>
+                            <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
+                                {getAsciiDisplay(optionName)}
+                            </span>
                         </button>
                     ))}
                 </div>
@@ -137,7 +120,6 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
 
 
 export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName, originalNFTName }) {
-  const isMobile = useIsMobile(); 
   const palMojiRef = useRef(null);
   const asciiArtRef = useRef(null);
   const { address } = useAccount();  
@@ -157,29 +139,6 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [selectedWhiskers, setSelectedWhiskers] = useState('None');
   const [selectedWings, setSelectedWings] = useState('None');
   const [selectedTail, setSelectedTail] = useState('None');
-  
-  const mobileDisabledOutfits = useMemo(() => new Set([
-      'Kimono', 'Skull', 'Farcaster', 'Rocket', 'Invader', 'Trident', 'Diamond', 
-      'Fireball', 'Crown', 'Volcano', 'Paw', 'Wave', 'Pizza', 'Cookie', 'Cactus', 
-      'Mushroom', 'Turtle', 'Octopus', 'Palette', 'Donut', 'Gift', 'Lollipop', 
-      'Bomb', 'Hurricane', 'Trophy', 'Banana', 'Pineapple', 'Rainbow', 'Gamer', 
-      'Crystal Ball', 'Billiards', 'Sax', 'Guitar', 'Ghost', 'Pumpkin', 'Money', 
-      'Flag', 'Birthday', 'Bowling', 'Target', 'Ring', 'Ice Cream', 'Alien', 
-      'Anchor', 'Coffee', 'Baseball'
-  ]), []);
-
-  const filteredOutfitTraits = useMemo(() => {
-    if (isMobile) {
-      // On mobile, filter out the disabled outfits
-      return Object.fromEntries(
-        Object.entries(Traits.Outfit).filter(
-          ([name]) => !mobileDisabledOutfits.has(name)
-        )
-      );
-    }
-    // On desktop, return all outfits
-    return Traits.Outfit;
-  }, [isMobile, mobileDisabledOutfits]);  
 
   const [openModal, setOpenModal] = useState(null);
   const [openItem, setOpenItem] = useState(null);
@@ -613,31 +572,26 @@ const asciiArtLines = useMemo(() => {
 	}
 	line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
     
-// LINE 4: Outfit & Body
-const styleRef = outfitStyleMap[selectedOutfit];
+	// LINE 4: Outfit & Body
+	const styleRef = outfitStyleMap[selectedOutfit];
 
-// This regex automatically detects modern emojis that are not in the "Doto" font.
-const modernEmojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
+	// This regex correctly identifies only the modern emojis that need styling.
+	const modernEmojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
 
-if (styleRef && specialStyles[styleRef]) {
-    // This line is now corrected to use `styleRef` (camelCase).
-    // This restores the connection to your size and position styles.
-    const styleToApply = specialStyles[styleRef];
-    
-    const styledOutfit = outfit.split('').map((char, i) => {
-        // This check applies the style only to the detected modern emojis.
-        if (modernEmojiRegex.test(char)) {
-            return <span key={i} style={styleToApply}>{char}</span>;
-        }
-        // This leaves the "Doto" font symbols (like ⚔️) untouched.
-        return char;
-    });
-    line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
-} else {
-    line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
-}	
-
-	// *** END OF FINAL FIX ***
+	if (styleRef && specialStyles[styleRef]) {
+		const styleToApply = specialStyles[styleRef];
+		const styledOutfit = outfit.split('').map((char, i) => {
+			if (modernEmojiRegex.test(char)) {
+				// Apply style only to modern emojis
+				return <span key={i} style={styleToApply}>{char}</span>;
+			}
+			// Leave symbols like ⚔️ alone
+			return char;
+		});
+		line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
+	} else {
+		line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
+	}
 
     // LINE 5: Feet
     line5 = applyShift(feet);
@@ -869,7 +823,7 @@ if (styleRef && specialStyles[styleRef]) {
         <AccordionItem label="Eyes" options={Traits.Eyes} selected={selectedEyes} onSelect={handleSetSelectedEyes} isOpen={openItem === 'Trait:Eyes'} onToggle={() => toggleItem('Trait:Eyes')} />
         <AccordionItem label="Mien" options={Traits.Mien} selected={selectedMien} onSelect={handleSetSelectedMien} isOpen={openItem === 'Trait:Mien'} onToggle={() => toggleItem('Trait:Mien')} />
         <AccordionItem label="Snout" options={Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Trait:Snout'} onToggle={() => toggleItem('Trait:Snout')} />
-        <AccordionItem label="Outfit" options={filteredOutfitTraits} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
+        <AccordionItem label="Outfit" options={Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
         <AccordionItem label="Feet" options={Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
         <AccordionItem label="Whiskers" options={Traits.Whiskers} selected={selectedWhiskers} onSelect={handleSetSelectedWhiskers} isOpen={openItem === 'Trait:Whiskers'} onToggle={() => toggleItem('Trait:Whiskers')} />
         <AccordionItem label="Wings" options={Traits.Wings} selected={selectedWings} onSelect={setSelectedWings} isOpen={openItem === 'Trait:Wings'} onToggle={() => toggleItem('Trait:Wings')} />
@@ -961,18 +915,16 @@ if (styleRef && specialStyles[styleRef]) {
 			centerContent={true}
 		>
         <div className="text-center">
-			<div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
-			  {asciiArtLines.map((line, index) => {
-				const style = { 
-				  position: 'relative',
-				};
+            <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
+			{asciiArtLines.map((line, index) => {
+				const style = { position: 'relative' };
 				return (
-				  <div key={index} style={style} >
-					{typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
-				  </div>
+					<div key={index} style={style} >
+						{typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
+					</div>
 				);
-			  })}
-			</div>
+			})}
+            </div>
             <div className="flex justify-between mt-6 space-x-4">
 				<button
 				onClick={() => {
