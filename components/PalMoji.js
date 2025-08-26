@@ -614,21 +614,26 @@ const asciiArtLines = useMemo(() => {
 	line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
     
 	// LINE 4: Outfit & Body
-    const styleRef = outfitStyleMap[selectedOutfit];
-    if (styleRef && specialStyles[styleRef]) {
-        const styleToApply = specialStyles[styleRef];
-        const styledOutfit = outfit.split('').map((char, i) => {
-            // If the character is in the emoji list, apply the special style.
-            if (emojiCharacterList.includes(char)) {
-                return <span key={i} style={styleToApply}>{char}</span>;
-            }
-            // Otherwise (for symbols like ⚔️), render it normally with the Doto font.
-            return char;
-        });
-        line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
-    } else {
-        line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
-    }
+	const styleRef = outfitStyleMap[selectedOutfit];
+
+	// This regex identifies characters in the modern emoji Unicode ranges.
+	const modernEmojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
+
+	if (styleRef && specialStyles[styleRef]) {
+		const styleToApply = specialStyles[style_ref];
+		const styledOutfit = outfit.split('').map((char, i) => {
+			// Test if the character matches the modern emoji pattern.
+			if (modernEmojiRegex.test(char)) {
+				// If YES, apply the special B&W emoji styling.
+				return <span key={i} style={styleToApply}>{char}</span>;
+			}
+			// If NO (it's a symbol like ⚔️), render it normally with the "Doto" font.
+			return char;
+		});
+		line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
+	} else {
+		line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
+	}	
 
 	// *** END OF FINAL FIX ***
 
