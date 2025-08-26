@@ -572,27 +572,15 @@ const asciiArtLines = useMemo(() => {
 	}
 	line2 = hShape ? <>{applyShift(hShape.slice(0, 1))}{faceLine}{hShape.slice(-1)}</> : faceLine;
     
-// LINE 4: Outfit & Body
-const styleRef = outfitStyleMap[selectedOutfit];
-
-const modernEmojiRegex = /[\u{1F300}-\u{1F9FF}]/u;
-
-if (styleRef && specialStyles[styleRef]) {
-    const styleToApply = specialStyles[styleRef];
-    
-    // 👇 ADD THIS ONE LINE FOR DEBUGGING
-    console.log("DEBUG:", { selectedOutfit, styleRef, styleToApply });
-
-    const styledOutfit = outfit.split('').map((char, i) => {
-        if (modernEmojiRegex.test(char)) {
-            return <span key={i} style={styleToApply}>{char}</span>;
-        }
-        return char;
-    });
-    line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
-} else {
-    line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
-}
+    // LINE 4: Outfit & Body
+    const styleRef = outfitStyleMap[selectedOutfit];
+    if (styleRef && specialStyles[styleRef]) {
+        const styleToApply = specialStyles[styleRef];
+        const styledOutfit = outfit.split('').map((char, i) => (/[^\u0000-\u00ff]/).test(char) ? <span key={i} style={styleToApply}>{char}</span> : char);
+        line4 = bShape ? <>{bShape.slice(0, 1)}{styledOutfit}{bShape.slice(-1)}</> : <>{styledOutfit}</>;
+	} else {
+		line4 = bShape ? <>{applyShift(bShape.slice(0, 1))}{outfit}{bShape.slice(-1)}</> : <>{outfit}</>;
+	}
 
     // LINE 5: Feet
     line5 = applyShift(feet);
@@ -917,14 +905,7 @@ if (styleRef && specialStyles[styleRef]) {
 		>
         <div className="text-center">
             <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
-			{asciiArtLines.map((line, index) => {
-				const style = { position: 'relative' };
-				return (
-					<div key={index} style={style} >
-						{typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
-					</div>
-				);
-			})}
+              {asciiArtRef.current?.innerText}
             </div>
             <div className="flex justify-between mt-6 space-x-4">
 				<button
