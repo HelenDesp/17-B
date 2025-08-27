@@ -15,7 +15,8 @@ export const specialStyles = {
   XLlarge: {textShadow: 'none', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px'},
   CSBowtie: {textShadow: 'none', fontSize: '1.2em', position: 'relative', top: '-2px', left: '-2px'},
   CSYinYang: {textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-5px', left: '-2px'},
-  CSRadioactive: {textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-5px', left: '-2px'},	
+  CSRadioactive: {textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-5px', left: '-2px'},
+  CSBiohazard: {textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-6px', left: '-2px'},
 };
 
 // A map that links an outfit's name to a style preset from the library above.
@@ -24,7 +25,7 @@ export const outfitStyleMap = {
     'Snowflake': 'Mmedium',
     'Atom': 'Lmedium',
     'Swords': 'XLmedium',
-    'Biohazard': 'Smedium',
+    'Biohazard': 'CSBiohazard',
     'Anchor': 'Mlarge',
     'Yin Yang': 'CSYinYang',
     'Love': 'Smedium',
