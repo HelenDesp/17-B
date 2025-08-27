@@ -17,7 +17,7 @@ const catData = {
 
 // /components/PalMoji.js
 
-const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
+const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle, isMobile }) => {
     const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
 
     const handleSelect = (optionName) => {
@@ -45,7 +45,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
 			// Create a new style object specifically for the accordion preview
 			const accordionStyle = {
 				...originalStyle,      // Keep original properties like textShadow
-				fontSize: '1.4em',     // Override the font size as requested
+				fontSize: isMobile ? '1.4em' : '1.2em',     // Override the font size as requested
 				top: '0px',            // Override top position for correct alignment
 				left: '0px'            // Override left position for correct alignment
 			};
@@ -860,7 +860,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Feet" options={Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
         <AccordionItem label="Whiskers" options={Traits.Whiskers} selected={selectedWhiskers} onSelect={handleSetSelectedWhiskers} isOpen={openItem === 'Trait:Whiskers'} onToggle={() => toggleItem('Trait:Whiskers')} />
         <AccordionItem label="Wings" options={Traits.Wings} selected={selectedWings} onSelect={setSelectedWings} isOpen={openItem === 'Trait:Wings'} onToggle={() => toggleItem('Trait:Wings')} />
-        <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
+        <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} isMobile={isMobile} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
       <SelectionModal 
