@@ -2,21 +2,21 @@
 
 // A library of reusable style presets for special characters.
 export const specialStyles = {
-  Ssmall: {textShadow: 'none', fontSize: '0.5em', position: 'relative', top: '-7px', left: '-2px'},
-  Lsmall: {textShadow: 'none', fontSize: '0.55em', position: 'relative', top: '-7px', left: '-2px'},
-  default: {textShadow: 'none', fontSize: '0.6em', position: 'relative', top: '-7px', left: '-2px'},
-  Smedium: {textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-7px', left: '-2px'},
-  Mmedium: {textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-7px', left: '-2px'},
-  Lmedium: {textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-7px', left: '-2px'},
-  XLmedium: {textShadow: 'none', fontSize: '0.8em', position: 'relative', top: '-7px', left: '-2px'},
-  Slarge: {textShadow: 'none', fontSize: '0.85em', position: 'relative', top: '-7px', left: '-2px'},
-  Mlarge: {textShadow: 'none', fontSize: '0.9em', position: 'relative', top: '-7px', left: '-2px'},
-  Llarge: {textShadow: 'none', fontSize: '0.95em', position: 'relative', top: '-7px', left: '-2px'},
-  XLlarge: {textShadow: 'none', fontSize: '1em', position: 'relative', top: '-7px', left: '-2px'},
-  CSBowtie: {textShadow: 'none', fontSize: '1.2em', position: 'relative', top: '-2px', left: '-2px'},
-  CSYinYang: {textShadow: 'none', fontSize: '0.7em', position: 'relative', top: '-5px', left: '-2px'},
-  CSRadioactive: {textShadow: 'none', fontSize: '0.75em', position: 'relative', top: '-5px', left: '-2px'},
-  CSBiohazard: {textShadow: 'none', fontSize: '0.65em', position: 'relative', top: '-6px', left: '-2px'},
+  Ssmall: {textShadow: 'none', fontSize: '0.5em', position: 'relative', verticalAlign: '-7px', left: '-2px'},
+  Lsmall: {textShadow: 'none', fontSize: '0.55em', position: 'relative', verticalAlign: '-7px', left: '-2px'},
+  default: {textShadow: 'none', fontSize: '0.6em', position: 'relative', verticalAlign: '-7px', left: '-2px'},
+  Smedium: {textShadow: 'none', fontSize: '0.65em', position: 'relative', verticalAlign: '-7px', left: '-2px'},
+  Mmedium: {textShadow: 'none', fontSize: '0.7em', position: 'relative', verticalAlign: '-7px', left: '-2px'},
+  Lmedium: {textShadow: 'none', fontSize: '0.75em', position: 'relative', verticalAlign: '-7px', left: '-2px'},
+  XLmedium: {textShadow: 'none', fontSize: '0.8em', position: 'relative', verticalAlign: '7px', left: '-2px'},
+  Slarge: {textShadow: 'none', fontSize: '0.85em', position: 'relative', verticalAlign: '-7px', left: '-2px'},
+  Mlarge: {textShadow: 'none', fontSize: '0.9em', position: 'relative', verticalAlign: '-7px', left: '-2px'},
+  Llarge: {textShadow: 'none', fontSize: '0.95em', position: 'relative', verticalAlign: '-7px', left: '-2px'},
+  XLlarge: {textShadow: 'none', fontSize: '1em', position: 'relative', verticalAlign: '-7px', left: '-2px'},
+  CSBowtie: {textShadow: 'none', fontSize: '1.2em', position: 'relative', verticalAlign: '-2px', left: '-2px'},
+  CSYinYang: {textShadow: 'none', fontSize: '0.7em', position: 'relative', verticalAlign: '-5px', left: '-2px'},
+  CSRadioactive: {textShadow: 'none', fontSize: '0.75em', position: 'relative', verticalAlign: '-5px', left: '-2px'},
+  CSBiohazard: {textShadow: 'none', fontSize: '0.65em', position: 'relative', verticalAlign: '-6px', left: '-2px'},
 };
 
 // A map that links an outfit's name to a style preset from the library above.
