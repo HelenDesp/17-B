@@ -17,7 +17,7 @@ const catData = {
 
 // /components/PalMoji.js
 
-const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle, specialStyles = {}, outfitStyleMap = {}  }) => {
+const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle }) => {
     const displayOptions = ['Random', 'None', ...Object.keys(options).filter(op => op !== 'None')];
 
     const handleSelect = (optionName) => {
@@ -30,14 +30,13 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle, s
         }
     };
 
-	// Helper function to get the displayable ASCII for each trait
-	const getAsciiDisplay = (optionName) => {
-		if (optionName === 'Random' || optionName === 'None') {
-			return ''; 
-		}
-		const value = options[optionName];
-
-		// --- THIS IS THE NEW BLOCK YOU ARE ADDING ---
+    // Helper function to get the displayable ASCII for each trait
+    const getAsciiDisplay = (optionName) => {
+        if (optionName === 'Random' || optionName === 'None') {
+            return ''; // Don't show ASCII for "Random" or "None"
+        }
+        const value = options[optionName];
+		
 		// This checks if the trait is an "Outfit" that requires special styling
 		const styleRef = outfitStyleMap[optionName];
 		if (label === 'Outfit' && styleRef && specialStyles[styleRef]) {
@@ -52,14 +51,15 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle, s
 					? <span key={i} style={styleToApply}>{char}</span> 
 					: char
 			);
-		}
-		// --- END OF THE NEW BLOCK ---
+		}		
 
-		if (Array.isArray(value)) {
-			return value.join(' ');
-		}
-		return value;
-	};
+        // If the trait is an array (like Wings, Tail, Whiskers), join it with a space
+        if (Array.isArray(value)) {
+            return value.join(' ');
+        }
+        // Otherwise, just return the string value
+        return value;
+    };
 
     return (
         <div className="w-full" style={{ fontFamily: "'Cygnito Mono', monospace" }}>
@@ -843,16 +843,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Eyes" options={Traits.Eyes} selected={selectedEyes} onSelect={handleSetSelectedEyes} isOpen={openItem === 'Trait:Eyes'} onToggle={() => toggleItem('Trait:Eyes')} />
         <AccordionItem label="Mien" options={Traits.Mien} selected={selectedMien} onSelect={handleSetSelectedMien} isOpen={openItem === 'Trait:Mien'} onToggle={() => toggleItem('Trait:Mien')} />
         <AccordionItem label="Snout" options={Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Trait:Snout'} onToggle={() => toggleItem('Trait:Snout')} />
-        <AccordionItem 
-          label="Outfit" 
-          options={filteredOutfits} 
-          selected={selectedOutfit} 
-          onSelect={setSelectedOutfit} 
-          isOpen={openItem === 'Trait:Outfit'} 
-          onToggle={() => toggleItem('Trait:Outfit')}
-          specialStyles={specialStyles}
-          outfitStyleMap={outfitStyleMap}
-        />
+        <AccordionItem label="Outfit" options={filteredOutfits} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
         <AccordionItem label="Feet" options={Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
         <AccordionItem label="Whiskers" options={Traits.Whiskers} selected={selectedWhiskers} onSelect={handleSetSelectedWhiskers} isOpen={openItem === 'Trait:Whiskers'} onToggle={() => toggleItem('Trait:Whiskers')} />
         <AccordionItem label="Wings" options={Traits.Wings} selected={selectedWings} onSelect={setSelectedWings} isOpen={openItem === 'Trait:Wings'} onToggle={() => toggleItem('Trait:Wings')} />
