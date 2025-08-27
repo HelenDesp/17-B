@@ -40,15 +40,20 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
 		// This checks if the trait is an "Outfit" that requires special styling
 		const styleRef = outfitStyleMap[optionName];
 		if (label === 'Outfit' && styleRef && specialStyles[styleRef]) {
-			// --- START OF CHANGE ---
-			const baseStyle = specialStyles[styleRef];
-			const styleToApply = { ...baseStyle, fontFamily: '"Doto", monospace' };
-			// --- END OF CHANGE ---
+			const originalStyle = specialStyles[styleRef];
 
+			// Create a new style object specifically for the accordion preview
+			const accordionStyle = {
+				...originalStyle,      // Keep original properties like textShadow
+				fontSize: '1.4em',     // Override the font size as requested
+				top: '0px',            // Override top position for correct alignment
+				left: '0px'            // Override left position for correct alignment
+			};
+			
 			// Split the string, find special characters, and wrap them in a styled <span>
 			return value.split('').map((char, i) => 
 				/[^\u0000-\u00ff]/.test(char) 
-					? <span key={i} style={styleToApply}>{char}</span> 
+					? <span key={i} style={accordionStyle}>{char}</span> // Use the new accordionStyle
 					: char
 			);
 		}		
@@ -70,11 +75,15 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                 <span className="font-bold">{label}</span>
                 <div className="flex items-center space-x-2">
                     {/* START OF MODIFICATION */}
-                    {getAsciiDisplay(selected) && (
-                        <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
-                            {getAsciiDisplay(selected)}
-                        </span>
-                    )}
+					{getAsciiDisplay(selected) && (
+						<span 
+							className="text-gray-500 dark:text-gray-400" 
+							// ADD THE FONT FAMILY TO THIS SPAN
+							style={{ whiteSpace: 'pre', fontFamily: '"Doto", monospace' }}
+						>
+							{getAsciiDisplay(selected)}
+						</span>
+					)}
                     <span className="font-normal">{selected}</span>
                     {/* END OF MODIFICATION */}
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
@@ -94,9 +103,13 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                                 <span>{optionName}</span>
                             </div>
                             {/* This is the new part that displays the ASCII art */}
-                            <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
-                                {getAsciiDisplay(optionName)}
-                            </span>
+                        <span 
+                            className="text-gray-500 dark:text-gray-400" 
+                            // AND ADD THE FONT FAMILY TO THIS SPAN
+                            style={{ whiteSpace: 'pre', fontFamily: '"Doto", monospace' }}
+                        >
+                            {getAsciiDisplay(optionName)}
+                        </span>
                         </button>
                     ))}
                 </div>
