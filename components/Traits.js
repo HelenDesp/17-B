@@ -39,10 +39,10 @@ export const outfitStyleMap = {
     'Sun': 'Slarge',
 	'Watch': 'default',
 	'Scissor': 'default',
-	'Female': 'Mlarge',
+	'Female': 'Slarge',
 	'Football': 'default',
 	'Recycle': 'XLmedium',
-	'Male': 'Mlarge',
+	'Male': 'Slarge',
 	'Libra': 'XLmedium',
 	'Plane': 'Lmedium',
 };
