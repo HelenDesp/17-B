@@ -45,7 +45,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle, i
 			// Create a new style object specifically for the accordion preview
 			const accordionStyle = {
 				...originalStyle,      // Keep original properties like textShadow
-				fontSize: isMobile ? '2em' : '1.2em',     // Override the font size as requested
+				fontSize: isMobile ? '1.6em' : '1.2em',     // Override the font size as requested
 				top: '0px',            // Override top position for correct alignment
 				left: '0px'            // Override left position for correct alignment
 			};
