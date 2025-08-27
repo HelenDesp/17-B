@@ -268,16 +268,35 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
     const originalElement = palMojiRef.current;
     if (!originalElement) return null;
 
-    const onclone = (doc) => {
-      const header = doc.getElementById('palmoji-header-for-save');
-      if (header) {
-        header.classList.remove('hidden');
-      }
-      const buttonContainer = doc.getElementById('palmoji-action-buttons');
-      if (buttonContainer) {
-        buttonContainer.style.visibility = 'hidden';
-      }
-    };
+	const onclone = (doc) => {
+	  // Show the header for the screenshot
+	  const header = doc.getElementById('palmoji-header-for-save');
+	  if (header) {
+		header.classList.remove('hidden');
+	  }
+	  // Hide the action buttons
+	  const buttonContainer = doc.getElementById('palmoji-action-buttons');
+	  if (buttonContainer) {
+		buttonContainer.style.visibility = 'hidden';
+	  }
+
+	  // --- NEW LOGIC TO FIX ALIGNMENT ---
+	  // Find all styled characters within the ASCII art
+	  const styledSpans = doc.querySelectorAll('#ascii-art-container span[style]');
+	  styledSpans.forEach(span => {
+		  const top = span.style.top || '0px';
+		  const left = span.style.left || '0px';
+
+		  // Convert 'top' and 'left' to a transform, which html2canvas handles better
+		  if (top !== '0px' || left !== '0px') {
+			  span.style.transform = `translate(${left}, ${top})`;
+			  // Remove the old properties to avoid conflicts
+			  span.style.position = '';
+			  span.style.top = '';
+			  span.style.left = '';
+		  }
+	  });
+	};
 
     try {
       // Capture the element at high resolution.
@@ -795,7 +814,7 @@ const asciiArtLines = useMemo(() => {
 				{/* --- END: Added Header for Saved Image --- */}
 
 				<div className="p-2">
-				  <div ref={asciiArtRef} className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
+				  <div id="ascii-art-container" ref={asciiArtRef} className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
 					{asciiArtLines.map((line, index) => {
 					  const style = { 
 						position: 'relative',
