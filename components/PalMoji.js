@@ -41,7 +41,11 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle, s
 		// This checks if the trait is an "Outfit" that requires special styling
 		const styleRef = outfitStyleMap[optionName];
 		if (label === 'Outfit' && styleRef && specialStyles[styleRef]) {
-			const styleToApply = specialStyles[styleRef];
+			// --- START OF CHANGE ---
+			const baseStyle = specialStyles[styleRef];
+			const styleToApply = { ...baseStyle, fontFamily: '"Doto", monospace' };
+			// --- END OF CHANGE ---
+
 			// Split the string, find special characters, and wrap them in a styled <span>
 			return value.split('').map((char, i) => 
 				/[^\u0000-\u00ff]/.test(char) 
