@@ -44,7 +44,7 @@ export const outfitStyleMap = {
 	'Recycle': 'XLmedium',
 	'Male': 'Mlarge',
 	'Libra': 'XLmedium',
-	'Plane': 'XLmedium',
+	'Plane': 'Lmedium',
 };
 
 export const Traits = {
@@ -289,7 +289,7 @@ export const Traits = {
 	'Recycle': '~♻️~',
 	'Male': '_♂_',
 	'Libra': '~⚖️~',
-	'Plane': '-✈️-',
+	'Plane': '~✈️~',
   },
   Feet: {
     'None': '',
