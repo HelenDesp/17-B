@@ -45,7 +45,7 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle, i
 			// Create a new style object specifically for the accordion preview
 			const accordionStyle = {
 				...originalStyle,      // Keep original properties like textShadow
-				fontSize: isMobile ? '1.8em' : '1.2em',     // Override the font size as requested
+				fontSize: isMobile ? '1.4em' : '1.2em',     // Override the font size as requested
 				top: '0px',            // Override top position for correct alignment
 				left: '0px'            // Override left position for correct alignment
 			};
@@ -186,7 +186,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
       return Traits.Outfit; // On desktop, return all outfits
     }
     // On mobile, create a new object excluding the specified traits
-    const outfitsToExclude = ['Anchor', 'Coffee', 'Baseball', 'Watch', 'Football'];
+    const outfitsToExclude = ['Anchor', 'Coffee', 'Baseball', 'Watch', 'Football', 'Bowtie'];
     const filtered = { ...Traits.Outfit }; // Copy all outfits
     outfitsToExclude.forEach(key => {
       delete filtered[key]; // Remove each unwanted outfit
@@ -856,11 +856,11 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Eyes" options={Traits.Eyes} selected={selectedEyes} onSelect={handleSetSelectedEyes} isOpen={openItem === 'Trait:Eyes'} onToggle={() => toggleItem('Trait:Eyes')} />
         <AccordionItem label="Mien" options={Traits.Mien} selected={selectedMien} onSelect={handleSetSelectedMien} isOpen={openItem === 'Trait:Mien'} onToggle={() => toggleItem('Trait:Mien')} />
         <AccordionItem label="Snout" options={Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Trait:Snout'} onToggle={() => toggleItem('Trait:Snout')} />
-        <AccordionItem label="Outfit" options={filteredOutfits} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
+        <AccordionItem label="Outfit" options={filteredOutfits} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} isMobile={isMobile} />
         <AccordionItem label="Feet" options={Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
         <AccordionItem label="Whiskers" options={Traits.Whiskers} selected={selectedWhiskers} onSelect={handleSetSelectedWhiskers} isOpen={openItem === 'Trait:Whiskers'} onToggle={() => toggleItem('Trait:Whiskers')} />
         <AccordionItem label="Wings" options={Traits.Wings} selected={selectedWings} onSelect={setSelectedWings} isOpen={openItem === 'Trait:Wings'} onToggle={() => toggleItem('Trait:Wings')} />
-        <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} isMobile={isMobile} />
+        <AccordionItem label="Tail" options={Traits.Tail} selected={selectedTail} onSelect={setSelectedTail} isOpen={openItem === 'Trait:Tail'} onToggle={() => toggleItem('Trait:Tail')} />
       </SelectionModal>
       {/* ===== NEW MODAL FOR NAMING ===== */}
       <SelectionModal 
