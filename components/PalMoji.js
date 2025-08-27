@@ -283,19 +283,26 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 	  // --- NEW LOGIC TO FIX ALIGNMENT ---
 	  // Find all styled characters within the ASCII art
 	  const styledSpans = doc.querySelectorAll('#ascii-art-container span[style]');
-	  styledSpans.forEach(span => {
-		  const top = span.style.top || '0px';
-		  const left = span.style.left || '0px';
+		styledSpans.forEach(span => {
+			const topString = span.style.top || '0px';
+			const leftString = span.style.left || '0px';
 
-		  // Convert 'top' and 'left' to a transform, which html2canvas handles better
-		  if (top !== '0px' || left !== '0px') {
-			  span.style.transform = `translate(${left}, ${top})`;
-			  // Remove the old properties to avoid conflicts
-			  span.style.position = '';
-			  span.style.top = '';
-			  span.style.left = '';
-		  }
-	  });
+			// --- START: Added Horizontal Adjustment ---
+			const verticalAdjust = 2;   // Nudges up/down. Negative is up, positive is down.
+			const horizontalAdjust = -6;  // Nudges left/right. Negative is left, positive is right.
+
+			const topValue = parseInt(topString, 10) + verticalAdjust;
+			const leftValue = parseInt(leftString, 10) + horizontalAdjust;
+			// --- END: Added Horizontal Adjustment ---
+
+			if (topString !== '0px' || leftString !== '0px') {
+				// Use both new values here
+				span.style.transform = `translate(${leftValue}px, ${topValue}px)`;
+				span.style.position = '';
+				span.style.top = '';
+				span.style.left = '';
+			}
+		});
 	};
 
     try {
