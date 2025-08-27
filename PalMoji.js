@@ -4,6 +4,7 @@ import { useState, useMemo, useRef } from 'react';
 import { Traits, specialStyles, outfitStyleMap } from './Traits.js';
 import axios from "axios";
 import { useAccount } from "wagmi";
+import { useIsMobile } from './useIsMobile';
 
 const catData = {
   Shapes: {
@@ -35,6 +36,18 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
             return ''; // Don't show ASCII for "Random" or "None"
         }
         const value = options[optionName];
+		
+		const styleRef = outfitStyleMap[optionName];
+		if (label === 'Outfit' && styleRef && specialStyles[styleRef]) {
+			const styleToApply = specialStyles[styleRef]; // Reverted to the simpler version
+
+			// Split the string, find special characters, and wrap them in a styled <span>
+			return value.split('').map((char, i) => 
+				/[^\u0000-\u00ff]/.test(char) 
+					? <span key={i} style={styleToApply}>{char}</span> 
+					: char
+			);
+		}		
 
         // If the trait is an array (like Wings, Tail, Whiskers), join it with a space
         if (Array.isArray(value)) {
@@ -53,11 +66,15 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                 <span className="font-bold">{label}</span>
                 <div className="flex items-center space-x-2">
                     {/* START OF MODIFICATION */}
-                    {getAsciiDisplay(selected) && (
-                        <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
-                            {getAsciiDisplay(selected)}
-                        </span>
-                    )}
+					{getAsciiDisplay(selected) && (
+						<span 
+							className="text-gray-500 dark:text-gray-400" 
+							// ADD THE FONT FAMILY TO THIS SPAN
+							style={{ whiteSpace: 'pre', fontFamily: '"Doto", monospace' }}
+						>
+							{getAsciiDisplay(selected)}
+						</span>
+					)}
                     <span className="font-normal">{selected}</span>
                     {/* END OF MODIFICATION */}
                     <svg width="12" height="8" viewBox="0 0 12 8" fill="currentColor" className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}><path d="M0 0H2V2H0V0Z M2 2H4V4H2V2Z M4 4H6V6H4V4Z M6 2H8V4H6V2Z M8 0H10V2H8V0Z" /></svg>
@@ -77,9 +94,13 @@ const AccordionItem = ({ label, options, selected, onSelect, isOpen, onToggle })
                                 <span>{optionName}</span>
                             </div>
                             {/* This is the new part that displays the ASCII art */}
-                            <span className="text-gray-500 dark:text-gray-400" style={{ whiteSpace: 'pre' }}>
-                                {getAsciiDisplay(optionName)}
-                            </span>
+                        <span 
+                            className="text-gray-500 dark:text-gray-400" 
+                            // AND ADD THE FONT FAMILY TO THIS SPAN
+                            style={{ whiteSpace: 'pre', fontFamily: '"Doto", monospace' }}
+                        >
+                            {getAsciiDisplay(optionName)}
+                        </span>
                         </button>
                     ))}
                 </div>
@@ -120,6 +141,7 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
 
 
 export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChange, currentName, originalNFTName }) {
+  const isMobile = useIsMobile();
   const palMojiRef = useRef(null);
   const asciiArtRef = useRef(null);
   const { address } = useAccount();  
@@ -147,9 +169,21 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
-  const hasCustomName = currentName && currentName !== 'Your PalMoji';
-  const palMojiDisplayName = hasCustomName ? currentName : 'Your PalMoji';
-  const palMojiFullName = hasCustomName ? `${currentName} PalMoji` : 'Your PalMoji';
+  const customNameOnly = (currentName && currentName !== "Your PalMoji") ? currentName.replace(/ PalMoji$/, '') : null;
+  const palMojiFullName = customNameOnly ? `${customNameOnly} PalMoji` : 'Your PalMoji';
+  
+  const filteredOutfits = useMemo(() => {
+    if (!isMobile) {
+      return Traits.Outfit; // On desktop, return all outfits
+    }
+    // On mobile, create a new object excluding the specified traits
+    const outfitsToExclude = ['Anchor', 'Coffee', 'Baseball', 'Watch', 'Football'];
+    const filtered = { ...Traits.Outfit }; // Copy all outfits
+    outfitsToExclude.forEach(key => {
+      delete filtered[key]; // Remove each unwanted outfit
+    });
+    return filtered;
+  }, [isMobile]);  
   
   const handleReset = () => {
     setHeadwearShape('None');
@@ -293,39 +327,44 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
     }
   };	
 	
-  const handleUpgrade = async () => {
-    setIsUpgrading(true);
-    const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
-    const screenshotDataURL = await generateScreenshotDataURL();
+	const handleUpgrade = async (fileName) => {
+	  setIsUpgrading(true);
+	  const asciiArtText = asciiArtRef.current ? asciiArtRef.current.innerText : '';
+	  
+	  // THIS LINE WAS MISSING
+	  const screenshotDataURL = await generateScreenshotDataURL();
 
-    if (!screenshotDataURL) {
-        alert("Could not generate screenshot. Please try again.");
-        setIsUpgrading(false);
-        return;
-    }
+	  if (!screenshotDataURL) {
+		  alert("Could not generate screenshot for upgrade. Please try again.");
+		  setIsUpgrading(false);
+		  return;
+	  }
 
-    try {
-        await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
-            original: originalNFTName,
-            owner: address,
-            name: currentName,
-            palmoji: asciiArtText,
-            screenshot: screenshotDataURL,
-			nftId: nftId,
-        });
-        setIsUpgradeModalOpen(false);
-        setShowThankYouModal(true);
-    } catch (error) {
-        console.error("PalMoji upgrade submission error:", error);
-        alert("Failed to submit PalMoji upgrade. Please try again.");
-    } finally {
-        setIsUpgrading(false);
-    }
-  };		
+	  try {
+		  await axios.post("https://reversegenesis.org/edata/palmoji_upgrade.php", {
+			  original: originalNFTName,
+			  owner: address,
+			  // Use `palMojiFullName` for consistency
+			  name: palMojiFullName,
+			  palmoji: asciiArtText,
+			  screenshot: screenshotDataURL,
+			  nftId: nftId,
+			  // The fileName passed from the button is now correctly used
+			  fileName: fileName,
+		  });
+		  setIsUpgradeModalOpen(false);
+		  setShowThankYouModal(true);
+	  } catch (error) {
+		  console.error("PalMoji upgrade submission error:", error);
+		  alert("Failed to submit PalMoji upgrade. Please try again.");
+	  } finally {
+		  setIsUpgrading(false);
+	  }
+	};		
 
 // PASTE THE NEW CODE BLOCK HERE
 
-  const shareText = `Meet my ${palMojiDisplayName}!`;
+  const shareText = `Meet my ${palMojiFullName}!`;
   const callToAction = `Want one? Head to the link to start creating.`;
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const fullText = `${shareText}\n${callToAction}\n\n${shareUrl}`;
@@ -404,20 +443,39 @@ finalCtx.drawImage(currentCanvas, 0, 0, dynamicWidth, targetHeight);
 
 // In PalMoji.js
 
-  const handleSaveImage = async () => {
+const handleSaveImage = async () => {
     const imageDataURL = await generateScreenshotDataURL();
     if (imageDataURL) {
         const link = document.createElement('a');
         const hasCustomName = currentName && currentName !== "Your PalMoji";
-        const safeName = hasCustomName ? `-${currentName.toLowerCase().replace(/\s+/g, '-')}` : '';
-        link.download = `palmoji${safeName}-${nftId}.png`;
-        link.href = imageDataURL;
+
+        // Corrected filename logic
+        let fileName;
+        if (hasCustomName) {
+            const safeName = currentName.toLowerCase().replace(/\s+/g, '-');
+            fileName = `palmoji-${safeName}-${nftId}.png`;
+        } else {
+            fileName = `palmoji-${nftId}.png`;
+        }
+
+        link.download = fileName;
+        
+        // Use a more robust download method
+        const response = await fetch(imageDataURL);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        link.href = blobUrl;
+
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+        
         const nameForMessage = hasCustomName ? currentName : "PalMoji";
         setShareMessage(`Your ${nameForMessage} has been saved!`);
         setTimeout(() => setShareMessage(''), 5000);
     }
-  };	
+};	
 	
 const asciiArtLines = useMemo(() => {
     const headwear = Traits.Headwear[selectedHeadwear] || '';	  
@@ -721,7 +779,7 @@ const asciiArtLines = useMemo(() => {
 					<div style={{ transform: 'translateY(-7px)' }}>
 						<p className="text-base text-gray-800 dark:text-gray-300">{originalNFTName}</p>
 						<p className="text-sm font-bold text-black dark:text-white">
-							{palMojiDisplayName}
+							{palMojiFullName}
 						</p>
 					</div>
 				</div>
@@ -789,7 +847,7 @@ const asciiArtLines = useMemo(() => {
         <AccordionItem label="Eyes" options={Traits.Eyes} selected={selectedEyes} onSelect={handleSetSelectedEyes} isOpen={openItem === 'Trait:Eyes'} onToggle={() => toggleItem('Trait:Eyes')} />
         <AccordionItem label="Mien" options={Traits.Mien} selected={selectedMien} onSelect={handleSetSelectedMien} isOpen={openItem === 'Trait:Mien'} onToggle={() => toggleItem('Trait:Mien')} />
         <AccordionItem label="Snout" options={Traits.Snout} selected={selectedSnoutTrait} onSelect={setSelectedSnoutTrait} isOpen={openItem === 'Trait:Snout'} onToggle={() => toggleItem('Trait:Snout')} />
-        <AccordionItem label="Outfit" options={Traits.Outfit} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
+        <AccordionItem label="Outfit" options={filteredOutfits} selected={selectedOutfit} onSelect={setSelectedOutfit} isOpen={openItem === 'Trait:Outfit'} onToggle={() => toggleItem('Trait:Outfit')} />
         <AccordionItem label="Feet" options={Traits.Feet} selected={selectedFeet} onSelect={setSelectedFeet} isOpen={openItem === 'Trait:Feet'} onToggle={() => toggleItem('Trait:Feet')} />
         <AccordionItem label="Whiskers" options={Traits.Whiskers} selected={selectedWhiskers} onSelect={handleSetSelectedWhiskers} isOpen={openItem === 'Trait:Whiskers'} onToggle={() => toggleItem('Trait:Whiskers')} />
         <AccordionItem label="Wings" options={Traits.Wings} selected={selectedWings} onSelect={setSelectedWings} isOpen={openItem === 'Trait:Wings'} onToggle={() => toggleItem('Trait:Wings')} />
@@ -840,7 +898,7 @@ const asciiArtLines = useMemo(() => {
       </SelectionModal>
       {/* REPLACE the old <ShareModal.../> line with THIS ENTIRE BLOCK */}
       <SelectionModal 
-        title={`SHARE ${palMojiDisplayName.toUpperCase()}`}
+        title={`SHARE ${palMojiFullName.toUpperCase()}`}
         isOpen={openModal === 'share'} 
         onClose={handleCloseModal}
 		centerContent={true}
@@ -881,12 +939,28 @@ const asciiArtLines = useMemo(() => {
 			centerContent={true}
 		>
         <div className="text-center">
-            <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9, whiteSpace: 'pre' }}>
-              {asciiArtRef.current?.innerText}
+            {/* START OF FIX */}
+            <div className="font-mono text-5xl text-center text-black dark:text-white" style={{ fontFamily: '"Doto", monospace', fontWeight: 900, textShadow: '1px 0 #000, -1px 0 #000, 0 1px #000, 0 -1px #000, 1px 1px #000, -1px -1px #000, 1px -1px #000, -1px 1px #000', lineHeight: 0.9 }}>
+              {asciiArtLines.map((line, index) => (
+                <div key={index}>
+                  {typeof line === 'string' && line.trim() === '' ? '\u00A0' : line}
+                </div>
+              ))}
             </div>
+            {/* END OF FIX */}
             <div className="flex justify-between mt-6 space-x-4">
-              <button
-                onClick={handleUpgrade}
+				<button
+				onClick={() => {
+					// This logic is now corrected and robust
+					let fileName;
+					if (customNameOnly) {
+						const safeName = customNameOnly.toLowerCase().replace(/\s+/g, '-');
+						fileName = `palmoji-${safeName}-${nftId}.png`;
+					} else {
+						fileName = `palmoji-${nftId}.png`;
+					}
+					handleUpgrade(fileName);
+				}}
 				disabled={isUpgrading}
                 className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
               >
