@@ -26,7 +26,7 @@ export const outfitStyleMap = {
     'Atom': 'Lmedium',
     'Swords': 'XLmedium',
     'Biohazard': 'CSBiohazard',
-    'Anchor': 'Mlarge',
+    'Anchor': 'Slarge',
     'Yin Yang': 'CSYinYang',
     'Love': 'Smedium',
     'Radioactive': 'CSRadioactive',
