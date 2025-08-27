@@ -288,8 +288,8 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
 			const leftString = span.style.left || '0px';
 
 			// --- START: Added Horizontal Adjustment ---
-			const verticalAdjust = 2;   // Nudges up/down. Negative is up, positive is down.
-			const horizontalAdjust = -6;  // Nudges left/right. Negative is left, positive is right.
+			const verticalAdjust = 3;   // Nudges up/down. Negative is up, positive is down.
+			const horizontalAdjust = -1;  // Nudges left/right. Negative is left, positive is right.
 
 			const topValue = parseInt(topString, 10) + verticalAdjust;
 			const leftValue = parseInt(leftString, 10) + horizontalAdjust;
