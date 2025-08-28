@@ -44,6 +44,7 @@ export default function Footer() {
   };
   // --- END: Added state for the Contact Modal ---	
   return (
+  <>
     <footer className="bg-white dark:bg-dark-200 border-t-2 border-dark-200 dark:border-light-200 py-6 px-6 transition-colors duration-200">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center">
