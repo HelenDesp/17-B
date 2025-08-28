@@ -211,7 +211,7 @@ export default function PalMoji({ ownerNFTImage, PalMojiTrait, nftId, onNameChan
     setSelectedWhiskers('None');
     setSelectedWings('None');
     setSelectedTail('None');
-	onNameChange("Your PalMoji");
+	onNameChange(null);
   };
 
   const handleSetSelectedEarsHead = (value) => {
