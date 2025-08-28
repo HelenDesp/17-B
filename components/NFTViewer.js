@@ -217,6 +217,7 @@ export default function NFTViewer({
                       {nameError}
                     </p>
                   )}
+				</div>  
 				{/* Manifesto Input (Unchanged Logic) */}
 				<div>
 				  <label className="block text-base font-medium text-gray-700 dark:text-gray-100 capitalize">manifesto</label>
