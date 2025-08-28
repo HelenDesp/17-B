@@ -183,7 +183,7 @@ export default function Dashboard() {
       <div className={!isConnected ? 'flex flex-col items-center justify-center py-16 px-4' : 'hidden'}>
         <div className="max-w-lg text-center">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Unlock Your Web3 Experience 🚀
+            Unlock Your Web3 Experience
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
             Connect your wallet to manage your NFTs and Tokens across multiple networks with a full suite of powerful tools, while also unleashing your creativity to design a unique PalMoji.
