@@ -183,11 +183,10 @@ export default function Dashboard() {
       <div className={!isConnected ? 'flex flex-col items-center justify-center py-16 px-4' : 'hidden'}>
         <div className="max-w-lg text-center">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Mudelo to your Web3 Wallet
+            Unlock Your Web3 Experience 🚀
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            Connect your wallet to view your assets, make transfers, and track
-            your transaction history.
+            Connect your wallet to manage your NFTs and Tokens across multiple networks with a full suite of powerful tools, while also unleashing your creativity to design a unique PalMoji.
           </p>
           <CustomWalletButton />
           <div className="mt-8">
