@@ -217,21 +217,47 @@ export default function NFTViewer({
                       {nameError}
                     </p>
                   )}
-                </div>
-                {["manifesto", "talisman", "weapon"].map(field => (
-                  <div key={field}>
-                    <label className="block text-base font-medium text-gray-700 dark:text-gray-100 capitalize">{field}</label>
-                    <input
-                      type="text"
-                      name={field}
-                      value={formData[field]}
-                      onChange={e => handleChange(field, e.target.value)}
-                      placeholder={selectedNFT.traits ? selectedNFT.traits[field] : ''}
-                      className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
-                      style={{ boxShadow: 'none' }}
-                    />
-                  </div>
-                ))}
+				{/* Manifesto Input (Unchanged Logic) */}
+				<div>
+				  <label className="block text-base font-medium text-gray-700 dark:text-gray-100 capitalize">manifesto</label>
+				  <input
+					type="text"
+					name="manifesto"
+					value={formData.manifesto}
+					onChange={e => handleChange("manifesto", e.target.value)}
+					placeholder={selectedNFT.traits?.manifesto || ''}
+					className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+					style={{ boxShadow: 'none' }}
+				  />
+				</div>
+
+				{/* Talisman Input (NEW FALLBACK LOGIC) */}
+				<div>
+				  <label className="block text-base font-medium text-gray-700 dark:text-gray-100 capitalize">talisman</label>
+				  <input
+					type="text"
+					name="talisman"
+					value={formData.talisman}
+					onChange={e => handleChange("talisman", e.target.value)}
+					placeholder={selectedNFT.traits?.talisman || 'Concealed'}
+					className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+					style={{ boxShadow: 'none' }}
+				  />
+				</div>
+
+				{/* Weapon Input (Unchanged Logic) */}
+				<div>
+				  <label className="block text-base font-medium text-gray-700 dark:text-gray-100 capitalize">weapon</label>
+				  <input
+					type="text"
+					name="weapon"
+					value={formData.weapon}
+					onChange={e => handleChange("weapon", e.target.value)}
+					placeholder={selectedNFT.traits?.weapon || ''}
+					className="w-full p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-black dark:placeholder-white focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+					style={{ boxShadow: 'none' }}
+				  />
+				</div>
                 <div className="flex justify-between mt-6 space-x-4">
                   <button
                     type="submit"
