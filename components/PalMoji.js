@@ -129,7 +129,7 @@ const SelectionModal = ({ title, isOpen, onClose, centerContent = false, childre
     return (
         <div className="absolute inset-0 z-20 flex flex-col bg-gray-300/50 dark:bg-gray-800/50 backdrop-blur-sm">
             <div className={headerClassName}>
-                <p className="font-bold text-xl text-center text-gray-800 dark:text-white">{title}</p>
+                <p className="font-bold text-xl text-center text-gray-800 dark:text-white px-12">{title}</p>
                 <button
                     className="absolute top-4 right-4 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
                     onClick={onClose}
