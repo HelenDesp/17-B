@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Web3 Wallet App</title>
+        <title>RVG dApp</title>
         <meta
           name="description"
           content="A beautiful Web3 wallet app for managing your crypto assets"
