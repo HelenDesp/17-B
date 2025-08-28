@@ -1,13 +1,55 @@
 import React from "react";
+import { useState } from "react";
+import axios from "axios";
+import { useAccount } from "wagmi";
 
 export default function Footer() {
+// --- START: Added state for the Contact Modal ---
+  const { address } = useAccount();
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: '', message: '' });
+  const [contactError, setContactError] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
+
+  const handleContactChange = (field, value) => {
+    setContactForm({ ...contactForm, [field]: value });
+    if (contactError) setContactError(""); // Clear error on change
+  };
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    if (!contactForm.name.trim() || !contactForm.message.trim()) {
+      setContactError("Your Name and Message are both required.");
+      return;
+    }
+    setContactError("");
+    setIsSending(true);
+
+    try {
+      await axios.post("https://reversegenesis.org/edata/contact.php", {
+        owner: address || "Not Connected",
+        name: contactForm.name,
+        message: contactForm.message,
+      });
+      setIsContactModalOpen(false);
+      setContactForm({ name: '', message: '' });
+      setShowThankYou(true);
+    } catch (error) {
+      console.error("Contact form submission error:", error);
+      setContactError("Failed to send message. Please try again later.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+  // --- END: Added state for the Contact Modal ---	
   return (
     <footer className="bg-white dark:bg-dark-200 border-t-2 border-dark-200 dark:border-light-200 py-6 px-6 transition-colors duration-200">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center space-x-2 mb-4 md:mb-0">
             <svg
-              className="w-8 h-8 text-black dark:text-white"
+              className="w-6 h-6 text-black dark:text-white"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -81,15 +123,91 @@ export default function Footer() {
             reserved.
           </p>
           <div className="mt-4 md:mt-0 flex space-x-6">
-            <a
-              href="#"
-              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
-            >
-              Contact
-            </a>
+			<button
+			  onClick={() => setIsContactModalOpen(true)}
+			  className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors"
+			>
+			  Contact
+			</button>
           </div>
         </div>
       </div>
     </footer>
+{/* --- START: NEW CONTACT MODAL --- */}
+  {isContactModalOpen && (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+      <div className="fixed inset-0 bg-black bg-opacity-60 z-[9999]" onClick={() => setIsContactModalOpen(false)} />
+      <div className="relative z-[10000] flex items-center justify-center min-h-screen w-full px-4 py-10">
+        <div className="relative bg-white dark:bg-gray-800 p-6 border-b2 border-2 border-black dark:border-white rounded-none shadow-md max-w-md w-full">
+          <button
+            className="absolute top-3 right-3 border-2 border-black dark:border-white w-8 h-8 flex items-center justify-center transition bg-transparent text-gray-800 dark:text-white hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black rounded cursor-pointer"
+            onClick={() => setIsContactModalOpen(false)}
+            aria-label="Close"
+          >
+            <span className="text-4xl leading-none font-bold">&#215;</span>
+          </button>
+          <h3 className="text-base font-normal mb-4 text-center text-gray-800 dark:text-white">Contact Us</h3>
+
+          <form onSubmit={handleContactSubmit} className="space-y-4">
+            <div>
+              <label className="block text-base font-medium text-gray-700 dark:text-gray-100">Your Name <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                value={contactForm.name}
+                onChange={e => handleContactChange("name", e.target.value)}
+                className="w-full mt-1 p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-500 focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+              />
+            </div>
+            <div>
+              <label className="block text-base font-medium text-gray-700 dark:text-gray-100">Message <span className="text-red-500">*</span></label>
+              <textarea
+                rows="4"
+                value={contactForm.message}
+                onChange={e => handleContactChange("message", e.target.value)}
+                className="w-full mt-1 p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-500 focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+              />
+            </div>
+
+            {contactError && <p className="text-sm text-red-500">{contactError}</p>}
+
+            <div className="flex justify-between pt-2 space-x-4">
+              <button
+                type="submit"
+                disabled={isSending}
+                className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+              >
+                {isSending ? 'SENDING...' : 'SEND'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsContactModalOpen(false)}
+                className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none transition-colors duration-200 hover:bg-gray-900 hover:text-white dark:hover:bg-white dark:hover:text-black"
+              >
+                CLOSE
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  )}
+  {/* --- END: NEW CONTACT MODAL --- */}
+
+  {/* --- START: THANK YOU MESSAGE --- */}
+  {showThankYou && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center px-4">
+        <div className="relative bg-white dark:bg-gray-800 p-8 rounded shadow-lg max-w-sm w-full text-center">
+            <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Message Sent!</h4>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">Thank you for your feedback.</p>
+            <button
+                onClick={() => setShowThankYou(false)}
+                className="px-4 py-1.5 border-2 border-gray-900 dark:border-white text-gray-900 dark:text-white text-sm [font-family:'Cygnito_Mono',sans-serif] uppercase tracking-wide rounded-none"
+            >
+                    OK
+                </button>
+            </div>
+        </div>
+      )}
+    </> {/* <-- WRAPPER END */}
   );
 }
