@@ -18,9 +18,9 @@ const queryClient = new QueryClient();
 
 // Set up metadata
 const metadata = {
-  name: "Web3 Wallet App",
-  description: "A simple dApp for transferring tokens and viewing balances",
-  url: "https://web3-wallet-app.com",
+  name: "RVG dApp",
+  description: "Manage your NFTs and Tokens across multiple networks, and design a unique PalMoji.",
+  url: "https://reversegenesis.com",
   icons: ["https://example.com/icon.png"],
 };
 
