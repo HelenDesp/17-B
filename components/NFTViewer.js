@@ -122,11 +122,12 @@ export default function NFTViewer({
 			style={{ 
 			  fontFamily: '"Doto", monospace',
 			  fontWeight: 900,
+              text-shadow: rgb(0 0 0) 0.1px 0px, rgb(0 0 0) -0.1px 0px, rgb(0 0 0) 0px 0.1px, rgb(0 0 0) 0px -0.1px, rgb(0 0 0) 0.1px 0.1px, rgb(0 0 0) -0.1px -0.1px, rgb(0 0 0) 0.1px -0.1px, rgb(0 0 0) -0.1px 0.1px;			  
 			  fontSize: '22px',
 			  whiteSpace: 'nowrap',
 			  display: 'inline-block',
 			  verticalAlign: 'middle',
-			  lineHeight: 1,
+			  lineHeight: 0.9,
 			  margin: '0 0.25rem',
 			}}
 			className="text-gray-800 dark:text-white"
