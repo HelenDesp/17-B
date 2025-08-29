@@ -5,10 +5,10 @@ import Footer from "./Footer";
 import { useTheme } from "../context/ThemeContext";
 import { useAccount } from "wagmi";
 import AsciiComingSoon from './AsciiComingSoon';
-import NftsPage from './NftsPage'; // <-- IMPORT THE NEW PAGE COMPONENT
+import NftsPage from './NftsPage';
+import TokensPage from './TokensPage';
 
-// --- These placeholders remain simple ---
-const Tokens = () => <div className="p-6"><h1>Tokens Content</h1></div>;
+
 const Activity = () => <div className="p-6"><h1>Activity Content</h1></div>;
 
 // --- FIX: Update these components to accept { theme } as a prop ---
@@ -79,7 +79,7 @@ export default function Layout({ children }) {
       case "nfts":
         return <NftsPage />; // <-- USE THE IMPORTED COMPONENT
       case "tokens":
-        return <Tokens />;		
+        return <TokensPage />;		
       case "activity":
         return <Activity />;
       case "palmoji":
