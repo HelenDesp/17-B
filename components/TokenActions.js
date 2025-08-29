@@ -111,7 +111,7 @@ className={`flex flex-col items-center justify-center border rounded text-base h
 				  : "/bridge.svg"
 			  }
 			  alt={btn}
-			  className={`w-8 h-8 mb-1 ${btn === "Buy" ? 'dark:invert' : ''}`}
+			  className="w-8 h-8 mb-1 dark:invert"
 			/>
             <span className="text-gray-900 dark:text-white uppercase text-sm max-[400px]:text-xs">{btn}</span>
           </button>
