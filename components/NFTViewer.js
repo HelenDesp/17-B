@@ -100,9 +100,9 @@ export default function NFTViewer({
             </p>
           </div>
           <div className="text-right flex-shrink-0 ml-4">
-            <p className="font-semibold text-gray-800 dark:text-white text-lg">
-              {`RVG NFT${nfts.length === 1 ? '' : 's'} ${nfts.length}`}
-            </p>
+			<p className="font-semibold text-gray-800 dark:text-white text-lg">
+			  {`RVG NFT${nfts.length === 1 ? '' : 's'}: ${nfts.length}`}
+			</p>
             {nfts.length > 4 && (
               <button
                 onClick={() => setShowAll(!showAll)}
