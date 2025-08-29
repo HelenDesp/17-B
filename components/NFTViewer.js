@@ -94,7 +94,7 @@ export default function NFTViewer({
       <div className="p-6 bg-white border-b2 dark:bg-gray-800 rounded-lg shadow-md">
 		{/* Top row for Title and Counter */}
 		<div className="flex justify-between items-start mb-2">
-		  <h2 className="text-xl font-semibold text-gray-800 dark:text-white">ReVerse Genesis NFTs</h2>
+		  <h2 className="text-xl font-semibold text-gray-800 dark:text-white">ReVerse Genesis NFT(s)</h2>
 		  <div className="text-right flex-shrink-0 ml-4">
 			<p className="font-semibold text-gray-800 dark:text-white text-lg">
 			  {`RVG NFT${nfts.length === 1 ? '' : 's'}: ${nfts.length}`}
@@ -117,12 +117,23 @@ export default function NFTViewer({
 
 		{/* Description text on its own line below */}
 		<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-		  View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.
+		  Seamlessly manage your RVG NFTs by viewing, safely transferring, and tracking your NFTs activity in multiple networks, while also upgrading visual traits like the manifesto, talisman, and weapon, and creating a unique PalMoji to share and play with, all within our dApp.
 		</p>
         {loading ? (
-          <p className="text-gray-500 dark:text-white">Loading NFTs...</p>
+          <p className="text-gray-500 dark:text-white">Loading RGG NFTs...</p>
         ) : nfts.length === 0 ? (
-          <p className="text-gray-500 dark:text-white">No NFTs found for this wallet.</p>
+		  <p className="text-gray-500 dark:text-white">
+			This wallet doesn't hold any RVG NFTs yet. Mint yours on{" "}
+			<a
+			  href="https://www.scatter.art/collection/reverse-genesis"
+			  target="_blank"
+			  rel="noopener noreferrer"
+			  className="text-gray-800 dark:text-white underline hover:no-underline"
+			>
+			  [scatter.art]
+			</a>
+			{" "}to begin your journey.
+		  </p>
         ) : (
           <div className="nft-grid gap-4">
             {displayedNfts.map((nft, i) => (
