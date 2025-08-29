@@ -247,8 +247,8 @@ export default function NFTTransfer({
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
         Transfer RVG NFT(s)
       </h2>
-		<p className="text-gray-600 dark:text-gray-400 mt-2">
-		  • For Single or Multiple transfers, tick the checkbox on each NFT you wish to send.<br />• For a bulk transfer of every NFT you own, simply select the "All" mode.<br /> 
+		<p className="text-gray-600 dark:text-gray-400 mt-2 mb-4">
+		  • For Single or Multiple transfers, tick the checkbox on each NFT you wish to send.<br />• For a bulk transfer of every NFT you own, simply select the "All" mode.
 		</p>
       {/* Mode select as square checkboxes (styled as a select group) */}
       <div className="mb-4 flex flex-wrap gap-2 sm:gap-4">

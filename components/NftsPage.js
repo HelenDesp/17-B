@@ -4,6 +4,7 @@ import { useAppKit } from "@reown/appkit/react";
 import NFTViewer from "./NFTViewer";
 import NFTTransfer from "./nftTransfer";
 import NftTxHistory from "./NftTxHistory";
+import { createPublicClient, http, defineChain } from "viem";
 
 // This new component contains all the logic for the NFTs page
 export default function NftsPage() {
@@ -60,11 +61,45 @@ export default function NftsPage() {
     fetchNFTsRef.current();
   }, [address]);
   
+  useEffect(() => {
+    const fetchGasPrice = async () => {
+      try {
+        if (!chain?.id) return;
+        const client = createPublicClient({
+          chain: defineChain({
+            id: chain.id,
+            name: chain.name,
+            nativeCurrency: {
+              name: chain.nativeCurrency?.name || "ETH",
+              symbol: chain.nativeCurrency?.symbol || "ETH",
+              decimals: 18,
+            },
+            rpcUrls: {
+              default: {
+                http: [chain.rpcUrls?.default?.http?.[0] || ""],
+              },
+            },
+          }),
+          transport: http(),
+        });
+        const gasPrice = await client.getGasPrice();
+        const gwei = Number(gasPrice) / 1e9;
+        setGasPriceGwei(gwei.toFixed(3));
+      } catch (err) {
+        console.error("Failed to fetch gas price:", err);
+        setGasPriceGwei("N/A");
+      }
+    };
+
+    fetchGasPrice();
+    const interval = setInterval(fetchGasPrice, 15000);
+    return () => clearInterval(interval);
+  }, [chain]);
+  
   const formatChainName = (name) => {
     if (!name) return "";
     return name;
   };
-  const [gasPriceGwei, setGasPriceGwei] = useState("...");
 
   return (
     <div className="space-y-6">
@@ -110,14 +145,16 @@ export default function NftsPage() {
           )
         }
       />
-      <NFTTransfer
-        nfts={nfts}
-        selectedNFTsFromDashboard={selectedNFTs}
-        setSelectedNFTsFromDashboard={setSelectedNFTs}
-        chainId={chain?.id}
-        fetchNFTs={fetchNFTsRef}
-      />
-      <NftTxHistory address={address} chainId={chain?.id} />
+	<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+	  <NFTTransfer
+		nfts={nfts}
+		selectedNFTsFromDashboard={selectedNFTs}
+		setSelectedNFTsFromDashboard={setSelectedNFTs}
+		chainId={chain?.id}
+		fetchNFTs={fetchNFTsRef}
+	  />
+	  <NftTxHistory address={address} chainId={chain?.id} />
+	</div>
     </div>
   );
 };
