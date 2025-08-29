@@ -179,15 +179,14 @@ export default function Dashboard() {
 		  {/* --- Welcome text has been moved here --- */}
 		  <div>
 			<h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-			  Welcome to your Web3 Wallet
+			  Dashboard
 			</h1>
 			<p className="text-gray-600 dark:text-gray-400 mt-2">
-			  Manage your crypto assets, make transfers, and track your transaction
-			  history in one place.
+			  Manage your NFTs and Tokens across multiple networks with a full suite of powerful tools, while also unleashing your creativity to design a unique PalMoji.
 			</p>
 		  </div>
 
-		  <div className="bg-white border-b2 dark:bg-dark-200 rounded-xl shadow-sm p-6">
+		  <div className="bg-white border-b2 dark:bg-dark-200 rounded-xl shadow-sm p-6 pb-0">
 			<div className="dashboard-grid">
             <div className="bg-gray-50 border-b1 dark:border-b-white dark:bg-dark-100 rounded-xl p-4 border border-gray-100 dark:border-white">
               <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Balance</div>
