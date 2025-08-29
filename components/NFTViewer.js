@@ -117,9 +117,25 @@ export default function NFTViewer({
 
 		{/* Description text on its own line below */}
 		<p className="text-gray-600 dark:text-gray-400 mb-4">
-		  Seamlessly manage your RVG NFTs by viewing, safely transferring, and tracking your NFTs activity in multiple networks, while also upgrading visual traits like the Manifesto, Talisman, and Weapon, and creating a unique PalMoji{' '}
-		  <span className="font-mono font-bold text-gray-800 dark:text-white align-middle">^w^</span>
-		  {' '}to share and play with, all within our dApp.
+		  Seamlessly manage your RVG NFTs by viewing, safely transferring, and tracking your NFTs activity in multiple networks, while also upgrading visual traits like the Manifesto, Talisman, and Weapon, and creating a unique PalMoji
+		  <span 
+			style={{ 
+			  fontFamily: '"Doto", monospace',
+			  fontWeight: 900,
+			  fontSize: '22px',
+			  whiteSpace: 'nowrap',
+			  display: 'inline-block',
+			  verticalAlign: 'middle',
+			  lineHeight: 1,
+			  margin: '0 0.25rem',
+			}}
+			className="text-gray-800 dark:text-white"
+		  >
+			<span style={{ position: 'relative', top: `${iconEyeVerticalShift}px` }}>^</span>
+			<span style={{ marginLeft: `${iconEyeSpacing}px`, marginRight: `${iconEyeSpacing}px` }}>w</span>
+			<span style={{ position: 'relative', top: `${iconEyeVerticalShift}px` }}>^</span>
+		  </span>
+		  to share and play with, all within our dApp.
 		</p>
         {loading ? (
           <p className="text-gray-500 dark:text-white">Loading RGG NFTs...</p>
