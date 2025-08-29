@@ -5,10 +5,9 @@ import Footer from "./Footer";
 import { useTheme } from "../context/ThemeContext";
 import { useAccount } from "wagmi";
 import AsciiComingSoon from './AsciiComingSoon';
+import NftsPage from './NftsPage'; // <-- IMPORT THE NEW PAGE COMPONENT
 
-// --- (No changes to these components) ---
-const Dashboard = () => <div className="p-6"><h1>Dashboard Content</h1></div>;
-const NFTs = () => <div className="p-6"><h1>NFTs Content</h1></div>;
+// --- These placeholders remain simple ---
 const Tokens = () => <div className="p-6"><h1>Tokens Content</h1></div>;
 const Activity = () => <div className="p-6"><h1>Activity Content</h1></div>;
 
@@ -47,8 +46,6 @@ export default function Layout({ children }) {
 
   const [activeTab, setActiveTab] = useState("dashboard");
 
-
-  // Handle mobile detection
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -58,7 +55,6 @@ export default function Layout({ children }) {
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
-  // Close sidebar on mobile when switching routes (now tabs)
   useEffect(() => {
     if (isMobile) {
       setSidebarOpen(false);
@@ -75,15 +71,13 @@ export default function Layout({ children }) {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // --- (This part is correct and does not need changes) ---
   const renderContent = () => {
     if (!isConnected) {
-      // The `children` prop refers to the Dashboard component from pages/index.js
       return children;
     }	  
     switch (activeTab) {
       case "nfts":
-        return <NFTs />;		
+        return <NftsPage />; // <-- USE THE IMPORTED COMPONENT
       case "tokens":
         return <Tokens />;		
       case "activity":
@@ -98,7 +92,6 @@ export default function Layout({ children }) {
         return <Settings theme={theme} />;
       case "dashboard":
       default:
-        // By default, it shows the original content from index.js
         return children; 
     }
   };
@@ -108,7 +101,6 @@ export default function Layout({ children }) {
       <Header toggleSidebar={toggleSidebar} />
 
       <div className="flex flex-1">
-        {/* Mobile backdrop for sidebar */}
         {sidebarOpen && isConnected && isMobile && (
           <div
             className="fixed inset-0 bg-gray-900 bg-opacity-50 z-20"
@@ -117,7 +109,6 @@ export default function Layout({ children }) {
           ></div>
         )}
 
-        {/* Sidebar */}
         {isConnected && (
           <div
             className={`${
@@ -132,12 +123,10 @@ export default function Layout({ children }) {
           </div>
         )}
 
-        {/* Main content */}
         <main
           className={`flex-grow p-4 sm:p-6 lg:p-8 w-full transition-all duration-200`}
         >
           <div className="max-w-7xl mx-auto">
-            {/* Gradient background for non-connected state */}
             {!isConnected && (
               <div className="fixed inset-0 -z-10 pointer-events-none">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-50 via-secondary-50 to-primary-100 dark:from-primary-900/20 dark:via-secondary-900/20 dark:to-primary-800/20 animate-pulse-slow opacity-40 dark:opacity-20"></div>
