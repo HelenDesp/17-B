@@ -92,32 +92,33 @@ export default function NFTViewer({
   return (
     <>
       <div className="p-6 bg-white border-b2 dark:bg-gray-800 rounded-lg shadow-md">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">ReVerse Genesis NFTs</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.
-            </p>
-          </div>
-          <div className="text-right flex-shrink-0 ml-4">
+		{/* Top row for Title and Counter */}
+		<div className="flex justify-between items-start mb-2">
+		  <h2 className="text-xl font-semibold text-gray-800 dark:text-white">ReVerse Genesis NFTs</h2>
+		  <div className="text-right flex-shrink-0 ml-4">
 			<p className="font-semibold text-gray-800 dark:text-white text-lg">
 			  {`RVG NFT${nfts.length === 1 ? '' : 's'}: ${nfts.length}`}
 			</p>
-            {nfts.length > 4 && (
-              <button
-                onClick={() => setShowAll(!showAll)}
-                className="flex items-center justify-end w-full text-base text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                <span>{showAll ? "Hide" : "Show All"}</span>
-                {showAll ? (
-                  <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path></svg>
-                ) : (
-                  <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                )}
-              </button>
-            )}
-          </div>
-        </div>
+			{nfts.length > 4 && (
+			  <button
+				onClick={() => setShowAll(!showAll)}
+				className="flex items-center justify-end w-full text-base text-gray-600 hover:text-gray-900 dark:hover:text-white transition-colors"
+			  >
+				<span>{showAll ? "Hide" : "Show All"}</span>
+				{showAll ? (
+				  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path></svg>
+				) : (
+				  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+				)}
+			  </button>
+			)}
+		  </div>
+		</div>
+
+		{/* Description text on its own line below */}
+		<p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+		  View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.
+		</p>
         {loading ? (
           <p className="text-gray-500 dark:text-white">Loading NFTs...</p>
         ) : nfts.length === 0 ? (
