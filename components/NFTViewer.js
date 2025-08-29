@@ -100,19 +100,19 @@ export default function NFTViewer({
             </p>
           </div>
           <div className="text-right flex-shrink-0 ml-4">
-            <p className="font-semibold text-gray-800 dark:text-white">
+            <p className="font-semibold text-gray-800 dark:text-white text-lg">
               {`RVG NFT${nfts.length === 1 ? '' : 's'} ${nfts.length}`}
             </p>
             {nfts.length > 4 && (
               <button
                 onClick={() => setShowAll(!showAll)}
-                className="flex items-center justify-end w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className="flex items-center justify-end w-full text-base text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <span>{showAll ? "Hide" : "Show All"}</span>
                 {showAll ? (
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path></svg>
+                  <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path></svg>
                 ) : (
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                 )}
               </button>
             )}
