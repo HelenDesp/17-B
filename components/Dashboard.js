@@ -17,6 +17,8 @@ import { useAppKit } from "@reown/appkit/react";
 import { useTheme } from "../context/ThemeContext";
 import AsciiAnimation from "./AsciiAnimation";
 
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
 
 const erc721Abi = [
@@ -95,20 +97,24 @@ export default function Dashboard() {
 		fetchNFTsRef.current = async () => {
 		  if (!address) return;
 		  try {
-			// --- ADD THIS BLOCK to refresh metadata ---
 			try {
 			  console.log("Attempting to refresh NFT metadata via server...");
 			  await fetch('https://mcpmarket.com/server/alchemy-sdk');
 			  console.log("Metadata refresh request sent successfully.");
+			  
+			  // --- NEW: Wait 3 seconds for Alchemy's cache to update ---
+			  await delay(3000); 
+			  console.log("Waited 3 seconds, now fetching NFTs.");
+
 			} catch (refreshError) {
 			  console.warn("Could not refresh NFT metadata, data may be stale:", refreshError);
 			}
-			// --- END of added block ---
 
 			const res = await fetch(
 			  `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&contractAddresses[]=${CONTRACT_ADDRESS}`,
 			  { headers: { accept: "application/json" } }
 			);
+			// ... the rest of the function remains the same ...
 			const data = await res.json();
 			const parsed = [];
 
