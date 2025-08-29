@@ -6,7 +6,6 @@ import NFTTransfer from "./nftTransfer";
 import NftTxHistory from "./NftTxHistory";
 import { createPublicClient, http, defineChain } from "viem";
 
-// This new component contains all the logic for the NFTs page
 export default function NftsPage() {
   const { address, chain } = useAccount();
   const { data: ethBalance } = useBalance({ address, enabled: !!address });
@@ -14,6 +13,7 @@ export default function NftsPage() {
 
   const [nfts, setNfts] = useState([]);
   const [selectedNFTs, setSelectedNFTs] = useState([]);
+  const [gasPriceGwei, setGasPriceGwei] = useState(null); // <-- THIS LINE FIXES THE CRASH
   const fetchNFTsRef = useRef();
 
   const CONTRACT_ADDRESS = "0x28D744dAb5804eF913dF1BF361E06Ef87eE7FA47";
