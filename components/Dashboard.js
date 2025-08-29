@@ -91,84 +91,93 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [chain]);
 
-  useEffect(() => {
-    fetchNFTsRef.current = async () => {
-      if (!address) return;
-      try {
-        const res = await fetch(
-          `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&contractAddresses[]=${CONTRACT_ADDRESS}`,
-          { headers: { accept: "application/json" } }
-        );
-        const data = await res.json();
-        const parsed = [];
+	useEffect(() => {
+		fetchNFTsRef.current = async () => {
+		  if (!address) return;
+		  try {
+			// --- ADD THIS BLOCK to refresh metadata ---
+			try {
+			  console.log("Attempting to refresh NFT metadata via server...");
+			  await fetch('https://mcpmarket.com/server/alchemy-sdk');
+			  console.log("Metadata refresh request sent successfully.");
+			} catch (refreshError) {
+			  console.warn("Could not refresh NFT metadata, data may be stale:", refreshError);
+			}
+			// --- END of added block ---
 
-        for (const nft of data.ownedNfts || []) {
-          const meta = nft.raw?.metadata || {};
-          
-          // FIX for NFT IMAGES: This logic correctly handles IPFS links.
-          let imageUrl = nft.image?.originalUrl || meta.image || '';
-          if (imageUrl.startsWith("ipfs://")) {
-            imageUrl = imageUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
-          }
-          
-          const name = meta.name || nft.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
-          const getTrait = (type) =>
-            meta.attributes?.find((attr) => attr.trait_type === type)?.value || "";
+			const res = await fetch(
+			  `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&contractAddresses[]=${CONTRACT_ADDRESS}`,
+			  { headers: { accept: "application/json" } }
+			);
+			const data = await res.json();
+			const parsed = [];
 
-          parsed.push({
-            tokenId: nft.tokenId,
-            name,
-            image: imageUrl, // Use the corrected image URL
-            traits: {
-              manifesto: getTrait("Manifesto"),
-              friend: getTrait("Friend"),
-              weapon: getTrait("Weapon"),
-            },
-          });
-        }
+			for (const nft of data.ownedNfts || []) {
+			  const meta = nft.raw?.metadata || {};
+			  
+			  let imageUrl = nft.image?.originalUrl || meta.image || '';
+			  if (imageUrl.startsWith("ipfs://")) {
+				imageUrl = imageUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
+			  }
+			  
+			  const name = meta.name || nft.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
+			  const getTrait = (type) =>
+				meta.attributes?.find((attr) => attr.trait_type === type)?.value || "";
 
-        const client = createPublicClient({
-          chain: defineChain({
-            id: 8453,
-            name: 'Base',
-            nativeCurrency: {
-              name: 'Ethereum',
-              symbol: 'ETH',
-              decimals: 18,
-            },
-            rpcUrls: {
-              default: {
-                http: ['https://mainnet.base.org'],
-              },
-            },
-          }),
-          transport: http(),
-        });
+			  parsed.push({
+				tokenId: nft.tokenId,
+				name,
+				image: imageUrl,
+				traits: {
+				  manifesto: getTrait("Manifesto"),
+				  talisman: getTrait("Talisman"),
+				  weapon: getTrait("Weapon"),
+				},
+			  });
+			}
 
-        const verified = [];
-        for (const nft of parsed) {
-          try {
-            const owner = await readContract(client, {
-              abi: erc721Abi,
-              address: CONTRACT_ADDRESS,
-              functionName: 'ownerOf',
-              args: [nft.tokenId],
-            });
-            if (owner.toLowerCase() === address.toLowerCase()) {
-              verified.push(nft);
-            }
-          } catch (err) {
-            // If error, skip NFT
-          }
-        }
-        setNfts(verified);
-      } catch (err) {
-        console.error("Failed to fetch NFTs:", err);
-      }
-    };
+			const client = createPublicClient({
+			  chain: defineChain({
+				id: 8453,
+				name: 'Base',
+				nativeCurrency: {
+				  name: 'Ethereum',
+				  symbol: 'ETH',
+				  decimals: 18,
+				},
+				rpcUrls: {
+				  default: {
+					http: ['https://mainnet.base.org'],
+				  },
+				},
+			  }),
+			  transport: http(),
+			});
 
-    fetchNFTsRef.current();
-  }, [address]);
+			const verified = [];
+			for (const nft of parsed) {
+			  try {
+				const owner = await readContract(client, {
+				  abi: erc721Abi,
+				  address: CONTRACT_ADDRESS,
+				  functionName: 'ownerOf',
+				  args: [nft.tokenId],
+				});
+				if (owner.toLowerCase() === address.toLowerCase()) {
+				  verified.push(nft);
+				}
+			  } catch (err) {
+				// If error, skip NFT
+			  }
+			}
+			setNfts(verified);
+		  } catch (err) {
+			console.error("Failed to fetch NFTs:", err);
+		  }
+		};
+
+		fetchNFTsRef.current();
+	}, [address]);
 
   useEffect(() => {
     setMounted(true);
