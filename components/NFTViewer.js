@@ -28,6 +28,8 @@ export default function NFTViewer({
   const [isPalMojiOpen, setIsPalMojiOpen] = useState(false);
   const [activePalMojiNFT, setActivePalMojiNFT] = useState(null);
   const [palMojiNames, setPalMojiNames] = useState({});
+  
+  const [showAll, setShowAll] = useState(false);
 
   const handleChange = (field, value) => setFormData({ ...formData, [field]: value });
 
@@ -83,22 +85,46 @@ export default function NFTViewer({
 			[activePalMojiNFT.tokenId]: newName.trim(),
 		  }));
 		}
-	}; 
+	};
+
+  const displayedNfts = showAll ? nfts : nfts.slice(0, 4);	
 
   return (
     <>
       <div className="p-6 bg-white border-b2 dark:bg-gray-800 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">ReVerse Genesis NFTs</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.
-        </p>
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">ReVerse Genesis NFTs</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              View, customize, and upgrade your ReVerse Genesis NFTs directly from your wallet.
+            </p>
+          </div>
+          <div className="text-right flex-shrink-0 ml-4">
+            <p className="font-semibold text-gray-800 dark:text-white">
+              {`RVG NFT${nfts.length === 1 ? '' : 's'} ${nfts.length}`}
+            </p>
+            {nfts.length > 4 && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="flex items-center justify-end w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                <span>{showAll ? "Hide" : "Show All"}</span>
+                {showAll ? (
+                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"></path></svg>
+                ) : (
+                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                )}
+              </button>
+            )}
+          </div>
+        </div>
         {loading ? (
           <p className="text-gray-500 dark:text-white">Loading NFTs...</p>
         ) : nfts.length === 0 ? (
           <p className="text-gray-500 dark:text-white">No NFTs found for this wallet.</p>
         ) : (
           <div className="nft-grid gap-4">
-            {nfts.map((nft, i) => (
+            {displayedNfts.map((nft, i) => (
               <div key={i} className="relative bg-gray-100 dark:bg-gray-700 p-4 border-b1 shadow group">
                 
                 <button
