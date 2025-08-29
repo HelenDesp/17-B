@@ -93,97 +93,61 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [chain]);
 
-	useEffect(() => {
-		fetchNFTsRef.current = async () => {
-		  if (!address) return;
-		  try {
-			try {
-			  console.log("Attempting to refresh NFT metadata via server...");
-			  await fetch('https://mcpmarket.com/server/alchemy-sdk');
-			  console.log("Metadata refresh request sent successfully.");
-			  
-			  // --- NEW: Wait 3 seconds for Alchemy's cache to update ---
-			  await delay(3000); 
-			  console.log("Waited 3 seconds, now fetching NFTs.");
+useEffect(() => {
+    fetchNFTsRef.current = async () => {
+      if (!address) return;
+      try {
+        // Step 1: Force the metadata refresh (this part is still good practice)
+        try {
+          await fetch('https://mcpmarket.com/server/alchemy-sdk');
+        } catch (refreshError) {
+          console.warn("Could not refresh NFT metadata:", refreshError);
+        }
 
-			} catch (refreshError) {
-			  console.warn("Could not refresh NFT metadata, data may be stale:", refreshError);
-			}
+        // Step 2: Fetch the list of NFTs from Alchemy
+        const res = await fetch(
+          `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&contractAddresses[]=${CONTRACT_ADDRESS}`,
+          { headers: { accept: "application/json" } }
+        );
+        const data = await res.json();
+        const parsed = [];
 
-			const res = await fetch(
-			  `https://base-mainnet.g.alchemy.com/nft/v3/-h4g9_mFsBgnf1Wqb3aC7Qj06rOkzW-m/getNFTsForOwner?owner=${address}&contractAddresses[]=${CONTRACT_ADDRESS}`,
-			  { headers: { accept: "application/json" } }
-			);
-			// ... the rest of the function remains the same ...
-			const data = await res.json();
-			const parsed = [];
+        // Step 3: Parse the data from Alchemy
+        for (const nft of data.ownedNfts || []) {
+          const meta = nft.raw?.metadata || {};
+          
+          let imageUrl = nft.image?.originalUrl || meta.image || '';
+          if (imageUrl.startsWith("ipfs://")) {
+            imageUrl = imageUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
+          }
+          
+          const name = meta.name || nft.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
+          const getTrait = (type) =>
+            meta.attributes?.find((attr) => attr.trait_type === type)?.value || "";
 
-			for (const nft of data.ownedNfts || []) {
-			  const meta = nft.raw?.metadata || {};
-			  
-			  let imageUrl = nft.image?.originalUrl || meta.image || '';
-			  if (imageUrl.startsWith("ipfs://")) {
-				imageUrl = imageUrl.replace("ipfs://", "https://ipfs.io/ipfs/");
-			  }
-			  
-			  const name = meta.name || nft.name || `ReVerse Genesis #${String(nft.tokenId).padStart(4, "0")}`;
-			  const getTrait = (type) =>
-				meta.attributes?.find((attr) => attr.trait_type === type)?.value || "";
+          parsed.push({
+            tokenId: nft.tokenId,
+            name,
+            image: imageUrl,
+            traits: {
+              manifesto: getTrait("Manifesto"),
+              talisman: getTrait("Talisman"),
+              weapon: getTrait("Weapon"),
+            },
+          });
+        }
+        
+        // Step 4: Set the state directly with the parsed data.
+        // The entire fragile verification loop has been removed.
+        setNfts(parsed);
 
-			  parsed.push({
-				tokenId: nft.tokenId,
-				name,
-				image: imageUrl,
-				traits: {
-				  manifesto: getTrait("Manifesto"),
-				  talisman: getTrait("Talisman"),
-				  weapon: getTrait("Weapon"),
-				},
-			  });
-			}
+      } catch (err) {
+        console.error("Failed to fetch NFTs:", err);
+      }
+    };
 
-			const client = createPublicClient({
-			  chain: defineChain({
-				id: 8453,
-				name: 'Base',
-				nativeCurrency: {
-				  name: 'Ethereum',
-				  symbol: 'ETH',
-				  decimals: 18,
-				},
-				rpcUrls: {
-				  default: {
-					http: ['https://mainnet.base.org'],
-				  },
-				},
-			  }),
-			  transport: http(),
-			});
-
-			const verified = [];
-			for (const nft of parsed) {
-			  try {
-				const owner = await readContract(client, {
-				  abi: erc721Abi,
-				  address: CONTRACT_ADDRESS,
-				  functionName: 'ownerOf',
-				  args: [nft.tokenId],
-				});
-				if (owner.toLowerCase() === address.toLowerCase()) {
-				  verified.push(nft);
-				}
-			  } catch (err) {
-				// If error, skip NFT
-			  }
-			}
-			setNfts(verified);
-		  } catch (err) {
-			console.error("Failed to fetch NFTs:", err);
-		  }
-		};
-
-		fetchNFTsRef.current();
-	}, [address]);
+    fetchNFTsRef.current();
+}, [address]);
 
   useEffect(() => {
     setMounted(true);
