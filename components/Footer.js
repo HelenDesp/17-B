@@ -156,7 +156,7 @@ export default function Footer() {
                 type="text"
                 value={contactForm.name}
                 onChange={e => handleContactChange("name", e.target.value)}
-                className="w-full mt-1 p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-500 focus:border-black dark:focus:border-white focus:border-[2px] focus:outline-none focus:ring-0 rounded-none"
+                className="w-full mt-1 p-2 border !border-black dark:!border-white bg-white dark:bg-black text-black dark:text-white placeholder-gray-500 focus:!border-black dark:focus:!border-white focus:!border-[2px] focus:outline-none focus:ring-0 rounded-none"
               />
             </div>
             <div>
