@@ -142,9 +142,42 @@ const Scoreboard = ({ theme }) => (
 const Settings = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Settings [Coming Soon...]</h1>
-    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
-      Create or join exclusive, token-gated clans based on the NFTs you hold. This will be your space to connect, strategize, and engage with fellow holders.
-    </p>	
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl">
+      This is your control panel for the dApp. The Settings page gives you granular control over your profile's appearance, preferences, language, notifications, and security.
+    </p>
+
+    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Profile: Nickname & Avatar</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Set your public nickname and choose an avatar. This can be your ENS/BNS name, a custom name, and any NFT from your wallet.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Appearance & Preferences</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Tailor the look and feel of your dApp. Switch between Light and Dark themes, set your local time zone for accurate timestamps, and choose your preferred currency for displaying asset values.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Language</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Choose your preferred language for the dApp interface. Your selection will be saved for all future visits.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Notifications</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Stay updated on your account activity. Opt-in to receive notifications for successful transactions, incoming assets, and important community announcements.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Security & Privacy</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Manage your security and privacy with powerful controls.
+        </p>
+      </div>
+    </div>	
     <AsciiComingSoon theme={theme} />
   </div>
 );
