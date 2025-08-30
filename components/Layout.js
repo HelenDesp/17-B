@@ -24,9 +24,36 @@ const PalMoji = ({ theme }) => (
 const GenesisHub = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Genesis Hub [Coming Soon...]</h1>
-    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
-      This will be the central portal for all community activities. Discover top clans, view upcoming events, and access exclusive holder announcements right here.
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl">
+      Welcome to the Genesis Hub, the central portal for the ReVerse Genesis community. This is the exclusive space for holders to connect, stay updated, and directly influence the growth of the project. We are actively building the following features for you:
     </p>
+
+    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Project Announcements</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Get all official news, development updates, and roadmap progress directly from the team. The Hub will be the single source of truth for everything happening in the ReVerse Genesis ecosystem.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Events & Calendar</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Never miss an important community event. Track upcoming AMAs, art contests, game nights, and holder-only meetups on a shared community calendar.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Governance & Polls</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Your voice matters. Participate in holder-only polls and governance proposals that will shape the future of the project. Use your NFT to vote on key decisions and make a real impact.
+        </p>
+      </div>
+		<div>
+		  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Ecosystem Expansion</h3>
+		  <p className="text-gray-600 dark:text-gray-400 mt-1">
+			Dive deeper into the world of ReVerse Genesis with an expanding lore library. A dedicated, secure marketplace for trading and acquiring assets, P2E games, and our own crypto token are also on the horizon.
+		  </p>
+		</div>
+    </div>
     <AsciiComingSoon theme={theme} />
   </div>
 );
