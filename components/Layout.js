@@ -106,9 +106,36 @@ const Earn = ({ theme }) => (
 const Scoreboard = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Scoreboard [Coming Soon...]</h1>
-    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
-      Create or join exclusive, token-gated clans based on the NFTs you hold. This will be your space to connect, strategize, and engage with fellow holders.
-    </p>	
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl">
+      Ready to make your mark? The Scoreboard is where legacy is forged. This will be the main destination to track rankings, celebrate top performers, and see how you stack up against the best in the ReVerse Genesis community.
+    </p>
+
+    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Multi-Game Leaderboards</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Track your performance across all our P2E games. Whether it's the highest score, the most wins, or the fastest completion time, find your name at the top of the charts and earn valuable badges.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Seasonal Rankings & Rewards</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Compete in seasons to keep the challenge fresh. Climb the seasonal leaderboards to earn exclusive, time-sensitive rewards like rare NFTs, token bonuses, and unique animated profile, exclusive banners, and champion titles.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Collector & Community Score</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          It's not just about gaming. Earn points for the rarity and size of your RVG NFT portfolio, your participation in governance polls, and your positive contributions to the Genesis Hub. Prove you're a top supporter of the ecosystem.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Detailed Player Profiles</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Click on any name to view a detailed player profile. See their achievements, stats, NFT collection, and recent activity. A place to showcase your own accomplishments and scout the competition.
+        </p>
+      </div>
+    </div>	
     <AsciiComingSoon theme={theme} />
   </div>
 );
