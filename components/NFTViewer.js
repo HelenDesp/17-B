@@ -117,7 +117,7 @@ export default function NFTViewer({
 
 		{/* Description text on its own line below */}
 		<p className="text-gray-600 dark:text-gray-400 mb-4">
-		  Seamlessly manage your RVG NFTs by viewing, safely transferring, and tracking your NFTs activity in multiple networks, while also upgrading visual traits like the Manifesto, Talisman, and Weapon, and creating a unique PalMoji
+		  Seamlessly manage your RVG NFTs by viewing, safely transferring, and tracking your NFTs activity in multiple networks, while also customizing your NFT with a unique name, upgrading its visual traits: Manifesto, Talisman, Weapon, and creating your own PalMoji
 		  <span 
 			style={{ 
 			  fontFamily: '"Doto", monospace',
