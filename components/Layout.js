@@ -28,7 +28,7 @@ const GenesisHub = ({ theme }) => (
       Meet the Genesis Hub, the central portal for the ReVerse Genesis community. This is the exclusive space for holders to connect, stay updated, and directly influence the growth of the project. We are actively building the following features for you:
     </p>
 
-    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-white pt-8 mb-8">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Project Announcements</h3>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -62,26 +62,26 @@ const Clans = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Clans [Coming Soon...]</h1>
     <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl">
-      Unite with fellow holders and forge your legacy. The Clans section is your dedicated space to create, join, and manage exclusive, token-gated communities. This is where you connect with your peers, strategize, and build a powerful collective identity.
+      Unite with fellow holders and forge your legacy. The Clans realm is your dedicated space to create, join, and manage exclusive, token-gated communities. This is where you connect with your peers, strategize, and build a powerful collective identity.
     </p>
 
-    <div className="max-w-4xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+    <div className="max-w-4xl w-full text-left space-y-6 border-t border-gray-200 dark:border-white pt-8 mb-8">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Clan Roles & Hierarchy</h3>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Clans are founded and led by holders of Hororo Babies NFTs. As a founder, you have the power to choose a unique name and emblem, write your clan's manifesto, and set the rules for the community. Lead the charge and define your collective destiny! Serving the Hororo Babies are the elite Knights—holders of Wildcards Joker W and Wildcards Joker B—who possess more power and influence than regular members within the clan structure.
+          Clans are founded and led by holders of Hororo Babies NFTs. As a founder, you have the power to choose a unique name and emblem, write your clan's manifesto, and set the rules for the community. Lead the charge and define your collective destiny! Serving the Hororo Babies are the elite Knights, holders of Wildcards Joker W and Wildcards Joker B, who possess more power and influence than regular members within the clan structure.
         </p>
         <div className="flex flex-wrap justify-center items-start gap-4 mt-4">
           <div className="text-center">
-            <img src="https://reversegenesis.org/clans/Hororo_Babies.png" alt="Hororo Babies NFT" className="w-48 h-48 object-contain rounded-lg shadow-md" />
-            <p className="text-sm font-semibold mt-2 text-gray-800 dark:text-white">Founders & Leaders</p>
+            <img src="https://reversegenesis.org/clans/Hororo_Babies.png" alt="Hororo Babies NFT" className="w-48 h-48 object-contain rounded-lg shadow-md border border-black dark:border-white" />
+            <p className="text-sm font-semibold mt-2 text-gray-800 dark:text-white">Hororo Babies</p>
           </div>
           <div className="text-center">
-            <img src="https://reversegenesis.org/clans/Joker-W.png" alt="Wildcards Joker W NFT" className="w-48 h-48 object-contain rounded-lg shadow-md" />
+            <img src="https://reversegenesis.org/clans/Joker-W.png" alt="Wildcards Joker W NFT" className="w-48 h-48 object-contain rounded-lg shadow-md border border-black dark:border-white" />
             <p className="text-sm font-semibold mt-2 text-gray-800 dark:text-white">Knights (W)</p>
           </div>
           <div className="text-center">
-            <img src="https://reversegenesis.org/clans/Joker-B.png" alt="Wildcards Joker B NFT" className="w-48 h-48 object-contain rounded-lg shadow-md" />
+            <img src="https://reversegenesis.org/clans/Joker-B.png" alt="Wildcards Joker B NFT" className="w-48 h-48 object-contain rounded-lg shadow-md border border-black dark:border-white" />
             <p className="text-sm font-semibold mt-2 text-gray-800 dark:text-white">Knights (B)</p>
           </div>
         </div>
@@ -125,7 +125,7 @@ const Earn = ({ theme }) => (
       Unlock earning opportunities, where your engagement and loyalty are rewarded. We are building a powerful suite of tools that add real utility to your assets. Participate in our ecosystem and unlock new ways to grow your holdings.
     </p>
 
-    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-white pt-8 mb-8">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Play-to-Earn (P2E) Games</h3>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -161,7 +161,7 @@ const Scoreboard = ({ theme }) => (
       Ready to make your mark? The Scoreboard is where legacy is forged. This will be the main destination to track rankings, celebrate top performers, and see how you stack up against the best in the ReVerse Genesis community.
     </p>
 
-    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-white pt-8 mb-8">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Multi-Game Leaderboards</h3>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -197,7 +197,7 @@ const Settings = ({ theme }) => (
       This is your control panel for the dApp. The Settings page gives you granular control over your profile's appearance, preferences, language, notifications, and security.
     </p>
 
-    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-white pt-8 mb-8">
       <div>
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Profile: Nickname & Avatar</h3>
         <p className="text-gray-600 dark:text-gray-400 mt-1">
