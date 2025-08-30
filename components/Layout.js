@@ -25,7 +25,7 @@ const GenesisHub = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Genesis Hub [Coming Soon...]</h1>
     <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl">
-      Welcome to the Genesis Hub, the central portal for the ReVerse Genesis community. This is the exclusive space for holders to connect, stay updated, and directly influence the growth of the project. We are actively building the following features for you:
+      Meet the Genesis Hub, the central portal for the ReVerse Genesis community. This is the exclusive space for holders to connect, stay updated, and directly influence the growth of the project. We are actively building the following features for you:
     </p>
 
     <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
@@ -70,9 +70,36 @@ const Clans = ({ theme }) => (
 const Earn = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Earn [Coming Soon...]</h1>
-    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
-      Create or join exclusive, token-gated clans based on the NFTs you hold. This will be your space to connect, strategize, and engage with fellow holders.
-    </p>	
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl">
+      Unlock earning opportunities, where your engagement and loyalty are rewarded. We are building a powerful suite of tools that add real utility to your assets. Participate in our ecosystem and unlock new ways to grow your holdings.
+    </p>
+
+    <div className="max-w-2xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Play-to-Earn (P2E) Games</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Unleash the power of your skills and your NFTs in our upcoming suite of P2E games. Compete against other holders, complete challenges, and earn exclusive in-game assets and token rewards.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Exclusive Airdrops</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Loyal holders and active community members will be eligible for exclusive airdrops. Stay engaged to receive new tokens, special edition NFTs, and other valuable rewards dropped directly to your wallet.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">NFT & Token Staking</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Put your assets to work. Our upcoming staking platform will allow you to lock your NFTs and project tokens to earn passive rewards, providing a steady yield for long-term (OG) supporters of the ecosystem.
+        </p>
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Questing & Missions</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Send your NFTs on missions within the ReVerse Genesis lore. Completing quests will yield rare items, token rewards, and enhance the story and utility of your unique assets.
+        </p>
+      </div>
+    </div>	
     <AsciiComingSoon theme={theme} />
   </div>
 );
