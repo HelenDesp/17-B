@@ -61,9 +61,60 @@ const GenesisHub = ({ theme }) => (
 const Clans = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Clans [Coming Soon...]</h1>
-    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
-      Create or join exclusive, token-gated clans based on the NFTs you hold. This will be your space to connect, strategize, and engage with fellow holders.
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-2xl">
+      Unite with fellow holders and forge your legacy. The Clans section is your dedicated space to create, join, and manage exclusive, token-gated communities. This is where you connect with your peers, strategize, and build a powerful collective identity.
     </p>
+
+    <div className="max-w-4xl w-full text-left space-y-6 border-t border-gray-200 dark:border-gray-700 pt-8 mb-8">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Clan Roles & Hierarchy</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Clans are founded and led by holders of Hororo Babies NFTs. As a founder, you have the power to choose a unique name and emblem, write your clan's manifesto, and set the rules for the community. Lead the charge and define your collective destiny! Serving the Hororo Babies are the elite Knights—holders of Wildcards Joker W and Wildcards Joker B—who possess more power and influence than regular members within the clan structure.
+        </p>
+        <div className="flex flex-wrap justify-center items-start gap-4 mt-4">
+          <div className="text-center">
+            <img src="https://reversegenesis.org/clans/Hororo_Babies.png" alt="Hororo Babies NFT" className="w-48 h-48 object-contain rounded-lg shadow-md" />
+            <p className="text-sm font-semibold mt-2 text-gray-800 dark:text-white">Founders & Leaders</p>
+          </div>
+          <div className="text-center">
+            <img src="https://reversegenesis.org/clans/Joker-W.png" alt="Wildcards Joker W NFT" className="w-48 h-48 object-contain rounded-lg shadow-md" />
+            <p className="text-sm font-semibold mt-2 text-gray-800 dark:text-white">Knights (W)</p>
+          </div>
+          <div className="text-center">
+            <img src="https://reversegenesis.org/clans/Joker-B.png" alt="Wildcards Joker B NFT" className="w-48 h-48 object-contain rounded-lg shadow-md" />
+            <p className="text-sm font-semibold mt-2 text-gray-800 dark:text-white">Knights (B)</p>
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Discover & Join Existing Clans</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Browse a directory of all existing clans. Find your perfect community based on required NFT, member count, or activity level.
+        </p>
+      </div>
+  
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Private Clan Halls</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Each clan gets access to a private, members-only "Clan Hall." This includes a dedicated message board for communication, a directory of all members, and a space for official clan announcements.
+        </p>
+      </div>
+      
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Shared Royalty Pool</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          The most active and prosperous clans will earn a greater share of royalties from secondary market sales of ReVerse Genesis NFTs. Your clan's collective engagement directly contributes to your shared rewards!
+        </p>
+      </div>
+      
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Showcase Your Allegiance</h3>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">
+          Your clan membership will be a badge of honor. A special flair or banner will be displayed on your main profile, showing your allegiance and connecting you with the rest of the community.
+        </p>
+      </div>
+    </div>
     <AsciiComingSoon theme={theme} />
   </div>
 );
