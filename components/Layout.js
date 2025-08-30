@@ -15,24 +15,55 @@ const Activity = () => <div className="p-6"><h1>Activity Content</h1></div>;
 const PalMoji = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">PalMoji [Coming Soon...]</h1>
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
+      Create or join exclusive, token-gated clans based on the NFTs you hold. This will be your space to connect, strategize, and engage with fellow holders.
+    </p>	
+    <AsciiComingSoon theme={theme} />
+  </div>
+);
+const GenesisHub = ({ theme }) => (
+  <div className="p-6 flex flex-col items-center justify-center text-center">
+    <h1 className="text-2xl font-bold mb-4">Genesis Hub [Coming Soon...]</h1>
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
+      This will be the central portal for all community activities. Discover top clans, view upcoming events, and access exclusive holder announcements right here.
+    </p>
+    <AsciiComingSoon theme={theme} />
+  </div>
+);
+
+const Clans = ({ theme }) => (
+  <div className="p-6 flex flex-col items-center justify-center text-center">
+    <h1 className="text-2xl font-bold mb-4">Clans [Coming Soon...]</h1>
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
+      Create or join exclusive, token-gated clans based on the NFTs you hold. This will be your space to connect, strategize, and engage with fellow holders.
+    </p>
     <AsciiComingSoon theme={theme} />
   </div>
 );
 const Earn = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Earn [Coming Soon...]</h1>
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
+      Create or join exclusive, token-gated clans based on the NFTs you hold. This will be your space to connect, strategize, and engage with fellow holders.
+    </p>	
     <AsciiComingSoon theme={theme} />
   </div>
 );
 const Scoreboard = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Scoreboard [Coming Soon...]</h1>
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
+      Create or join exclusive, token-gated clans based on the NFTs you hold. This will be your space to connect, strategize, and engage with fellow holders.
+    </p>	
     <AsciiComingSoon theme={theme} />
   </div>
 );
 const Settings = ({ theme }) => (
   <div className="p-6 flex flex-col items-center justify-center text-center">
     <h1 className="text-2xl font-bold mb-4">Settings [Coming Soon...]</h1>
+    <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
+      Create or join exclusive, token-gated clans based on the NFTs you hold. This will be your space to connect, strategize, and engage with fellow holders.
+    </p>	
     <AsciiComingSoon theme={theme} />
   </div>
 );
@@ -83,7 +114,11 @@ export default function Layout({ children }) {
       case "activity":
         return <Activity />;
       case "palmoji":
-        return <PalMoji theme={theme} />;		
+        return <PalMoji theme={theme} />;
+		case "genesishub":
+		  return <GenesisHub theme={theme} />;
+		case "clans":
+		  return <Clans theme={theme} />;		
       case "earn":
         return <Earn theme={theme} />;
       case "scoreboard":

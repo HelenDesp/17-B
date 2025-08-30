@@ -521,7 +521,7 @@ export default function AsciiComingSoon({ theme }) {
     }, []);
 
     useEffect(() => {
-        const Delay = 260;
+        const Delay = 180;
         const animationInterval = setInterval(() => {
             setCurrentFrame(prev => (prev + 1) % frames.length);
         }, Delay);
